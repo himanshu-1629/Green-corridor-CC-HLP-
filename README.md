@@ -1,17 +1,49 @@
-# green_corridor
+# Green Corridor 🚑
 
-A new Flutter project.
+Green Corridor is a smart emergency transport management platform designed for:
 
-## Getting Started
+* Organ Transport
+* Patient Transfer
+* Blood Transport
+* Body Transfer
+* Medical Equipment Transport
 
-This project is a starting point for a Flutter application.
+## Features
 
-A few resources to get you started if this is your first Flutter project:
+### Hospital Dashboard
 
-- [Learn Flutter](https://docs.flutter.dev/get-started/learn-flutter)
-- [Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Flutter learning resources](https://docs.flutter.dev/reference/learning-resources)
+* Create Mission
+* Manage Ambulances
+* Manage Drivers
+* Mission Center
+* Analytics
 
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+### Driver Dashboard
+
+* View Assigned Missions
+* Start Journey
+* Live Tracking (Planned)
+
+### Mission Center
+
+* Incoming Missions
+* Outgoing Missions
+* Mission Status Tracking
+
+### Super Admin
+
+* Hospital Management
+* Ambulance Management
+* Driver Management
+* Approval System
+
+## Future Scope
+
+* Supabase Authentication
+* Live GPS Tracking
+* Real-Time Notifications
+* Green Corridor Route Assistance
+* Citizen Alerts
+* Analytics Dashboard
+
+Built using Flutter.
