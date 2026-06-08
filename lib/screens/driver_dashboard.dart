@@ -164,8 +164,27 @@ class _DriverDashboardState
                       height: 55,
 
                       child: ElevatedButton(
-                        onPressed: () {},
+                       onPressed: mission!['status'] == 'Completed'
+    ? null
+    : () async {
+        if (mission!['status'] == 'Assigned') {
+          await Supabase.instance.client
+              .from('missions')
+              .update({
+                'status': 'In Transit',
+              })
+              .eq('id', mission!['id']);
+        } else {
+          await Supabase.instance.client
+              .from('missions')
+              .update({
+                'status': 'Completed',
+              })
+              .eq('id', mission!['id']);
+        }
 
+        await loadMission();
+      },
                         style:
                             ElevatedButton.styleFrom(
                           backgroundColor:
@@ -174,9 +193,13 @@ class _DriverDashboardState
                               Colors.white,
                         ),
 
-                        child: const Text(
-                          "START MISSION",
-                        ),
+                        child: Text(
+  mission!['status'] == 'Assigned'
+      ? 'START MISSION'
+      : mission!['status'] == 'In Transit'
+          ? 'COMPLETE MISSION'
+          : 'MISSION COMPLETED',
+),
                       ),
                     ),
                   ],
