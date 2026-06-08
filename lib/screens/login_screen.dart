@@ -14,13 +14,12 @@ class LoginScreen extends StatefulWidget {
 }
 
 class _LoginScreenState extends State<LoginScreen> {
-  String selectedRole = "Hospital Admin";
-
+ 
   final emailController = TextEditingController();
   final passwordController = TextEditingController();
 
   bool isLoading = false;
-  Future<void> loginUser() async {
+ Future<void> loginUser() async {
   try {
     setState(() {
       isLoading = true;
@@ -38,22 +37,13 @@ class _LoginScreenState extends State<LoginScreen> {
       throw Exception("Login failed");
     }
 
-   final userData = await Supabase.instance.client
-    .from('users')
-    .select()
-    .eq('id', userId)
-    .single();
+    final userData = await Supabase.instance.client
+        .from('users')
+        .select()
+        .eq('id', userId)
+        .single();
 
-
-final role = userData['role'];
-if (role != selectedRole) {
-  throw Exception(
-    "This account is registered as $role",
-  );
-}
-
-
-    
+    final role = userData['role'];
 
     if (!mounted) return;
 
@@ -72,31 +62,37 @@ if (role != selectedRole) {
         ),
       );
     } else if (role == "Citizen") {
-  Navigator.pushReplacement(
-    context,
-    MaterialPageRoute(
-      builder: (_) => const CitizenScreen(),
-    ),
-  );
-}else {
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(
+          builder: (_) => const CitizenScreen(),
+        ),
+      );
+    } else if (role == "Super Admin") {
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(
           builder: (_) => const SuperAdminDashboard(),
         ),
       );
+    } else {
+      throw Exception("Unknown role");
     }
   } catch (e) {
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(e.toString()),
+      const SnackBar(
+        content: Text(
+          "Invalid email or password",
+        ),
       ),
     );
   }
 
-  setState(() {
-    isLoading = false;
-  });
+  if (mounted) {
+    setState(() {
+      isLoading = false;
+    });
+  }
 }
   @override
   Widget build(BuildContext context) {
@@ -159,45 +155,7 @@ if (role != selectedRole) {
 
                   const SizedBox(height: 30),
 
-                  DropdownButtonFormField(
-                    value: selectedRole,
-
-                    decoration: InputDecoration(
-                      labelText: "Role",
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(15),
-                      ),
-                    ),
-
-                    items: const [
-
-                      DropdownMenuItem(
-                        value: "Hospital Admin",
-                        child: Text("Hospital Admin"),
-                      ),
-
-                      DropdownMenuItem(
-                        value: "Driver",
-                        child: Text("Driver"),
-                      ),
-
-                      DropdownMenuItem(
-                        value: "Super Admin",
-                        child: Text("Super Admin"),
-                      ),
-                      DropdownMenuItem(
-                     value: "Citizen",
-                      child: Text("Citizen"),
-                        ),
-                    ],
-
-                    onChanged: (value) {
-                      setState(() {
-                        selectedRole = value!;
-                      });
-                    },
-                  ),
-
+                  
                   const SizedBox(height: 20),
 
                   TextField(

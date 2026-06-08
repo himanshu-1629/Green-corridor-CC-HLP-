@@ -6,7 +6,7 @@ import 'hospital_dashboard.dart';
 import 'driver_dashboard.dart';
 import 'super_admin_dashboard.dart';
 import 'citizen_screen.dart';
-
+import 'welcome_screen.dart';
 class AuthGate extends StatefulWidget {
   const AuthGate({super.key});
 
@@ -15,7 +15,7 @@ class AuthGate extends StatefulWidget {
 }
 
 class _AuthGateState extends State<AuthGate> {
-  @override
+  
  @override
 void initState() {
   super.initState();
@@ -29,9 +29,14 @@ void initState() {
     final user = Supabase.instance.client.auth.currentUser;
 
     if (user == null) {
-      goToLogin();
-      return;
-    }
+  Navigator.pushReplacement(
+    context,
+    MaterialPageRoute(
+      builder: (_) => const WelcomeScreen(),
+    ),
+  );
+  return;
+}
 
     try {
       final userData = await Supabase.instance.client
@@ -73,21 +78,21 @@ void initState() {
           ),
         );
       }
-    } catch (e) {
-      goToLogin();
-    }
+    }catch (e) {
+  goToWelcome();
+}
   }
 
-  void goToLogin() {
-    if (!mounted) return;
+void goToWelcome() {
+  if (!mounted) return;
 
-    Navigator.pushReplacement(
-      context,
-      MaterialPageRoute(
-        builder: (_) => const LoginScreen(),
-      ),
-    );
-  }
+  Navigator.pushReplacement(
+    context,
+    MaterialPageRoute(
+      builder: (_) => const WelcomeScreen(),
+    ),
+  );
+}
 
   @override
   Widget build(BuildContext context) {
