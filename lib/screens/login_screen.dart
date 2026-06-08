@@ -3,8 +3,9 @@ import 'driver_dashboard.dart';
 import 'super_admin_dashboard.dart';
 import 'hospital_dashboard.dart';
 import 'package:flutter/material.dart';
-
-
+import 'register_screen.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
+import 'citizen_screen.dart';
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
 
@@ -15,6 +16,88 @@ class LoginScreen extends StatefulWidget {
 class _LoginScreenState extends State<LoginScreen> {
   String selectedRole = "Hospital Admin";
 
+  final emailController = TextEditingController();
+  final passwordController = TextEditingController();
+
+  bool isLoading = false;
+  Future<void> loginUser() async {
+  try {
+    setState(() {
+      isLoading = true;
+    });
+
+    final response =
+        await Supabase.instance.client.auth.signInWithPassword(
+      email: emailController.text.trim(),
+      password: passwordController.text.trim(),
+    );
+
+    final userId = response.user?.id;
+
+    if (userId == null) {
+      throw Exception("Login failed");
+    }
+
+   final userData = await Supabase.instance.client
+    .from('users')
+    .select()
+    .eq('id', userId)
+    .single();
+
+
+final role = userData['role'];
+if (role != selectedRole) {
+  throw Exception(
+    "This account is registered as $role",
+  );
+}
+
+
+    
+
+    if (!mounted) return;
+
+    if (role == "Hospital Admin") {
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(
+          builder: (_) => const HospitalDashboard(),
+        ),
+      );
+    } else if (role == "Driver") {
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(
+          builder: (_) => const DriverDashboard(),
+        ),
+      );
+    } else if (role == "Citizen") {
+  Navigator.pushReplacement(
+    context,
+    MaterialPageRoute(
+      builder: (_) => const CitizenScreen(),
+    ),
+  );
+}else {
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(
+          builder: (_) => const SuperAdminDashboard(),
+        ),
+      );
+    }
+  } catch (e) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(e.toString()),
+      ),
+    );
+  }
+
+  setState(() {
+    isLoading = false;
+  });
+}
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -102,6 +185,10 @@ class _LoginScreenState extends State<LoginScreen> {
                         value: "Super Admin",
                         child: Text("Super Admin"),
                       ),
+                      DropdownMenuItem(
+                     value: "Citizen",
+                      child: Text("Citizen"),
+                        ),
                     ],
 
                     onChanged: (value) {
@@ -114,7 +201,8 @@ class _LoginScreenState extends State<LoginScreen> {
                   const SizedBox(height: 20),
 
                   TextField(
-                    decoration: InputDecoration(
+  controller: emailController,
+  decoration: InputDecoration(
                       labelText: "Email",
                       prefixIcon: const Icon(Icons.email_outlined),
 
@@ -127,7 +215,8 @@ class _LoginScreenState extends State<LoginScreen> {
                   const SizedBox(height: 20),
 
                   TextField(
-                    obscureText: true,
+  controller: passwordController,
+  obscureText: true,
 
                     decoration: InputDecoration(
                       labelText: "Password",
@@ -154,50 +243,33 @@ class _LoginScreenState extends State<LoginScreen> {
                         ),
                       ),
 
-                      onPressed: () {
-
-  if (selectedRole == "Hospital Admin") {
-
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (_) =>
-            const HospitalDashboard(),
+                      onPressed: isLoading ? null : loginUser,
+                      child: isLoading
+    ? const CircularProgressIndicator(
+        color: Colors.white,
+      )
+    : const Text(
+        "LOGIN",
+        style: TextStyle(
+          color: Colors.white,
+          fontWeight: FontWeight.bold,
+        ),
       ),
-    );
-
-  } else if (selectedRole == "Driver") {
-
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (_) =>
-            const DriverDashboard(),
-      ),
-    );
-
-  } else {
-
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (_) =>
-            const SuperAdminDashboard(),
-      ),
-    );
-  }
-},
-
-                      child: const Text(
-                        "LOGIN",
-                        style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.white,
-                        ),
-                      ),
                     ),
                   ),
+                  TextButton(
+  onPressed: () {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => const RegisterScreen(),
+      ),
+    );
+  },
+  child: const Text(
+    "Create New Account",
+  ),
+),
                 ],
               ),
             ),

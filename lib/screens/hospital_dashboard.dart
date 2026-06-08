@@ -3,6 +3,8 @@ import 'create_mission_screen.dart';
 import 'manage_ambulances_screen.dart';
 import 'manage_drivers_screen.dart';
 import 'mission_center_screen.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
+import 'login_screen.dart';
 class HospitalDashboard extends StatelessWidget {
   const HospitalDashboard({super.key});
 
@@ -10,18 +12,30 @@ class HospitalDashboard extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xFFF5F7FA),
+appBar: AppBar(
+  title: const Text("Hospital Dashboard"),
+  backgroundColor: const Color(0xFFE53935),
+  foregroundColor: Colors.white,
 
-      appBar: AppBar(
-        elevation: 0,
-        backgroundColor: const Color(0xFFE53935),
-        foregroundColor: Colors.white,
-        title: const Text(
-          "Green Corridor",
-          style: TextStyle(
-            fontWeight: FontWeight.bold,
+  actions: [
+    IconButton(
+      icon: const Icon(Icons.logout),
+      onPressed: () async {
+        await Supabase.instance.client.auth.signOut();
+
+        if (!context.mounted) return;
+
+        Navigator.pushAndRemoveUntil(
+          context,
+          MaterialPageRoute(
+            builder: (_) => const LoginScreen(),
           ),
-        ),
-      ),
+          (route) => false,
+        );
+      },
+    ),
+  ],
+),
 
       body: SingleChildScrollView(
         child: Padding(

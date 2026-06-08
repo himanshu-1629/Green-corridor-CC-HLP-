@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-
+import 'package:supabase_flutter/supabase_flutter.dart';
+import 'login_screen.dart';
 class DriverDashboard extends StatelessWidget {
   const DriverDashboard({super.key});
 
@@ -9,10 +10,29 @@ class DriverDashboard extends StatelessWidget {
       backgroundColor: const Color(0xFFF5F7FA),
 
       appBar: AppBar(
-        title: const Text("Driver Dashboard"),
-        backgroundColor: const Color(0xFFE53935),
-        foregroundColor: Colors.white,
-      ),
+  title: const Text("Driver Dashboard"),
+  backgroundColor: const Color(0xFFE53935),
+  foregroundColor: Colors.white,
+
+  actions: [
+    IconButton(
+      icon: const Icon(Icons.logout),
+      onPressed: () async {
+        await Supabase.instance.client.auth.signOut();
+
+        if (!context.mounted) return;
+
+        Navigator.pushAndRemoveUntil(
+          context,
+          MaterialPageRoute(
+            builder: (_) => const LoginScreen(),
+          ),
+          (route) => false,
+        );
+      },
+    ),
+  ],
+),
 
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(20),
