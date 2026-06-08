@@ -1,16 +1,14 @@
 import 'package:flutter/material.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 class CreateMissionScreen extends StatefulWidget {
   const CreateMissionScreen({super.key});
 
   @override
-  State<CreateMissionScreen> createState() =>
-      _CreateMissionScreenState();
+  State<CreateMissionScreen> createState() => _CreateMissionScreenState();
 }
 
-class _CreateMissionScreenState
-    extends State<CreateMissionScreen> {
-
+class _CreateMissionScreenState extends State<CreateMissionScreen> {
   String? selectedMissionType;
 
   final List<String> missionTypes = [
@@ -21,15 +19,73 @@ class _CreateMissionScreenState
     "Medical Equipment",
   ];
 
-  final List<String> organs = [
-    "Heart",
-    "Liver",
-    "Kidney",
-    "Lungs",
-    "Pancreas",
-  ];
+  final List<String> organs = ["Heart", "Liver", "Kidney", "Lungs", "Pancreas"];
 
   String? selectedOrgan;
+  String? selectedDriverId;
+
+  List<Map<String, dynamic>> drivers = [];
+  final destinationController = TextEditingController();
+  final timeLimitController = TextEditingController();
+  final ambulanceController = TextEditingController();
+
+  bool isLoading = false;
+  Future<void> createMission() async {
+    try {
+      setState(() {
+        isLoading = true;
+      });
+
+      final user = Supabase.instance.client.auth.currentUser;
+
+      await Supabase.instance.client.from('missions').insert({
+        'patient_name': selectedOrgan ?? selectedMissionType ?? 'Mission',
+
+        'pickup_location': ambulanceController.text.trim(),
+
+        'destination': destinationController.text.trim(),
+
+        'priority': timeLimitController.text.trim(),
+
+        'hospital_id': user?.id,
+        'driver_id': selectedDriverId,
+        'status': selectedDriverId == null ? 'Pending' : 'Assigned',
+      });
+
+      if (!mounted) return;
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Mission Created Successfully")),
+      );
+
+      Navigator.pop(context);
+    } catch (e) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(e.toString())));
+    }
+
+    setState(() {
+      isLoading = false;
+    });
+  }
+
+  Future<void> loadDrivers() async {
+    final data = await Supabase.instance.client
+        .from('users')
+        .select()
+        .eq('role', 'Driver');
+
+    setState(() {
+      drivers = List<Map<String, dynamic>>.from(data);
+    });
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    loadDrivers();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -46,17 +102,12 @@ class _CreateMissionScreenState
         padding: const EdgeInsets.all(20),
 
         child: Column(
-          crossAxisAlignment:
-              CrossAxisAlignment.start,
+          crossAxisAlignment: CrossAxisAlignment.start,
 
           children: [
-
             const Text(
               "Mission Type",
-              style: TextStyle(
-                fontSize: 22,
-                fontWeight: FontWeight.bold,
-              ),
+              style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
             ),
 
             const SizedBox(height: 15),
@@ -66,9 +117,7 @@ class _CreateMissionScreenState
               runSpacing: 10,
 
               children: missionTypes.map((type) {
-
-                bool selected =
-                    selectedMissionType == type;
+                bool selected = selectedMissionType == type;
 
                 return ChoiceChip(
                   label: Text(type),
@@ -86,21 +135,14 @@ class _CreateMissionScreenState
 
             const SizedBox(height: 30),
 
-            if (selectedMissionType ==
-                "Organ Transport")
+            if (selectedMissionType == "Organ Transport")
               Column(
-                crossAxisAlignment:
-                    CrossAxisAlignment.start,
+                crossAxisAlignment: CrossAxisAlignment.start,
 
                 children: [
-
                   const Text(
                     "Organ Type",
-                    style: TextStyle(
-                      fontSize: 18,
-                      fontWeight:
-                          FontWeight.bold,
-                    ),
+                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                   ),
 
                   const SizedBox(height: 10),
@@ -108,23 +150,17 @@ class _CreateMissionScreenState
                   DropdownButtonFormField(
                     value: selectedOrgan,
 
-                    decoration:
-                        const InputDecoration(
-                      border:
-                          OutlineInputBorder(),
+                    decoration: const InputDecoration(
+                      border: OutlineInputBorder(),
                     ),
 
                     items: organs.map((organ) {
-                      return DropdownMenuItem(
-                        value: organ,
-                        child: Text(organ),
-                      );
+                      return DropdownMenuItem(value: organ, child: Text(organ));
                     }).toList(),
 
                     onChanged: (value) {
                       setState(() {
-                        selectedOrgan =
-                            value.toString();
+                        selectedOrgan = value.toString();
                       });
                     },
                   ),
@@ -134,14 +170,12 @@ class _CreateMissionScreenState
             const SizedBox(height: 25),
 
             TextField(
+              controller: destinationController,
               decoration: InputDecoration(
-                labelText:
-                    "Destination Hospital",
-                hintText:
-                    "Search Hospital...",
+                labelText: "Destination Hospital",
+                hintText: "Search Hospital...",
                 border: OutlineInputBorder(
-                  borderRadius:
-                      BorderRadius.circular(15),
+                  borderRadius: BorderRadius.circular(15),
                 ),
               ),
             ),
@@ -149,27 +183,49 @@ class _CreateMissionScreenState
             const SizedBox(height: 20),
 
             TextField(
+              controller: timeLimitController,
               decoration: InputDecoration(
-                labelText:
-                    "Time Limit (Minutes)",
+                labelText: "Time Limit (Minutes)",
                 border: OutlineInputBorder(
-                  borderRadius:
-                      BorderRadius.circular(15),
+                  borderRadius: BorderRadius.circular(15),
                 ),
               ),
             ),
 
             const SizedBox(height: 20),
+            
 
-            TextField(
+            DropdownButtonFormField<String>(
+              value: selectedDriverId,
+
               decoration: InputDecoration(
-                labelText:
-                    "Ambulance ID",
-                hintText:
-                    "Search Ambulance...",
+                labelText: "Assign Driver",
                 border: OutlineInputBorder(
-                  borderRadius:
-                      BorderRadius.circular(15),
+                  borderRadius: BorderRadius.circular(15),
+                ),
+              ),
+
+              items: drivers.map((driver) {
+                return DropdownMenuItem<String>(
+                  value: driver['id'],
+                  child: Text(driver['name']),
+                );
+              }).toList(),
+
+              onChanged: (value) {
+                setState(() {
+                  selectedDriverId = value;
+                });
+              },
+            ),
+            const SizedBox(height: 20),
+            TextField(
+              controller: ambulanceController,
+              decoration: InputDecoration(
+                labelText: "Ambulance ID",
+                hintText: "Search Ambulance...",
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(15),
                 ),
               ),
             ),
@@ -181,30 +237,26 @@ class _CreateMissionScreenState
               height: 60,
 
               child: ElevatedButton(
-                style:
-                    ElevatedButton.styleFrom(
-                  backgroundColor:
-                      const Color(0xFFE53935),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFFE53935),
 
-                  shape:
-                      RoundedRectangleBorder(
-                    borderRadius:
-                        BorderRadius.circular(
-                            15),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(15),
                   ),
                 ),
 
-                onPressed: () {},
+                onPressed: isLoading ? null : createMission,
 
-                child: const Text(
-                  "CREATE MISSION",
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 18,
-                    fontWeight:
-                        FontWeight.bold,
-                  ),
-                ),
+                child: isLoading
+                    ? const CircularProgressIndicator(color: Colors.white)
+                    : const Text(
+                        "CREATE MISSION",
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
               ),
             ),
           ],
