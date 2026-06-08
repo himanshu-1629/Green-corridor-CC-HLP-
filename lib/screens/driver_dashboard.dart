@@ -1,315 +1,188 @@
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'login_screen.dart';
-class DriverDashboard extends StatelessWidget {
+
+class DriverDashboard extends StatefulWidget {
   const DriverDashboard({super.key});
 
   @override
+  State<DriverDashboard> createState() =>
+      _DriverDashboardState();
+}
+
+class _DriverDashboardState
+    extends State<DriverDashboard> {
+  Map<String, dynamic>? mission;
+  bool isLoading = true;
+
+  Future<void> loadMission() async {
+    try {
+      final user =
+          Supabase.instance.client.auth.currentUser;
+
+      final data = await Supabase.instance.client
+          .from('missions')
+          .select()
+          .eq('driver_id', user!.id)
+          .limit(1);
+
+      if (data.isNotEmpty) {
+        mission = data.first;
+      }
+
+      setState(() {
+        isLoading = false;
+      });
+    } catch (e) {
+      print(e);
+
+      setState(() {
+        isLoading = false;
+      });
+    }
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    loadMission();
+  }
+
+  @override
   Widget build(BuildContext context) {
+    if (isLoading) {
+      return const Scaffold(
+        body: Center(
+          child: CircularProgressIndicator(),
+        ),
+      );
+    }
+
     return Scaffold(
       backgroundColor: const Color(0xFFF5F7FA),
 
       appBar: AppBar(
-  title: const Text("Driver Dashboard"),
-  backgroundColor: const Color(0xFFE53935),
-  foregroundColor: Colors.white,
+        title: const Text("Driver Dashboard"),
+        backgroundColor: const Color(0xFFE53935),
+        foregroundColor: Colors.white,
 
-  actions: [
-    IconButton(
-      icon: const Icon(Icons.logout),
-      onPressed: () async {
-        await Supabase.instance.client.auth.signOut();
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.logout),
+            onPressed: () async {
+              await Supabase.instance.client.auth.signOut();
 
-        if (!context.mounted) return;
+              if (!context.mounted) return;
 
-        Navigator.pushAndRemoveUntil(
-          context,
-          MaterialPageRoute(
-            builder: (_) => const LoginScreen(),
+              Navigator.pushAndRemoveUntil(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => const LoginScreen(),
+                ),
+                (route) => false,
+              );
+            },
           ),
-          (route) => false,
-        );
-      },
-    ),
-  ],
-),
+        ],
+      ),
 
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(20),
-
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-
-            // DRIVER PROFILE
-            Container(
-              width: double.infinity,
+      body: mission == null
+          ? const Center(
+              child: Text(
+                "No mission assigned",
+                style: TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            )
+          : Padding(
               padding: const EdgeInsets.all(20),
 
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(20),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withOpacity(0.05),
-                    blurRadius: 10,
-                    offset: const Offset(0, 5),
-                  ),
-                ],
-              ),
+              child: Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(20),
 
-              child: const Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-
-                  Text(
-                    "👤 Rahul Patil",
-                    style: TextStyle(
-                      fontSize: 24,
-                      fontWeight: FontWeight.bold,
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(20),
+                  boxShadow: [
+                    BoxShadow(
+                      color:
+                          Colors.black.withOpacity(0.05),
+                      blurRadius: 10,
+                      offset: const Offset(0, 5),
                     ),
-                  ),
+                  ],
+                ),
 
-                  SizedBox(height: 10),
+                child: Column(
+                  crossAxisAlignment:
+                      CrossAxisAlignment.start,
 
-                  Text("Driver ID: DRV1001"),
-
-                  SizedBox(height: 5),
-
-                  Text("Phone: +91 9876543210"),
-
-                  SizedBox(height: 15),
-
-                  Text(
-                    "🚑 Ambulance Details",
-                    style: TextStyle(
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-
-                  SizedBox(height: 5),
-
-                  Text("Ambulance ID: AMB1001"),
-
-                  SizedBox(height: 5),
-
-                  Text("Vehicle Number: MH12AB1234"),
-                ],
-              ),
-            ),
-
-            const SizedBox(height: 25),
-
-            const Text(
-              "Assigned Mission",
-              style: TextStyle(
-                fontSize: 22,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-
-            const SizedBox(height: 15),
-
-            // MISSION CARD
-            Container(
-              width: double.infinity,
-              padding: const EdgeInsets.all(20),
-
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(20),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withOpacity(0.05),
-                    blurRadius: 10,
-                    offset: const Offset(0, 5),
-                  ),
-                ],
-              ),
-
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-
-                  const Text(
-                    "Mission ID: MIS1001",
-                    style: TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-
-                  const SizedBox(height: 15),
-
-                  const Text(
-                    "Mission Type: Heart Transport",
-                  ),
-
-                  SizedBox(height: 5),
-
-                  const Text(
-                    "Source Hospital: Ruby Hall Clinic",
-                  ),
-
-                  SizedBox(height: 5),
-
-                  const Text(
-                    "Destination Hospital: Sahyadri Hospital",
-                  ),
-
-                  SizedBox(height: 5),
-
-                  const Text(
-                    "Time Limit: 45 mins",
-                  ),
-
-                  SizedBox(height: 5),
-
-                  const Text(
-                    "Priority: 🔴 High",
-                  ),
-
-                  SizedBox(height: 20),
-
-                  const Text(
-                    "Mission Status",
-                    style: TextStyle(
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-
-                  SizedBox(height: 8),
-
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 12,
-                      vertical: 6,
-                    ),
-
-                    decoration: BoxDecoration(
-                      color: Color(0xFFFFF3E0),
-                      borderRadius: BorderRadius.all(
-                        Radius.circular(20),
-                      ),
-                    ),
-
-                    child: Text(
-                      "🟠 Pending",
+                  children: [
+                    const Text(
+                      "Assigned Mission",
                       style: TextStyle(
-                        color: Colors.orange,
+                        fontSize: 24,
                         fontWeight: FontWeight.bold,
                       ),
                     ),
-                  ),
-                ],
-              ),
-            ),
 
-            const SizedBox(height: 25),
+                    const SizedBox(height: 20),
 
-            // START JOURNEY
-            SizedBox(
-              width: double.infinity,
-              height: 55,
+                    Text(
+                      "Patient / Organ: ${mission!['patient_name']}",
+                      style: const TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
 
-              child: ElevatedButton.icon(
-                onPressed: () {},
+                    const SizedBox(height: 10),
 
-                icon: const Icon(Icons.play_arrow),
+                    Text(
+                      "Destination: ${mission!['destination']}",
+                    ),
 
-                label: const Text(
-                  "START JOURNEY",
-                  style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
+                    const SizedBox(height: 10),
 
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFFE53935),
-                  foregroundColor: Colors.white,
+                    Text(
+                      "Priority / Time Limit: ${mission!['priority']}",
+                    ),
 
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(15),
-                  ),
-                ),
-              ),
-            ),
+                    const SizedBox(height: 10),
 
-            const SizedBox(height: 12),
+                    Text(
+                      "Status: ${mission!['status']}",
+                    ),
 
-            // VIEW DETAILS
-            SizedBox(
-              width: double.infinity,
-              height: 55,
+                    const SizedBox(height: 30),
 
-              child: OutlinedButton.icon(
-                onPressed: () {},
+                    SizedBox(
+                      width: double.infinity,
+                      height: 55,
 
-                icon: const Icon(Icons.assignment),
+                      child: ElevatedButton(
+                        onPressed: () {},
 
-                label: const Text(
-                  "VIEW MISSION DETAILS",
-                ),
+                        style:
+                            ElevatedButton.styleFrom(
+                          backgroundColor:
+                              const Color(0xFFE53935),
+                          foregroundColor:
+                              Colors.white,
+                        ),
 
-                style: OutlinedButton.styleFrom(
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(15),
-                  ),
+                        child: const Text(
+                          "START MISSION",
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
               ),
             ),
-
-            const SizedBox(height: 12),
-
-            // CONTACT SOURCE
-            SizedBox(
-              width: double.infinity,
-              height: 55,
-
-              child: OutlinedButton.icon(
-                onPressed: () {},
-
-                icon: const Icon(Icons.phone),
-
-                label: const Text(
-                  "CONTACT SOURCE HOSPITAL",
-                ),
-
-                style: OutlinedButton.styleFrom(
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(15),
-                  ),
-                ),
-              ),
-            ),
-
-            const SizedBox(height: 12),
-
-            // CONTACT DESTINATION
-            SizedBox(
-              width: double.infinity,
-              height: 55,
-
-              child: OutlinedButton.icon(
-                onPressed: () {},
-
-                icon: const Icon(Icons.local_hospital),
-
-                label: const Text(
-                  "CONTACT DESTINATION HOSPITAL",
-                ),
-
-                style: OutlinedButton.styleFrom(
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(15),
-                  ),
-                ),
-              ),
-            ),
-          ],
-        ),
-      ),
     );
   }
 }
