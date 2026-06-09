@@ -1,9 +1,49 @@
 import 'package:flutter/material.dart';
 import 'mission_details_screen.dart';
-
-class MissionCenterScreen extends StatelessWidget {
+import 'package:supabase_flutter/supabase_flutter.dart';
+class MissionCenterScreen extends StatefulWidget {
   const MissionCenterScreen({super.key});
 
+  @override
+  State<MissionCenterScreen> createState() =>
+      _MissionCenterScreenState();
+}
+
+class _MissionCenterScreenState
+    extends State<MissionCenterScreen> {
+      List missions = [];
+bool isLoading = true;
+List drivers = [];
+String? selectedDriverId;
+Future<void> loadMissions() async {
+  final data = await Supabase.instance.client
+      .from('missions')
+      .select()
+      .order('created_at', ascending: false);
+
+  setState(() {
+    missions = data;
+    isLoading = false;
+  });
+}
+Future<void> loadDrivers() async {
+ final data = await Supabase.instance.client
+    .from('users')
+    .select()
+    .eq('role', 'Driver')
+    .eq('is_available', true);
+
+  setState(() {
+    drivers = data;
+  });
+}
+
+@override
+void initState() {
+  super.initState();
+  loadMissions();
+  loadDrivers();
+}
   @override
   Widget build(BuildContext context) {
     return DefaultTabController(
@@ -36,53 +76,135 @@ class MissionCenterScreen extends StatelessWidget {
 
             // OUTGOING MISSIONS
             Padding(
-              padding: const EdgeInsets.all(20),
+  padding: const EdgeInsets.all(20),
 
-              child: ListView(
-                children: [
+  child: isLoading
+      ? const Center(
+          child: CircularProgressIndicator(),
+        )
+      : ListView.builder(
+          itemCount: missions.length,
+          itemBuilder: (context, index) {
 
-                  _clickableMission(
-                    context,
-                    _missionCard(
-                      missionId: "MIS1001",
-                      type: "Heart Transport",
-                      destination: "Sahyadri Hospital",
-                      driver: "Rahul Patil",
-                      ambulance: "AMB1001",
-                      status: "Pending",
+            final mission = missions[index];
+
+            return Padding(
+  padding: const EdgeInsets.only(
+    bottom: 15,
+  ),
+
+  child: Column(
+    children: [
+
+      _missionCard(
+        missionId:
+            mission['id']
+                .toString()
+                .substring(0, 8),
+
+        type:
+            mission['patient_name']
+                .toString(),
+
+        destination:
+            mission['destination']
+                .toString(),
+
+        driver:
+            mission['driver_id'] == null
+                ? 'Not Assigned'
+                : 'Assigned',
+
+        ambulance:
+            mission['pickup_location']
+                .toString(),
+
+        status:
+            mission['status']
+                .toString(),
+      ),
+
+      if (mission['driver_id'] == null)
+        Padding(
+          padding: const EdgeInsets.only(top: 10),
+
+          child: ElevatedButton(
+            onPressed: () {
+              showDialog(
+                context: context,
+                builder: (_) {
+                  return AlertDialog(
+                    title: const Text(
+                      "Assign Driver",
                     ),
-                  ),
 
-                  const SizedBox(height: 15),
+                    content:
+                        DropdownButtonFormField<String>(
+                      items: drivers.map((driver) {
+                        return DropdownMenuItem<String>(
+                          value: driver['id'],
+                          child: Text(
+                            driver['name'],
+                          ),
+                        );
+                      }).toList(),
 
-                  _clickableMission(
-                    context,
-                    _missionCard(
-                      missionId: "MIS1002",
-                      type: "Blood Transport",
-                      destination: "Apollo Hospital",
-                      driver: "Amit Sharma",
-                      ambulance: "AMB1002",
-                      status: "In Transit",
+                      onChanged: (value) {
+                        selectedDriverId = value;
+                      },
                     ),
-                  ),
 
-                  const SizedBox(height: 15),
+                    actions: [
+                      TextButton(
+                        onPressed: () async {
 
-                  _clickableMission(
-                    context,
-                    _missionCard(
-                      missionId: "MIS1003",
-                      type: "Patient Transfer",
-                      destination: "Ruby Hall Clinic",
-                      driver: "Suresh Patil",
-                      ambulance: "AMB1003",
-                      status: "Completed",
-                    ),
-                  ),
-                ],
-              ),
+                          await Supabase.instance.client
+                              .from('missions')
+                              .update({
+                            'driver_id':
+                                selectedDriverId,
+
+                            'status':
+                                'Assigned',
+                          })
+                          
+                              .eq(
+                            'id',
+                            mission['id'],
+                          );await Supabase.instance.client
+    .from('missions')
+    .update({
+      'driver_id': selectedDriverId,
+      'status': 'Assigned',
+    })
+    .eq('id', mission['id']);
+                          
+
+                          Navigator.pop(context);
+
+                          loadMissions();
+                        },
+
+                        child:
+                            const Text("Assign"),
+                      ),
+                    ],
+                  );
+                },
+              );
+            },
+
+            child: const Text(
+              "ASSIGN DRIVER",
             ),
+          ),
+        ),
+    ],
+  ),
+);
+          },
+        ),
+),
 
             // INCOMING MISSIONS
             Padding(

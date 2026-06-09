@@ -37,7 +37,14 @@ class _CreateMissionScreenState extends State<CreateMissionScreen> {
       });
 
       final user = Supabase.instance.client.auth.currentUser;
-
+if (selectedDriverId != null) {
+  await Supabase.instance.client
+      .from('users')
+      .update({
+        'is_available': false,
+      })
+      .eq('id', selectedDriverId!);
+}
       await Supabase.instance.client.from('missions').insert({
         'patient_name': selectedOrgan ?? selectedMissionType ?? 'Mission',
 
@@ -72,9 +79,10 @@ class _CreateMissionScreenState extends State<CreateMissionScreen> {
 
   Future<void> loadDrivers() async {
     final data = await Supabase.instance.client
-        .from('users')
-        .select()
-        .eq('role', 'Driver');
+    .from('users')
+    .select()
+    .eq('role', 'Driver')
+    .eq('is_available', true);
 
     setState(() {
       drivers = List<Map<String, dynamic>>.from(data);

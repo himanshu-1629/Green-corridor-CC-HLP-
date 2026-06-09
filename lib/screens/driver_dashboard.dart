@@ -21,14 +21,18 @@ class _DriverDashboardState
           Supabase.instance.client.auth.currentUser;
 
       final data = await Supabase.instance.client
-          .from('missions')
-          .select()
-          .eq('driver_id', user!.id)
-          .limit(1);
+    .from('missions')
+    .select()
+    .eq('driver_id', user!.id)
+    .neq('status', 'Completed')
+    .order('created_at', ascending: false)
+    .limit(1);
 
       if (data.isNotEmpty) {
-        mission = data.first;
-      }
+  mission = data.first;
+} else {
+  mission = null;
+}
 
       setState(() {
         isLoading = false;
@@ -181,6 +185,12 @@ class _DriverDashboardState
                 'status': 'Completed',
               })
               .eq('id', mission!['id']);
+              await Supabase.instance.client
+    .from('users')
+    .update({
+      'is_available': true,
+    })
+    .eq('id', mission!['driver_id']);
         }
 
         await loadMission();
