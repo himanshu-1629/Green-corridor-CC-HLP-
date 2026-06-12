@@ -10,7 +10,16 @@ Future<void> main() async {
   await Supabase.initialize(
     url: supabaseUrl,
     anonKey: supabaseAnonKey,
+    authOptions: const FlutterAuthClientOptions(
+      authFlowType: AuthFlowType.pkce,
+    ),
   );
+
+  Supabase.instance.client.auth.onAuthStateChange.listen(
+  (data) {
+    print("EVENT => ${data.event}");
+  },
+);
 
   runApp(const GreenCorridorApp());
 }

@@ -2,7 +2,8 @@
 import 'package:flutter/material.dart';
 import 'login_screen.dart';
 import 'register_screen.dart';
-
+import 'package:supabase_flutter/supabase_flutter.dart';
+import 'forgot_password_screen.dart';
  
  
 
@@ -50,13 +51,36 @@ class ResponsiveLayout extends StatelessWidget {
 }
 
 class WelcomeScreen extends StatefulWidget {
+  
   const WelcomeScreen({super.key});
 
   @override
   State<WelcomeScreen> createState() => _WelcomeScreenState();
+  
 }
 
 class _WelcomeScreenState extends State<WelcomeScreen> {
+   @override
+void initState() {
+  super.initState();
+  print("INIT STATE CALLED");
+  checkInviteUser();
+}
+Future<void> checkInviteUser() async {
+
+  await Future.delayed(
+    const Duration(seconds: 3),
+  );
+
+  final session =
+      Supabase.instance.client.auth.currentSession;
+
+  final user =
+      Supabase.instance.client.auth.currentUser;
+
+  print("SESSION => $session");
+  print("USER => $user");
+}
   final ScrollController _scrollController = ScrollController();
 
   @override

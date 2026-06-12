@@ -136,10 +136,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   value: "Hospital Admin",
                   child: Text("Hospital Admin"),
                 ),
-                DropdownMenuItem(
-                  value: "Driver",
-                  child: Text("Driver"),
-                ),
+                
                 DropdownMenuItem(
                   value: "Citizen",
                   child: Text("Citizen"),

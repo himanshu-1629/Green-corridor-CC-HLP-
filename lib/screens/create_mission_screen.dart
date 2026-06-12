@@ -25,6 +25,8 @@ class _CreateMissionScreenState extends State<CreateMissionScreen> {
   String? selectedDriverId;
 
   List<Map<String, dynamic>> drivers = [];
+  List<Map<String, dynamic>> hospitals = [];
+String? selectedHospitalId;
   final destinationController = TextEditingController();
   final timeLimitController = TextEditingController();
   final ambulanceController = TextEditingController();
@@ -50,7 +52,8 @@ if (selectedDriverId != null) {
 
         'pickup_location': ambulanceController.text.trim(),
 
-        'destination': destinationController.text.trim(),
+        'destination_hospital_id':
+    selectedHospitalId,
 
         'priority': timeLimitController.text.trim(),
 
@@ -88,12 +91,27 @@ if (selectedDriverId != null) {
       drivers = List<Map<String, dynamic>>.from(data);
     });
   }
+  Future<void> loadHospitals() async {
+  final currentUser =
+    Supabase.instance.client.auth.currentUser;
 
-  @override
-  void initState() {
-    super.initState();
-    loadDrivers();
-  }
+final data = await Supabase.instance.client
+    .from('users')
+    .select()
+    .eq('role', 'Hospital Admin')
+    .neq('id', currentUser!.id);
+  setState(() {
+    hospitals =
+        List<Map<String, dynamic>>.from(data);
+  });
+}
+@override
+void initState() {
+  super.initState();
+
+  loadDrivers();
+  loadHospitals();
+}
 
   @override
   Widget build(BuildContext context) {
@@ -177,17 +195,31 @@ if (selectedDriverId != null) {
 
             const SizedBox(height: 25),
 
-            TextField(
-              controller: destinationController,
-              decoration: InputDecoration(
-                labelText: "Destination Hospital",
-                hintText: "Search Hospital...",
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(15),
-                ),
-              ),
-            ),
+           DropdownButtonFormField<String>(
+  value: selectedHospitalId,
 
+  decoration: InputDecoration(
+    labelText: "Destination Hospital",
+    border: OutlineInputBorder(
+      borderRadius: BorderRadius.circular(15),
+    ),
+  ),
+
+  items: hospitals.map((hospital) {
+    return DropdownMenuItem<String>(
+      value: hospital['id'],
+      child: Text(
+        hospital['name'],
+      ),
+    );
+  }).toList(),
+
+  onChanged: (value) {
+    setState(() {
+      selectedHospitalId = value;
+    });
+  },
+),
             const SizedBox(height: 20),
 
             TextField(

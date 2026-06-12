@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-
+import 'package:supabase_flutter/supabase_flutter.dart';
 class ManageDriversScreen extends StatefulWidget {
   const ManageDriversScreen({super.key});
 
@@ -9,27 +9,31 @@ class ManageDriversScreen extends StatefulWidget {
 }
 
 class _ManageDriversScreenState
+
     extends State<ManageDriversScreen> {
+      final nameController = TextEditingController();
+final emailController = TextEditingController();
+final phoneController = TextEditingController();
+final licenseController =
+    TextEditingController();
 
-  final List<Map<String, String>> drivers = [
-    {
-      "name": "Rahul Patil",
-      "phone": "9876543210",
-      "license": "MH-DRV-1234",
-    },
-    {
-      "name": "Amit Sharma",
-      "phone": "8765432109",
-      "license": "MH-DRV-5678",
-    },
-    {
-      "name": "Suresh Patil",
-      "phone": "9988776655",
-      "license": "MH-DRV-9101",
-    },
-  ];
+ List<Map<String, dynamic>> drivers = [];
 
-  @override
+  Future<void> loadDrivers() async {
+  final data = await Supabase.instance.client
+      .from('users')
+      .select()
+      .eq('role', 'Driver');
+
+  setState(() {
+    drivers = List<Map<String, dynamic>>.from(data);
+  });
+}
+@override
+void initState() {
+  super.initState();
+  loadDrivers();
+}
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xFFF5F7FA),
@@ -161,44 +165,34 @@ class _ManageDriversScreenState
                           width: 15,
                         ),
 
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment:
-                                CrossAxisAlignment
-                                    .start,
+                      Expanded(
+  child: Column(
+    crossAxisAlignment:
+        CrossAxisAlignment.start,
+    children: [
 
-                            children: [
+      Text(
+        driver["name"] ?? "No Name",
+        style: const TextStyle(
+          fontSize: 18,
+          fontWeight: FontWeight.bold,
+        ),
+      ),
 
-                              Text(
-                                driver["name"]!,
-                                style:
-                                    const TextStyle(
-                                  fontSize: 18,
-                                  fontWeight:
-                                      FontWeight
-                                          .bold,
-                                ),
-                              ),
+      const SizedBox(height: 5),
 
-                              const SizedBox(
-                                height: 5,
-                              ),
+      Text(
+        "📞 ${driver["phone"] ?? ""}",
+      ),
 
-                              Text(
-                                "📞 ${driver["phone"]}",
-                              ),
+      const SizedBox(height: 5),
 
-                              const SizedBox(
-                                height: 5,
-                              ),
-
-                              Text(
-                                "License: ${driver["license"]}",
-                              ),
-                            ],
-                          ),
-                        ),
-
+      Text(
+        "License: ${driver["license_number"] ?? ""}",
+      ),
+    ],
+  ),
+),
                         const Icon(
                           Icons.arrow_forward_ios,
                         ),
@@ -233,28 +227,31 @@ class _ManageDriversScreenState
               children: [
 
                 TextField(
-                  decoration:
-                      const InputDecoration(
-                    labelText:
-                        "Driver Name",
-                  ),
-                ),
+  controller: nameController,
+  decoration: const InputDecoration(
+    labelText: "Driver Name",
+  ),
+),
 
-                TextField(
-                  decoration:
-                      const InputDecoration(
-                    labelText:
-                        "Phone Number",
-                  ),
-                ),
+TextField(
+  controller: emailController,
+  decoration: const InputDecoration(
+    labelText: "Driver Email",
+  ),
+),
 
-                TextField(
-                  decoration:
-                      const InputDecoration(
-                    labelText:
-                        "License Number",
-                  ),
-                ),
+TextField(
+  controller: phoneController,
+  decoration: const InputDecoration(
+    labelText: "Phone Number",
+  ),
+),
+TextField(
+  controller: licenseController,
+  decoration: const InputDecoration(
+    labelText: "Driving License Number",
+  ),
+),
               ],
             ),
           ),
@@ -271,23 +268,71 @@ class _ManageDriversScreenState
             ),
 
             ElevatedButton(
-              onPressed: () {
+             onPressed: () async {
 
-                Navigator.pop(context);
+  try {
+final userId =
+    Supabase.instance.client.auth.currentUser!.id;
 
-                ScaffoldMessenger.of(
-                        context)
-                    .showSnackBar(
-                  const SnackBar(
-                    content: Text(
-                      "Driver Registered (Demo)",
-                    ),
-                  ),
-                );
-              },
+final response =
+    await Supabase.instance.client.functions.invoke(
+  'create-driver',
+  body: {
+    'name': nameController.text,
+    'email': emailController.text,
+    'phone': phoneController.text,
+    'licenseNumber':
+        licenseController.text,
+    'hospitalId': userId,
+  },
+);
 
-              child:
-                  const Text("Register"),
+print(response.data);
+await loadDrivers();
+Navigator.pop(context);
+
+showDialog(
+  context: context,
+  builder: (_) => AlertDialog(
+    title: const Text("Driver Created"),
+    content: Column(
+      mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          "Email:\n${response.data['email']}",
+        ),
+        const SizedBox(height: 15),
+        Text(
+          "Temporary Password:\n${response.data['password']}",
+        ),
+        const SizedBox(height: 15),
+        const Text(
+          "Tell the driver to login and use Forgot Password if they want to change it.",
+        ),
+      ],
+    ),
+    actions: [
+      TextButton(
+        onPressed: () {
+          Navigator.pop(context);
+        },
+        child: const Text("OK"),
+      ),
+    ],
+  ),
+);
+
+} catch (e) {
+  print(e);
+
+  ScaffoldMessenger.of(context).showSnackBar(
+    SnackBar(
+      content: Text(e.toString()),
+    ),
+  );
+}},
+              child: const Text("Register"),
             ),
           ],
         );

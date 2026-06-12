@@ -1,4 +1,4 @@
-
+import 'forgot_password_screen.dart';
 import 'driver_dashboard.dart';
 import 'super_admin_dashboard.dart';
 import 'hospital_dashboard.dart';
@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'register_screen.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'citizen_screen.dart';
+
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
 
@@ -215,6 +216,23 @@ class _LoginScreenState extends State<LoginScreen> {
       ),
                     ),
                   ),
+                  
+TextButton(
+  onPressed: () {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) =>
+            const ForgotPasswordScreen(),
+      ),
+    );
+  },
+  child: const Text(
+    "Forgot Password?",
+  ),
+),
+
+const SizedBox(height: 10),
                   TextButton(
   onPressed: () {
     Navigator.push(

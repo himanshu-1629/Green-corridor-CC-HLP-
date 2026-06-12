@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
-
+import 'forgot_password_screen.dart';
 import 'login_screen.dart';
 import 'hospital_dashboard.dart';
 import 'driver_dashboard.dart';
 import 'super_admin_dashboard.dart';
 import 'citizen_screen.dart';
+import 'set_new_password_screen.dart';
 import 'welcome_screen.dart';
 class AuthGate extends StatefulWidget {
   const AuthGate({super.key});
@@ -26,18 +27,45 @@ void initState() {
 }
 
   Future<void> checkUser() async {
-    final user = Supabase.instance.client.auth.currentUser;
+      await Future.delayed(const Duration(seconds: 2));
+  final session = Supabase.instance.client.auth.currentSession;
+final user = session?.user;
+final url = Uri.base.toString();
+print("FULL URL => $url");
+if (url.contains("code=")) {
+  try {
+    final uri = Uri.base;
+    final code = uri.queryParameters['code'];
 
-    if (user == null) {
+    print("CODE => $code");
+
+    if (code != null) {
+      final result =
+          await Supabase.instance.client.auth
+              .exchangeCodeForSession(code);
+
+      print("EXCHANGE SUCCESS");
+      print(result.session);
+    }
+  } catch (e) {
+    print("EXCHANGE ERROR => $e");
+  }
+
+  if (!mounted) return;
+
   Navigator.pushReplacement(
     context,
     MaterialPageRoute(
-      builder: (_) => const WelcomeScreen(),
+      builder: (_) => const SetNewPasswordScreen(),
     ),
   );
+
   return;
 }
-
+if (user == null) {
+  goToWelcome();
+  return;
+}
     try {
       final userData = await Supabase.instance.client
           .from('users')
