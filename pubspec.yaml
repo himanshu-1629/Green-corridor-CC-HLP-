@@ -30,6 +30,7 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
+  emailjs: ^4.0.0
 
   supabase_flutter: ^2.9.1
 

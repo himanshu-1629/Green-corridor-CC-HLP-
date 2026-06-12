@@ -59,6 +59,23 @@ await supabase.from("users").insert({
   hospital_id: hospitalId,
   is_available: true,
 });
+await fetch("https://api.emailjs.com/api/v1.0/email/send", {
+  method: "POST",
+  headers: {
+    "Content-Type": "application/json",
+  },
+  body: JSON.stringify({
+    service_id: "service_21azdn9",
+    template_id: "template_w5nb4h7",
+    user_id: "ydacdVHvuJ5e2SdZp",
+    template_params: {
+      name: name,
+      email: email,
+      password: tempPassword,
+      hospital_name: "Green Corridor",
+    },
+  }),
+});
 
   return new Response(
     JSON.stringify({
