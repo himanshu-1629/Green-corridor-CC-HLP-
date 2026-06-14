@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
-
+import 'package:geolocator/geolocator.dart';
+import 'dart:math';
 class RegisterScreen extends StatefulWidget {
   const RegisterScreen({super.key});
 
@@ -18,6 +19,47 @@ final addressController = TextEditingController();
 final latitudeController = TextEditingController();
 
 final longitudeController = TextEditingController();
+Future<void> getCurrentLocation() async {
+  bool serviceEnabled;
+  LocationPermission permission;
+
+  serviceEnabled = await Geolocator.isLocationServiceEnabled();
+
+  if (!serviceEnabled) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text("Please enable location services"),
+      ),
+    );
+    return;
+  }
+
+  permission = await Geolocator.checkPermission();
+
+  if (permission == LocationPermission.denied) {
+    permission = await Geolocator.requestPermission();
+  }
+
+  if (permission == LocationPermission.denied ||
+      permission == LocationPermission.deniedForever) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text("Location permission denied"),
+      ),
+    );
+    return;
+  }
+
+  final position = await Geolocator.getCurrentPosition();
+
+ latitudeController.text =
+    position.latitude.toStringAsFixed(6);
+
+longitudeController.text =
+    position.longitude.toStringAsFixed(6);
+
+  setState(() {});
+}
   String selectedRole = "Hospital Admin";
 
   bool isLoading = false;
@@ -66,13 +108,54 @@ final longitudeController = TextEditingController();
       if (userId == null) {
         throw Exception("Signup failed");
       }
+String? hospitalCode;
 
+if (selectedRole == "Hospital Admin") {
+ final words = nameController.text
+    .trim()
+    .split(' ')
+    .where((w) => w.isNotEmpty)
+    .toList();
+
+String prefix;
+
+if (words.length == 1) {
+  prefix = words[0]
+      .substring(0, min(3, words[0].length))
+      .toUpperCase()
+      .padRight(3, 'X');
+}
+else if (words.length == 2) {
+  prefix =
+      words[0]
+          .substring(0, min(2, words[0].length))
+          .toUpperCase() +
+      words[1][0].toUpperCase();
+}
+else {
+  prefix =
+      words[0][0].toUpperCase() +
+      words[1][0].toUpperCase() +
+      words[2][0].toUpperCase();
+}
+
+ final hospitals = await Supabase.instance.client
+    .from('users')
+    .select('id')
+    .eq('role', 'Hospital Admin');
+
+final nextNumber = hospitals.length + 1;
+
+hospitalCode =
+    '$prefix${nextNumber.toString().padLeft(3, '0')}';
+}
      await Supabase.instance.client.from('users').insert({
   'id': userId,
   'name': nameController.text.trim(),
   'email': emailController.text.trim(),
   'phone': phoneController.text.trim(),
   'role': selectedRole,
+  'hospital_code': hospitalCode,
 
   'address': selectedRole == "Hospital Admin"
       ? addressController.text.trim()
@@ -188,11 +271,23 @@ if (selectedRole == "Hospital Admin") ...[
       border: OutlineInputBorder(),
     ),
   ),
+const SizedBox(height: 10),
 
+SizedBox(
+  width: double.infinity,
+  child: ElevatedButton.icon(
+    onPressed: getCurrentLocation,
+    icon: const Icon(Icons.location_on),
+    label: const Text(
+      "Use Current Location",
+    ),
+  ),
+),
   const SizedBox(height: 15),
 
   TextField(
     controller: latitudeController,
+      readOnly: true,
     keyboardType: const TextInputType.numberWithOptions(
   decimal: true,
 ),
@@ -206,6 +301,7 @@ if (selectedRole == "Hospital Admin") ...[
 
   TextField(
     controller: longitudeController,
+      readOnly: true,
     keyboardType: const TextInputType.numberWithOptions(
   decimal: true,
 ),

@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-
+import 'package:supabase_flutter/supabase_flutter.dart';
 class ManageAmbulancesScreen extends StatefulWidget {
   const ManageAmbulancesScreen({super.key});
 
@@ -11,27 +11,33 @@ class ManageAmbulancesScreen extends StatefulWidget {
 class _ManageAmbulancesScreenState
     extends State<ManageAmbulancesScreen> {
 
-  final List<Map<String, String>> ambulances = [
-    {
-      "id": "AMB1001",
-      "driver": "Rahul Patil",
-      "vehicle": "MH12AB1234",
-      "status": "Available",
-    },
-    {
-      "id": "AMB1002",
-      "driver": "Amit Sharma",
-      "vehicle": "MH14XY9876",
-      "status": "On Mission",
-    },
-    {
-      "id": "AMB1003",
-      "driver": "Suresh Patil",
-      "vehicle": "MH11CD4567",
-      "status": "Maintenance",
-    },
-  ];
+ List<Map<String, dynamic>> ambulances = [];
+Future<void> fetchAmbulances() async {
+  final userId =
+      Supabase.instance.client.auth.currentUser!.id;
 
+  final user = await Supabase.instance.client
+      .from('users')
+      .select()
+      .eq('id', userId)
+      .single();
+
+  final hospitalId = user['id'];
+
+  final data = await Supabase.instance.client
+      .from('ambulances')
+      .select()
+      .eq('hospital_id', hospitalId);
+
+  setState(() {
+    ambulances = List<Map<String, dynamic>>.from(data);
+  });
+}
+@override
+void initState() {
+  super.initState();
+  fetchAmbulances();
+}
   @override
   Widget build(BuildContext context) {
     return Scaffold(
