@@ -19,7 +19,25 @@ class _SetNewPasswordScreenState
       TextEditingController();
 
   bool isLoading = false;
+@override
+void initState() {
+  super.initState();
+  _handleRecoveryLink();
+}
 
+Future<void> _handleRecoveryLink() async {
+  try {
+    final uri = Uri.base;
+    final code = uri.queryParameters['code'];
+
+    if (code != null) {
+      await Supabase.instance.client.auth
+          .exchangeCodeForSession(code);
+    }
+  } catch (e) {
+    debugPrint("Recovery error: $e");
+  }
+}
   Future<void> savePassword() async {
     if (passwordController.text !=
         confirmPasswordController.text) {

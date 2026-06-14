@@ -47,20 +47,23 @@ if (selectedDriverId != null) {
       })
       .eq('id', selectedDriverId!);
 }
-      await Supabase.instance.client.from('missions').insert({
-        'patient_name': selectedOrgan ?? selectedMissionType ?? 'Mission',
+     await Supabase.instance.client.from('missions').insert({
+  'patient_name': selectedOrgan ?? selectedMissionType ?? 'Mission',
 
-        'pickup_location': ambulanceController.text.trim(),
+  'pickup_location': ambulanceController.text.trim(),
 
-        'destination_hospital_id':
-    selectedHospitalId,
+  'destination': selectedHospitalId,
 
-        'priority': timeLimitController.text.trim(),
+  'destination_hospital_id': selectedHospitalId,
 
-        'hospital_id': user?.id,
-        'driver_id': selectedDriverId,
-        'status': selectedDriverId == null ? 'Pending' : 'Assigned',
-      });
+  'priority': timeLimitController.text.trim(),
+
+  'hospital_id': user?.id,
+  'driver_id': selectedDriverId,
+  'status': selectedDriverId == null
+      ? 'Pending'
+      : 'Assigned',
+});
 
       if (!mounted) return;
 

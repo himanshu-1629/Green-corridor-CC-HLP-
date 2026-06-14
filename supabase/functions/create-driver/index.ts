@@ -66,24 +66,35 @@ const emailResponse = await fetch(
     headers: {
       "Content-Type": "application/json",
     },
-    body: JSON.stringify({
-      service_id: "service_21azdn9",
-      template_id: "template_w5nb4h7",
-      user_id: "ydacdVHvuJ5e2SdZp",
-      template_params: {
-        name: name,
-        email: email,
-        password: tempPassword,
-        hospital_name: "Green Corridor",
-      },
-    }),
+ body: JSON.stringify({
+  service_id: "service_43g7bme",
+  template_id: "template_w5nb4h7",
+  user_id: "ydacdVHvuJ5e2SdZp",
+    accessToken:"3VKAFv7RQBcDH1Oz_3gs2",
+
+  template_params: {
+    name: name,
+    email: email,
+    password: tempPassword,
+    hospital_name: "Green Corridor",
+     login_link: "https://green-corridor-web.vercel.app",
+  },
+}),
   },
 );
 
+
+
+
+console.log("EMAIL STATUS:", emailResponse.status);
+const emailText = await emailResponse.text();
+
 console.log(
-  "EMAIL STATUS:",
-  emailResponse.status,
+  "EMAIL RESPONSE:",
+  emailText,
 );
+
+
   return new Response(
     JSON.stringify({
       success: true,
