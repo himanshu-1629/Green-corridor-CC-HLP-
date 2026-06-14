@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
-import 'forgot_password_screen.dart';
-import 'login_screen.dart';
+
 import 'hospital_dashboard.dart';
 import 'driver_dashboard.dart';
 import 'super_admin_dashboard.dart';

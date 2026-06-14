@@ -13,13 +13,44 @@ class _RegisterScreenState extends State<RegisterScreen> {
   final emailController = TextEditingController();
   final phoneController = TextEditingController();
   final passwordController = TextEditingController();
+final addressController = TextEditingController();
 
+final latitudeController = TextEditingController();
+
+final longitudeController = TextEditingController();
   String selectedRole = "Hospital Admin";
 
   bool isLoading = false;
 
   Future<void> registerUser() async {
     try {
+      if (selectedRole == "Hospital Admin") {
+  if (addressController.text.trim().isEmpty ||
+      latitudeController.text.trim().isEmpty ||
+      longitudeController.text.trim().isEmpty) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text(
+          "Please enter hospital location details",
+        ),
+      ),
+    );
+    return;
+  }
+   if (double.tryParse(latitudeController.text.trim()) == null ||
+      double.tryParse(longitudeController.text.trim()) == null) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text(
+          "Latitude and Longitude must be valid numbers",
+        ),
+      ),
+    );
+    return;
+  }
+}
+
+
       setState(() {
         isLoading = true;
       });
@@ -36,14 +67,25 @@ class _RegisterScreenState extends State<RegisterScreen> {
         throw Exception("Signup failed");
       }
 
-      await Supabase.instance.client.from('users').insert({
-        'id': userId,
-        'name': nameController.text.trim(),
-        'email': emailController.text.trim(),
-        'phone': phoneController.text.trim(),
-        'role': selectedRole,
-      });
+     await Supabase.instance.client.from('users').insert({
+  'id': userId,
+  'name': nameController.text.trim(),
+  'email': emailController.text.trim(),
+  'phone': phoneController.text.trim(),
+  'role': selectedRole,
 
+  'address': selectedRole == "Hospital Admin"
+      ? addressController.text.trim()
+      : null,
+
+  'latitude': selectedRole == "Hospital Admin"
+      ? double.tryParse(latitudeController.text.trim())
+      : null,
+
+  'longitude': selectedRole == "Hospital Admin"
+      ? double.tryParse(longitudeController.text.trim())
+      : null,
+});
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
@@ -83,6 +125,30 @@ class _RegisterScreenState extends State<RegisterScreen> {
         child: Column(
           children: [
             const SizedBox(height: 20),
+             DropdownButtonFormField(
+              value: selectedRole,
+              decoration: const InputDecoration(
+                labelText: "Role",
+                border: OutlineInputBorder(),
+              ),
+              items: const [
+                DropdownMenuItem(
+                  value: "Hospital Admin",
+                  child: Text("Hospital Admin"),
+                ),
+                
+                DropdownMenuItem(
+                  value: "Citizen",
+                  child: Text("Citizen"),
+                ),
+              ],
+              onChanged: (value) {
+                setState(() {
+                  selectedRole = value!;
+                });
+              },
+            ),
+       const SizedBox(height: 15),
 
             TextField(
               controller: nameController,
@@ -111,7 +177,44 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 border: OutlineInputBorder(),
               ),
             ),
+            const SizedBox(height: 15),
+if (selectedRole == "Hospital Admin") ...[
+  const SizedBox(height: 15),
 
+  TextField(
+    controller: addressController,
+    decoration: const InputDecoration(
+      labelText: "Hospital Address",
+      border: OutlineInputBorder(),
+    ),
+  ),
+
+  const SizedBox(height: 15),
+
+  TextField(
+    controller: latitudeController,
+    keyboardType: const TextInputType.numberWithOptions(
+  decimal: true,
+),
+    decoration: const InputDecoration(
+      labelText: "Latitude",
+      border: OutlineInputBorder(),
+    ),
+  ),
+
+  const SizedBox(height: 15),
+
+  TextField(
+    controller: longitudeController,
+    keyboardType: const TextInputType.numberWithOptions(
+  decimal: true,
+),
+    decoration: const InputDecoration(
+      labelText: "Longitude",
+      border: OutlineInputBorder(),
+    ),
+  ),
+],
             const SizedBox(height: 15),
 
             TextField(
@@ -123,32 +226,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
               ),
             ),
 
-            const SizedBox(height: 15),
+          
 
-            DropdownButtonFormField(
-              value: selectedRole,
-              decoration: const InputDecoration(
-                labelText: "Role",
-                border: OutlineInputBorder(),
-              ),
-              items: const [
-                DropdownMenuItem(
-                  value: "Hospital Admin",
-                  child: Text("Hospital Admin"),
-                ),
-                
-                DropdownMenuItem(
-                  value: "Citizen",
-                  child: Text("Citizen"),
-                ),
-              ],
-              onChanged: (value) {
-                setState(() {
-                  selectedRole = value!;
-                });
-              },
-            ),
-
+           
             const SizedBox(height: 25),
 
             SizedBox(
