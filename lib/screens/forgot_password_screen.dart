@@ -19,7 +19,7 @@ class _ForgotPasswordScreenState
       await Supabase.instance.client.auth
           .resetPasswordForEmail(
         emailController.text.trim(),
-       redirectTo: "https://green-corridor-web.vercel.app",
+      redirectTo: "https://green-corridor-web.web.app",
       );
 
       if (!mounted) return;
