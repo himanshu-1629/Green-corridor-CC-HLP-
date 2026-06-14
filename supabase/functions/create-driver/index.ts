@@ -77,7 +77,7 @@ const emailResponse = await fetch(
     email: email,
     password: tempPassword,
     hospital_name: "Green Corridor",
-     login_link: "https://green-corridor-web.vercel.app",
+     login_link: "https://green-corridor-web.web.app",
   },
 }),
   },
