@@ -1,7 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'login_screen.dart';
-
+import 'package:flutter_map/flutter_map.dart';
+import 'package:latlong2/latlong.dart';
+import 'dart:convert';
+import 'package:http/http.dart' as http;
+import 'package:geolocator/geolocator.dart';
+import 'dart:async';
 class DriverDashboard extends StatefulWidget {
   const DriverDashboard({super.key});
 
@@ -13,6 +18,20 @@ class DriverDashboard extends StatefulWidget {
 class _DriverDashboardState
     extends State<DriverDashboard> {
   Map<String, dynamic>? mission;
+  Map<String, dynamic>? sourceHospital;
+Map<String, dynamic>? destinationHospital;
+ final mapController = MapController();
+Timer? trackingTimer;
+List<LatLng> routePoints = [];
+
+double? sourceLat;
+double? sourceLng;
+
+double? destinationLat;
+double? destinationLng;
+
+double? distance;
+double? duration;
   bool isLoading = true;
 
   Future<void> loadMission() async {
@@ -27,10 +46,49 @@ class _DriverDashboardState
     .neq('status', 'Completed')
     .order('created_at', ascending: false)
     .limit(1);
+if (data.isNotEmpty) {
 
-      if (data.isNotEmpty) {
   mission = data.first;
+
+  sourceHospital =
+      await Supabase.instance.client
+          .from('users')
+          .select()
+          .eq('id', mission!['hospital_id'])
+          .single();
+
+  destinationHospital =
+      await Supabase.instance.client
+          .from('users')
+          .select()
+          .eq(
+            'id',
+            mission!['destination_hospital_id'],
+          )
+          .single();
+
+  sourceLat =
+      (sourceHospital!['latitude'] as num)
+          .toDouble();
+
+  sourceLng =
+      (sourceHospital!['longitude'] as num)
+          .toDouble();
+
+  destinationLat =
+      (destinationHospital!['latitude'] as num)
+          .toDouble();
+
+  destinationLng =
+      (destinationHospital!['longitude'] as num)
+          .toDouble();
+          await getRoute();
+          if (mission!['status'] == 'In Transit') {
+  await startLiveTracking();
+}
+
 } else {
+
   mission = null;
 }
 
@@ -45,6 +103,80 @@ class _DriverDashboardState
       });
     }
   }
+  Future<void> getRoute() async {
+
+  final response = await http.get(
+    Uri.parse(
+      'https://api.openrouteservice.org/v2/directions/driving-car'
+      '?start=$sourceLng,$sourceLat'
+      '&end=$destinationLng,$destinationLat',
+    ),
+    headers: {
+      'Authorization':
+          'eyJvcmciOiI1YjNjZTM1OTc4NTExMTAwMDFjZjYyNDgiLCJpZCI6ImEwZjhiYmQwM2U3YzQxNWY5ZTg5ZDIzZDRiMjAzYWI1IiwiaCI6Im11cm11cjY0In0=',
+    },
+  );
+
+  final data = jsonDecode(response.body);
+
+  distance =
+      data['features'][0]['properties']
+          ['segments'][0]['distance'];
+
+  duration =
+      data['features'][0]['properties']
+          ['segments'][0]['duration'];
+
+  final coords =
+      data['features'][0]['geometry']['coordinates'];
+
+  routePoints =
+      coords.map<LatLng>((point) {
+    return LatLng(
+      point[1],
+      point[0],
+    );
+  }).toList();
+
+  setState(() {});
+}
+Future<void> startLiveTracking() async {
+
+  LocationPermission permission =
+      await Geolocator.checkPermission();
+
+  if (permission == LocationPermission.denied) {
+    permission = await Geolocator.requestPermission();
+  }
+trackingTimer?.cancel();
+  trackingTimer = Timer.periodic(
+    const Duration(seconds: 5),
+    (timer) async {
+
+      Position position =
+          await Geolocator.getCurrentPosition(
+        desiredAccuracy: LocationAccuracy.best,
+      );
+
+      await Supabase.instance.client
+          .from('ambulances')
+          .update({
+            'latitude': position.latitude,
+            'longitude': position.longitude,
+            'last_updated':
+                DateTime.now().toIso8601String(),
+          })
+          .eq(
+            'id',
+            mission!['ambulance_id'],
+          );
+
+      print(
+        "Live Location: ${position.latitude}, ${position.longitude}",
+      );
+    },
+  );
+}
 
   @override
   void initState() {
@@ -142,13 +274,106 @@ class _DriverDashboardState
                         fontWeight: FontWeight.w600,
                       ),
                     ),
+                    const SizedBox(height: 10),
+
+Text(
+  "Pickup : ${sourceHospital!['name']}",
+),
+
+
 
                     const SizedBox(height: 10),
 
                     Text(
                       "Destination: ${mission!['destination']}",
                     ),
+const SizedBox(height: 20),
 
+SizedBox(
+  height: 300,
+  child: FlutterMap(
+    mapController: mapController,
+    options: MapOptions(
+      initialCenter: LatLng(
+        sourceLat!,
+        sourceLng!,
+      ),
+      initialZoom: 15,
+    ),
+    children: [
+
+      TileLayer(
+        urlTemplate:
+            'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+      ),
+
+      PolylineLayer(
+        polylines: [
+          if (routePoints.isNotEmpty)
+            Polyline(
+              points: routePoints,
+              color: Colors.blue,
+              strokeWidth: 5,
+            ),
+        ],
+      ),
+
+      MarkerLayer(
+        markers: [
+
+          Marker(
+            point: LatLng(
+              sourceLat!,
+              sourceLng!,
+            ),
+            width: 50,
+            height: 50,
+            child: const Icon(
+              Icons.local_hospital,
+              color: Colors.blue,
+              size: 40,
+            ),
+          ),
+
+          Marker(
+            point: LatLng(
+              destinationLat!,
+              destinationLng!,
+            ),
+            width: 50,
+            height: 50,
+            child: const Icon(
+              Icons.location_on,
+              color: Colors.red,
+              size: 45,
+            ),
+          ),
+        ],
+      ),
+    ],
+  ),
+),
+const SizedBox(height: 15),
+
+if (distance != null && duration != null)
+  Row(
+    mainAxisAlignment:
+        MainAxisAlignment.spaceEvenly,
+    children: [
+      Text(
+        "📏 ${(distance! / 1000).toStringAsFixed(1)} km",
+        style: const TextStyle(
+          fontWeight: FontWeight.bold,
+        ),
+      ),
+      Text(
+        "⏱ ${(duration! / 60).toStringAsFixed(0)} min",
+        style: const TextStyle(
+          fontWeight: FontWeight.bold,
+        ),
+      ),
+    ],
+  ),
                     const SizedBox(height: 10),
 
                     Text(
@@ -178,7 +403,11 @@ class _DriverDashboardState
                 'status': 'In Transit',
               })
               .eq('id', mission!['id']);
+              await startLiveTracking();
         } else {
+
+  trackingTimer?.cancel();
+
           await Supabase.instance.client
               .from('missions')
               .update({
@@ -191,6 +420,12 @@ class _DriverDashboardState
       'is_available': true,
     })
     .eq('id', mission!['driver_id']);
+    await Supabase.instance.client
+    .from('ambulances')
+    .update({
+      'is_available': true,
+    })
+    .eq('id', mission!['ambulance_id']);
         }
 
         await loadMission();
@@ -218,4 +453,9 @@ class _DriverDashboardState
             ),
     );
   }
+  @override
+void dispose() {
+  trackingTimer?.cancel();
+  super.dispose();
+}
 }

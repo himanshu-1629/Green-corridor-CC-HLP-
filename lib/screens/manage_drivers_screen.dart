@@ -16,7 +16,7 @@ final emailController = TextEditingController();
 final phoneController = TextEditingController();
 final licenseController =
     TextEditingController();
-
+bool isDeleting = false;
  List<Map<String, dynamic>> drivers = [];
 
   Future<void> loadDrivers() async {
@@ -35,7 +35,10 @@ void initState() {
   loadDrivers();
 }
   Widget build(BuildContext context) {
-    return Scaffold(
+  return Stack(
+  children: [
+
+    Scaffold(
       backgroundColor: const Color(0xFFF5F7FA),
 
       appBar: AppBar(
@@ -193,9 +196,67 @@ void initState() {
     ],
   ),
 ),
-                        const Icon(
-                          Icons.arrow_forward_ios,
-                        ),
+                        Row(
+  mainAxisSize: MainAxisSize.min,
+  children: [
+
+    IconButton(
+      icon: const Icon(
+        Icons.delete,
+        color: Colors.red,
+      ),
+     onPressed: () async {
+
+  final confirm = await showDialog(
+    context: context,
+    builder: (_) => AlertDialog(
+      title: const Text("Delete Driver?"),
+      content: const Text(
+        "This action cannot be undone.",
+      ),
+      actions: [
+
+        TextButton(
+          onPressed: () =>
+              Navigator.pop(context, false),
+          child: const Text("Cancel"),
+        ),
+
+        ElevatedButton(
+          onPressed: () =>
+              Navigator.pop(context, true),
+          child: const Text("Delete"),
+        ),
+      ],
+    ),
+  );
+
+  if (confirm == true) {
+setState(() {
+  isDeleting = true;
+});
+   await Supabase.instance.client
+    .functions
+    .invoke(
+  'delete-driver',
+  body: {
+    'driverId': driver['id'],
+  },
+);
+
+await loadDrivers();
+setState(() {
+  isDeleting = false;
+});
+  }
+},
+    ),
+
+    const Icon(
+      Icons.arrow_forward_ios,
+    ),
+  ],
+),
                       ],
                     ),
                   );
@@ -205,7 +266,15 @@ void initState() {
           ],
         ),
       ),
-    );
+      
+    ),
+    if (isDeleting)
+  Container(
+    color: Colors.black.withOpacity(0.3),
+    child: const Center(
+      child: CircularProgressIndicator(),
+    ),
+  ),],);
   }
 
   void _showAddDriverDialog() {
@@ -289,6 +358,10 @@ final response =
 
 print(response.data);
 await loadDrivers();
+nameController.clear();
+emailController.clear();
+phoneController.clear();
+licenseController.clear();
 Navigator.pop(context);
 
 showDialog(
@@ -315,8 +388,14 @@ showDialog(
     actions: [
       TextButton(
         onPressed: () {
-          Navigator.pop(context);
-        },
+
+  nameController.clear();
+  emailController.clear();
+  phoneController.clear();
+  licenseController.clear();
+
+  Navigator.pop(context);
+},
         child: const Text("OK"),
       ),
     ],

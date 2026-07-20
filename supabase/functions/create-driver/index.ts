@@ -49,6 +49,29 @@ serve(async (req) => {
       },
     );
   }
+ const { data: hospital } = await supabase
+  .from("users")
+  .select("hospital_code")
+  .eq("id", hospitalId)
+  .single();
+
+const { data: lastDriver } = await supabase
+  .from("users")
+  .select("driver_sequence")
+  .eq("role", "Driver")
+  .eq("hospital_id", hospitalId)
+  .order("driver_sequence", { ascending: false })
+  .limit(1);
+
+const nextSequence =
+  lastDriver && lastDriver.length > 0
+    ? (lastDriver[0].driver_sequence ?? 0) + 1
+    : 1;
+
+const driverCode =
+  `${hospital.hospital_code}-D${String(
+    nextSequence,
+  ).padStart(3, "0")}`;
 await supabase.from("users").insert({
   id: data.user.id,
   name: name,
@@ -57,6 +80,8 @@ await supabase.from("users").insert({
   license_number: licenseNumber,
   role: "Driver",
   hospital_id: hospitalId,
+  driver_code: driverCode,
+driver_sequence: nextSequence,
   is_available: true,
 });
 const emailResponse = await fetch(

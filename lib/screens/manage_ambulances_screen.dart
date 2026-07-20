@@ -12,6 +12,11 @@ class _ManageAmbulancesScreenState
     extends State<ManageAmbulancesScreen> {
 
  List<Map<String, dynamic>> ambulances = [];
+ final vehicleNameController =
+    TextEditingController();
+
+final vehicleNumberController =
+    TextEditingController();
 Future<void> fetchAmbulances() async {
   final userId =
       Supabase.instance.client.auth.currentUser!.id;
@@ -156,7 +161,7 @@ void initState() {
 
                             Expanded(
                               child: Text(
-                                ambulance["id"]!,
+                                ambulance["ambulance_code"] ?? "",
                                 style: const TextStyle(
                                   fontSize: 18,
                                   fontWeight:
@@ -165,23 +170,69 @@ void initState() {
                               ),
                             ),
 
-                            _statusChip(
-                              ambulance["status"]!,
-                            ),
+                          
+  Row(
+  children: [
+
+    _statusChip(
+      ambulance["is_available"] == true,
+    ),
+
+    IconButton(
+      icon: const Icon(
+        Icons.delete,
+        color: Colors.red,
+      ),
+      onPressed: () async {
+
+  final confirm = await showDialog(
+    context: context,
+    builder: (_) => AlertDialog(
+      title: const Text("Delete Driver?"),
+      content: const Text(
+        "This action cannot be undone.",
+      ),
+      actions: [
+
+        TextButton(
+          onPressed: () =>
+              Navigator.pop(context, false),
+          child: const Text("Cancel"),
+        ),
+
+        ElevatedButton(
+          onPressed: () =>
+              Navigator.pop(context, true),
+          child: const Text("Delete"),
+        ),
+      ],
+    ),
+  );
+   if (confirm == true) {
+        await Supabase.instance.client
+            .from('ambulances')
+            .delete()
+            .eq('id', ambulance['id']);
+
+        fetchAmbulances();}
+      },
+    ),
+  ],
+),
                           ],
                         ),
 
                         const SizedBox(height: 15),
 
-                        Text(
-                          "Driver: ${ambulance["driver"]}",
-                        ),
+                       Text(
+  "Vehicle Name: ${ambulance["vehicle_name"] ?? ""}",
+),
 
                         const SizedBox(height: 5),
 
                         Text(
-                          "Vehicle: ${ambulance["vehicle"]}",
-                        ),
+  "Vehicle Number: ${ambulance["vehicle_number"] ?? ""}",
+),
                       ],
                     ),
                   );
@@ -194,44 +245,30 @@ void initState() {
     );
   }
 
-  Widget _statusChip(String status) {
+Widget _statusChip(bool isAvailable) {
+  final color =
+      isAvailable ? Colors.green : Colors.red;
 
-    Color color;
-
-    switch (status) {
-      case "Available":
-        color = Colors.green;
-        break;
-
-      case "On Mission":
-        color = Colors.red;
-        break;
-
-      default:
-        color = Colors.orange;
-    }
-
-    return Container(
-      padding: const EdgeInsets.symmetric(
-        horizontal: 12,
-        vertical: 6,
+  return Container(
+    padding: const EdgeInsets.symmetric(
+      horizontal: 12,
+      vertical: 6,
+    ),
+    decoration: BoxDecoration(
+      color: color.withOpacity(0.12),
+      borderRadius: BorderRadius.circular(20),
+    ),
+    child: Text(
+      isAvailable
+          ? "Available"
+          : "Unavailable",
+      style: TextStyle(
+        color: color,
+        fontWeight: FontWeight.bold,
       ),
-
-      decoration: BoxDecoration(
-        color: color.withOpacity(0.12),
-        borderRadius: BorderRadius.circular(20),
-      ),
-
-      child: Text(
-        status,
-        style: TextStyle(
-          color: color,
-          fontWeight: FontWeight.bold,
-        ),
-      ),
-    );
-  }
-
+    ),
+  );
+}
   void _showRegisterDialog() {
 
     showDialog(
@@ -250,31 +287,21 @@ void initState() {
 
               children: [
 
-                TextField(
-                  decoration: const InputDecoration(
-                    labelText: "Vehicle Number",
-                  ),
-                ),
+               TextField(
+  controller: vehicleNameController,
+  decoration: const InputDecoration(
+    labelText: "Vehicle Name",
+  ),
+),
 
-                TextField(
-                  decoration: const InputDecoration(
-                    labelText: "Driver Name",
-                  ),
-                ),
+const SizedBox(height: 10),
 
-                TextField(
-                  decoration: const InputDecoration(
-                    labelText:
-                        "Driver Phone Number",
-                  ),
-                ),
-
-                TextField(
-                  decoration: const InputDecoration(
-                    labelText:
-                        "Driver License Number",
-                  ),
-                ),
+TextField(
+  controller: vehicleNumberController,
+  decoration: const InputDecoration(
+    labelText: "Vehicle Number",
+  ),
+),
               ],
             ),
           ),
@@ -283,26 +310,103 @@ void initState() {
 
             TextButton(
               onPressed: () {
-                Navigator.pop(context);
-              },
+
+  vehicleNameController.clear();
+  vehicleNumberController.clear();
+
+  Navigator.pop(context);
+},
 
               child: const Text("Cancel"),
             ),
 
             ElevatedButton(
-              onPressed: () {
+              onPressed: () async {
 
-                Navigator.pop(context);
+  try {
 
-                ScaffoldMessenger.of(context)
-                    .showSnackBar(
-                  const SnackBar(
-                    content: Text(
-                      "Ambulance Registered (Demo)",
-                    ),
-                  ),
-                );
-              },
+    final userId =
+        Supabase.instance.client.auth.currentUser!.id;
+
+    final hospital = await Supabase.instance.client
+        .from('users')
+        .select()
+        .eq('id', userId)
+        .single();
+
+    final hospitalId = hospital['id'];
+    final hospitalCode =
+        hospital['hospital_code'];
+
+    final lastAmbulance =
+        await Supabase.instance.client
+            .from('ambulances')
+            .select('ambulance_sequence')
+            .eq('hospital_id', hospitalId)
+            .order(
+              'ambulance_sequence',
+              ascending: false,
+            )
+            .limit(1);
+
+    int nextSequence = 1;
+
+    if (lastAmbulance.isNotEmpty) {
+      nextSequence =
+          (lastAmbulance.first['ambulance_sequence']
+                  as int) +
+              1;
+    }
+
+    final ambulanceCode =
+        "$hospitalCode-A${nextSequence.toString().padLeft(3, '0')}";
+
+    await Supabase.instance.client
+        .from('ambulances')
+        .insert({
+
+      'hospital_id': hospitalId,
+
+      'vehicle_name':
+          vehicleNameController.text.trim(),
+
+      'vehicle_number':
+          vehicleNumberController.text.trim(),
+
+      'ambulance_code': ambulanceCode,
+
+      'ambulance_sequence':
+          nextSequence,
+
+     
+
+      'is_available': true,
+    });
+
+    await fetchAmbulances();
+vehicleNameController.clear();
+vehicleNumberController.clear();
+    Navigator.pop(context);
+
+    ScaffoldMessenger.of(context)
+        .showSnackBar(
+      SnackBar(
+        content: Text(
+          "$ambulanceCode Registered",
+        ),
+      ),
+    );
+
+  } catch (e) {
+
+    ScaffoldMessenger.of(context)
+        .showSnackBar(
+      SnackBar(
+        content: Text(e.toString()),
+      ),
+    );
+  }
+},
 
               child: const Text("Register"),
             ),
