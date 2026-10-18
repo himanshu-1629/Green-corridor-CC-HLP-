@@ -2109,14 +2109,26 @@ class _MovingAmbulance3DHeroState extends State<MovingAmbulance3DHero>
                         child: Stack(
                           alignment: Alignment.center,
                           children: [
-                            // The 3D Render Asset
+                            // The 3D Render Asset with robust network & vector fallbacks
                             Container(
-                              padding: const EdgeInsets.all(20),
+                              padding: const EdgeInsets.all(16),
                               child: Image.asset(
                                 'assets/images/ambulance_3d.png',
                                 fit: BoxFit.contain,
-                                width: math.min(cardWidth * 0.82, 380),
-                                height: math.min(cardHeight * 0.78, 380),
+                                width: math.min(cardWidth * 0.84, 390),
+                                height: math.min(cardHeight * 0.80, 390),
+                                errorBuilder: (context, error, stackTrace) {
+                                  // Fallback to hosted web asset so live dev servers always display the 3D model
+                                  return Image.network(
+                                    'https://green-corridor-web.web.app/assets/assets/images/ambulance_3d.png',
+                                    fit: BoxFit.contain,
+                                    width: math.min(cardWidth * 0.84, 390),
+                                    height: math.min(cardHeight * 0.80, 390),
+                                    errorBuilder: (context, netError, netStackTrace) {
+                                      return _build3DFallbackAmbulanceGraphic(cardWidth, cardHeight);
+                                    },
+                                  );
+                                },
                               ),
                             ),
 
@@ -2232,6 +2244,75 @@ class _MovingAmbulance3DHeroState extends State<MovingAmbulance3DHero>
                   ],
                 ),
               ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // Vector fallback graphic if image assets are still indexing
+  Widget _build3DFallbackAmbulanceGraphic(double cardWidth, double cardHeight) {
+    return Container(
+      width: math.min(cardWidth * 0.72, 320),
+      height: 210,
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(24),
+        border: Border.all(color: AppColors.slate200, width: 2),
+        boxShadow: [
+          BoxShadow(
+            color: AppColors.emerald.withValues(alpha: 0.12),
+            blurRadius: 24,
+            offset: const Offset(0, 10),
+          ),
+        ],
+      ),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          // Roof Emergency Siren Lightbar
+          Container(
+            width: 80,
+            height: 12,
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(6),
+              gradient: const LinearGradient(
+                colors: [AppColors.primary, Color(0xFF06B6D4)],
+              ),
+            ),
+          ),
+          const SizedBox(height: 14),
+          // Large Ambulance Emblem
+          Container(
+            padding: const EdgeInsets.all(18),
+            decoration: const BoxDecoration(
+              color: AppColors.emeraldLight,
+              shape: BoxShape.circle,
+            ),
+            child: const Icon(
+              Icons.airport_shuttle_rounded,
+              color: AppColors.emeraldDark,
+              size: 52,
+            ),
+          ),
+          const SizedBox(height: 12),
+          Text(
+            'AMBULANCE 911',
+            style: GoogleFonts.plusJakartaSans(
+              fontSize: 15,
+              fontWeight: FontWeight.w900,
+              color: AppColors.slate900,
+              letterSpacing: 1.2,
+            ),
+          ),
+          Text(
+            'FAST-TRACK EMERGENCY CORRIDOR',
+            style: GoogleFonts.plusJakartaSans(
+              fontSize: 10,
+              fontWeight: FontWeight.w800,
+              color: AppColors.emeraldDark,
+              letterSpacing: 0.8,
             ),
           ),
         ],
