@@ -120,19 +120,46 @@ class AppDecorations {
 
   static BoxDecoration cardElevated({
     Color color = AppColors.surface,
-    double radius = 20,
+    double radius = 22,
   }) {
     return BoxDecoration(
       color: color,
       borderRadius: BorderRadius.circular(radius),
-      border: Border.all(color: AppColors.slate200.withValues(alpha: 0.8), width: 1),
+      border: Border.all(color: AppColors.slate200, width: 1.2),
       boxShadow: [
         BoxShadow(
-          color: AppColors.slate900.withValues(alpha: 0.07),
-          blurRadius: 24,
+          color: AppColors.slate900.withValues(alpha: 0.06),
+          blurRadius: 28,
           offset: const Offset(0, 10),
         ),
+        BoxShadow(
+          color: AppColors.slate900.withValues(alpha: 0.02),
+          blurRadius: 10,
+          offset: const Offset(0, 2),
+        ),
       ],
+    );
+  }
+
+  static BoxDecoration subtleCard({
+    Color color = Colors.white,
+    double radius = 16,
+  }) {
+    return BoxDecoration(
+      color: color,
+      borderRadius: BorderRadius.circular(radius),
+      border: Border.all(color: AppColors.slate200, width: 1),
+    );
+  }
+
+  static BoxDecoration badge({
+    required Color color,
+    double radius = 10,
+  }) {
+    return BoxDecoration(
+      color: color.withValues(alpha: 0.12),
+      borderRadius: BorderRadius.circular(radius),
+      border: Border.all(color: color.withValues(alpha: 0.28), width: 1),
     );
   }
 
@@ -149,16 +176,23 @@ class AppDecorations {
       suffixIcon: suffixIcon,
       filled: true,
       fillColor: Colors.white,
-      labelStyle: const TextStyle(color: AppColors.slate600, fontSize: 14),
-      hintStyle: const TextStyle(color: AppColors.slate400, fontSize: 14),
+      labelStyle: GoogleFonts.plusJakartaSans(
+        color: AppColors.slate600,
+        fontSize: 14,
+        fontWeight: FontWeight.w500,
+      ),
+      hintStyle: GoogleFonts.plusJakartaSans(
+        color: AppColors.slate400,
+        fontSize: 14,
+      ),
       contentPadding: const EdgeInsets.symmetric(horizontal: 18, vertical: 16),
       border: OutlineInputBorder(
         borderRadius: BorderRadius.circular(14),
-        borderSide: const BorderSide(color: AppColors.slate200),
+        borderSide: const BorderSide(color: AppColors.slate200, width: 1.2),
       ),
       enabledBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(14),
-        borderSide: const BorderSide(color: AppColors.slate200),
+        borderSide: const BorderSide(color: AppColors.slate200, width: 1.2),
       ),
       focusedBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(14),
@@ -166,14 +200,13 @@ class AppDecorations {
       ),
       errorBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(14),
-        borderSide: const BorderSide(color: AppColors.primary),
+        borderSide: const BorderSide(color: AppColors.primary, width: 1.5),
       ),
     );
   }
 }
 
 class AppTypography {
-  // Primary Emergency Environment Font: Plus Jakarta Sans / Inter style
   static TextStyle headlineLarge({Color color = AppColors.slate900, double size = 36}) =>
       GoogleFonts.plusJakartaSans(
         fontSize: size,
@@ -199,13 +232,12 @@ class AppTypography {
         height: 1.55,
       );
 
-  // Tactical / Telemetry Monospace & Pill Font for Emergency Metrics
   static TextStyle tacticalBadge({Color color = AppColors.primary, double size = 12}) =>
       GoogleFonts.plusJakartaSans(
         fontSize: size,
         fontWeight: FontWeight.w700,
         color: color,
-        letterSpacing: 1.2,
+        letterSpacing: 1.0,
       );
 
   static TextStyle metricValue({Color color = AppColors.slate900, double size = 32}) =>
@@ -233,6 +265,16 @@ class AppTheme {
 
     return baseTheme.copyWith(
       textTheme: GoogleFonts.plusJakartaSansTextTheme(baseTheme.textTheme),
+      textSelectionTheme: const TextSelectionThemeData(
+        cursorColor: AppColors.primary,
+        selectionColor: AppColors.primaryLight,
+        selectionHandleColor: AppColors.primary,
+      ),
+      dividerTheme: const DividerThemeData(
+        color: AppColors.slate200,
+        thickness: 1,
+        space: 1,
+      ),
       appBarTheme: AppBarTheme(
         backgroundColor: AppColors.slate900,
         foregroundColor: Colors.white,
@@ -245,18 +287,26 @@ class AppTheme {
           letterSpacing: -0.2,
         ),
       ),
+      cardTheme: CardThemeData(
+        color: AppColors.surface,
+        elevation: 0,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(20),
+          side: const BorderSide(color: AppColors.slate200, width: 1.2),
+        ),
+      ),
       elevatedButtonTheme: ElevatedButtonThemeData(
         style: ElevatedButton.styleFrom(
           backgroundColor: AppColors.primary,
           foregroundColor: Colors.white,
           elevation: 0,
-          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 15),
+          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(14),
           ),
           textStyle: GoogleFonts.plusJakartaSans(
             fontSize: 15,
-            fontWeight: FontWeight.w600,
+            fontWeight: FontWeight.w700,
             letterSpacing: 0.2,
           ),
         ),

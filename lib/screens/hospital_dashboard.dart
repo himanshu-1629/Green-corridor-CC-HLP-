@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../theme/app_theme.dart';
 import 'create_mission_screen.dart';
+import 'login_screen.dart';
 import 'manage_ambulances_screen.dart';
 import 'manage_drivers_screen.dart';
 import 'mission_center_screen.dart';
-import 'login_screen.dart';
 
 class HospitalDashboard extends StatefulWidget {
   const HospitalDashboard({super.key});
@@ -15,7 +16,7 @@ class HospitalDashboard extends StatefulWidget {
 }
 
 class _HospitalDashboardState extends State<HospitalDashboard> {
-  String hospitalName = "Loading Hospital...";
+  String hospitalName = "Loading Facility...";
   String hospitalCode = "...";
   String hospitalAddress = "";
   int ambulanceCount = 0;
@@ -80,36 +81,107 @@ class _HospitalDashboardState extends State<HospitalDashboard> {
 
   @override
   Widget build(BuildContext context) {
+    final screenWidth = MediaQuery.of(context).size.width;
+    final isDesktop = screenWidth >= 900;
+
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: AppBar(
+        titleSpacing: 20,
+        backgroundColor: Colors.white,
+        foregroundColor: AppColors.slate900,
+        elevation: 0,
+        bottom: PreferredSize(
+          preferredSize: const Size.fromHeight(1),
+          child: Container(color: AppColors.slate200, height: 1),
+        ),
         title: Row(
           children: [
             Container(
-              padding: const EdgeInsets.all(6),
+              padding: const EdgeInsets.all(7),
               decoration: BoxDecoration(
-                color: AppColors.primary.withValues(alpha: 0.2),
-                borderRadius: BorderRadius.circular(8),
+                color: AppColors.primary,
+                borderRadius: BorderRadius.circular(10),
+                boxShadow: [
+                  BoxShadow(
+                    color: AppColors.primary.withValues(alpha: 0.3),
+                    blurRadius: 8,
+                    offset: const Offset(0, 2),
+                  ),
+                ],
               ),
               child: const Icon(
                 Icons.emergency_rounded,
-                color: AppColors.primary,
+                color: Colors.white,
                 size: 20,
               ),
             ),
-            const SizedBox(width: 10),
-            const Text("Hospital Command Center"),
+            const SizedBox(width: 12),
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  "Hospital Command Center",
+                  style: GoogleFonts.plusJakartaSans(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w800,
+                    color: AppColors.slate900,
+                    letterSpacing: -0.3,
+                  ),
+                ),
+                Text(
+                  "Green Corridor Network Node",
+                  style: GoogleFonts.plusJakartaSans(
+                    fontSize: 11,
+                    fontWeight: FontWeight.w600,
+                    color: AppColors.slate500,
+                  ),
+                ),
+              ],
+            ),
           ],
         ),
         actions: [
+          Container(
+            margin: const EdgeInsets.symmetric(vertical: 10),
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+            decoration: BoxDecoration(
+              color: AppColors.emeraldLight,
+              borderRadius: BorderRadius.circular(20),
+              border: Border.all(color: AppColors.emerald.withValues(alpha: 0.3)),
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Container(
+                  width: 7,
+                  height: 7,
+                  decoration: const BoxDecoration(
+                    color: AppColors.emerald,
+                    shape: BoxShape.circle,
+                  ),
+                ),
+                const SizedBox(width: 6),
+                Text(
+                  "Grid Synced",
+                  style: GoogleFonts.plusJakartaSans(
+                    fontSize: 11,
+                    fontWeight: FontWeight.w700,
+                    color: AppColors.emeraldDark,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(width: 8),
           IconButton(
-            tooltip: "Refresh Dashboard",
-            icon: const Icon(Icons.refresh_rounded),
+            tooltip: "Refresh Facility Status",
+            icon: const Icon(Icons.refresh_rounded, color: AppColors.slate700),
             onPressed: loadDashboardData,
           ),
           IconButton(
             tooltip: "Sign Out",
-            icon: const Icon(Icons.logout_rounded),
+            icon: const Icon(Icons.logout_rounded, color: AppColors.slate700),
             onPressed: () async {
               await Supabase.instance.client.auth.signOut();
               if (!context.mounted) return;
@@ -120,7 +192,7 @@ class _HospitalDashboardState extends State<HospitalDashboard> {
               );
             },
           ),
-          const SizedBox(width: 8),
+          const SizedBox(width: 12),
         ],
       ),
       body: RefreshIndicator(
@@ -128,384 +200,433 @@ class _HospitalDashboardState extends State<HospitalDashboard> {
         color: AppColors.primary,
         child: SingleChildScrollView(
           physics: const AlwaysScrollableScrollPhysics(),
-          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
+          padding: EdgeInsets.symmetric(
+            horizontal: isDesktop ? 36 : 20,
+            vertical: 24,
+          ),
           child: Align(
             alignment: Alignment.topCenter,
             child: ConstrainedBox(
-              constraints: const BoxConstraints(maxWidth: 1100),
+              constraints: const BoxConstraints(maxWidth: 1120),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-              // Facility Status Card
-              Container(
-                width: double.infinity,
-                padding: const EdgeInsets.all(24),
-                decoration: BoxDecoration(
-                  gradient: AppGradients.headerGradient,
-                  borderRadius: BorderRadius.circular(24),
-                  boxShadow: [
-                    BoxShadow(
-                      color: AppColors.slate900.withValues(alpha: 0.15),
-                      blurRadius: 20,
-                      offset: const Offset(0, 8),
-                    ),
-                  ],
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Container(
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 10,
-                                  vertical: 4,
-                                ),
-                                decoration: BoxDecoration(
-                                  color: Colors.white.withValues(alpha: 0.12),
-                                  borderRadius: BorderRadius.circular(20),
-                                  border: Border.all(
-                                    color: Colors.white.withValues(alpha: 0.2),
-                                  ),
-                                ),
-                                child: Text(
-                                  "CODE: $hospitalCode",
-                                  style: const TextStyle(
-                                    color: Colors.white,
-                                    fontSize: 12,
-                                    fontWeight: FontWeight.w700,
-                                    letterSpacing: 0.5,
-                                  ),
-                                ),
-                              ),
-                              const SizedBox(height: 12),
-                              Text(
-                                hospitalName,
-                                style: const TextStyle(
-                                  color: Colors.white,
-                                  fontSize: 24,
-                                  fontWeight: FontWeight.w800,
-                                  letterSpacing: -0.5,
-                                ),
-                              ),
-                              if (hospitalAddress.isNotEmpty) ...[
-                                const SizedBox(height: 6),
-                                Row(
-                                  children: [
-                                    Icon(
-                                      Icons.place_outlined,
-                                      size: 14,
-                                      color: Colors.white.withValues(alpha: 0.7),
-                                    ),
-                                    const SizedBox(width: 4),
-                                    Expanded(
-                                      child: Text(
-                                        hospitalAddress,
-                                        style: TextStyle(
-                                          color: Colors.white.withValues(alpha: 0.7),
-                                          fontSize: 13,
-                                        ),
-                                        overflow: TextOverflow.ellipsis,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ],
-                            ],
-                          ),
-                        ),
-                        // Operational Status Pill
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 12,
-                            vertical: 6,
-                          ),
-                          decoration: BoxDecoration(
-                            color: AppColors.emerald.withValues(alpha: 0.15),
-                            borderRadius: BorderRadius.circular(20),
-                            border: Border.all(
-                              color: AppColors.emerald.withValues(alpha: 0.4),
-                            ),
-                          ),
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Container(
-                                width: 8,
-                                height: 8,
-                                decoration: const BoxDecoration(
-                                  color: AppColors.emerald,
-                                  shape: BoxShape.circle,
-                                ),
-                              ),
-                              const SizedBox(width: 6),
-                              const Text(
-                                "Operational",
-                                style: TextStyle(
-                                  color: AppColors.emerald,
-                                  fontSize: 12,
-                                  fontWeight: FontWeight.w700,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 24),
+                  // Facility Status Banner
+                  _buildFacilityHeaderCard(isDesktop),
+                  const SizedBox(height: 24),
 
-              // KPI Stats Grid
-              Row(
-                children: [
-                  Expanded(
-                    child: _statCard(
-                      icon: Icons.airport_shuttle_rounded,
-                      title: "Ambulances",
-                      value: "$ambulanceCount",
-                      accentColor: AppColors.primary,
-                      bgColor: AppColors.primaryLight,
+                  // KPI Metrics Grid
+                  _buildMetricsGrid(isDesktop),
+                  const SizedBox(height: 28),
+
+                  // Emergency Dispatch Callout
+                  _buildEmergencyDispatchBanner(),
+                  const SizedBox(height: 32),
+
+                  // Operations Navigation Hub
+                  Text(
+                    "Hospital Operations & Fleet",
+                    style: GoogleFonts.plusJakartaSans(
+                      fontSize: 18,
+                      fontWeight: FontWeight.w800,
+                      color: AppColors.slate900,
+                      letterSpacing: -0.4,
                     ),
                   ),
-                  const SizedBox(width: 14),
-                  Expanded(
-                    child: _statCard(
-                      icon: Icons.alt_route_rounded,
-                      title: "Active Missions",
-                      value: "$activeMissionCount",
-                      accentColor: AppColors.emerald,
-                      bgColor: AppColors.emeraldLight,
-                    ),
+                  const SizedBox(height: 14),
+
+                  _actionTile(
+                    icon: Icons.alt_route_rounded,
+                    title: "Mission Center",
+                    subtitle: "Monitor active outgoing transfer corridors and incoming organ alerts in real time",
+                    badgeText: activeMissionCount > 0 ? "$activeMissionCount In-Flight" : "Standby",
+                    badgeColor: activeMissionCount > 0 ? AppColors.emerald : AppColors.slate400,
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (_) => const MissionCenterScreen()),
+                      ).then((_) => loadDashboardData());
+                    },
                   ),
-                  const SizedBox(width: 14),
-                  Expanded(
-                    child: _statCard(
-                      icon: Icons.badge_rounded,
-                      title: "Fleet Drivers",
-                      value: "$driverCount",
-                      accentColor: AppColors.info,
-                      bgColor: AppColors.infoLight,
-                    ),
+                  const SizedBox(height: 12),
+
+                  _actionTile(
+                    icon: Icons.airport_shuttle_rounded,
+                    title: "Manage Ambulances",
+                    subtitle: "Register new emergency vehicles, inspect onboard GPS units, and toggle deployment status",
+                    badgeText: "$ambulanceCount Registered",
+                    badgeColor: AppColors.info,
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (_) => const ManageAmbulancesScreen()),
+                      ).then((_) => loadDashboardData());
+                    },
                   ),
+                  const SizedBox(height: 12),
+
+                  _actionTile(
+                    icon: Icons.badge_rounded,
+                    title: "Manage Emergency Drivers",
+                    subtitle: "Onboard certified emergency transport drivers and monitor active standby rosters",
+                    badgeText: "$driverCount Drivers",
+                    badgeColor: AppColors.slate600,
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (_) => const ManageDriversScreen()),
+                      ).then((_) => loadDashboardData());
+                    },
+                  ),
+                  const SizedBox(height: 40),
                 ],
               ),
-              const SizedBox(height: 28),
-
-              // Primary Emergency Callout (Centered & Full-Card Clickable)
-              Material(
-                color: Colors.transparent,
-                borderRadius: BorderRadius.circular(24),
-                child: InkWell(
-                  borderRadius: BorderRadius.circular(24),
-                  onTap: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (_) => const CreateMissionScreen(),
-                      ),
-                    ).then((_) => loadDashboardData());
-                  },
-                  child: Container(
-                    width: double.infinity,
-                    padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 26),
-                    decoration: BoxDecoration(
-                      gradient: AppGradients.emergency,
-                      borderRadius: BorderRadius.circular(24),
-                      boxShadow: [
-                        BoxShadow(
-                          color: AppColors.primary.withValues(alpha: 0.35),
-                          blurRadius: 20,
-                          offset: const Offset(0, 8),
-                        ),
-                      ],
-                    ),
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      crossAxisAlignment: CrossAxisAlignment.center,
-                      children: [
-                        Container(
-                          padding: const EdgeInsets.all(14),
-                          decoration: BoxDecoration(
-                            color: Colors.white.withValues(alpha: 0.2),
-                            shape: BoxShape.circle,
-                          ),
-                          child: const Icon(
-                            Icons.emergency_rounded,
-                            color: Colors.white,
-                            size: 32,
-                          ),
-                        ),
-                        const SizedBox(height: 12),
-                        const Text(
-                          "Create Emergency Mission",
-                          textAlign: TextAlign.center,
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontSize: 22,
-                            fontWeight: FontWeight.w900,
-                            letterSpacing: -0.3,
-                          ),
-                        ),
-                        const SizedBox(height: 6),
-                        const Text(
-                          "Fast-track organ, blood, or urgent patient transfer with Green Corridor clearance",
-                          textAlign: TextAlign.center,
-                          style: TextStyle(
-                            color: Colors.white70,
-                            fontSize: 14,
-                            fontWeight: FontWeight.w500,
-                          ),
-                        ),
-                        const SizedBox(height: 20),
-                        Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 14),
-                          decoration: BoxDecoration(
-                            color: Colors.white,
-                            borderRadius: BorderRadius.circular(16),
-                            boxShadow: [
-                              BoxShadow(
-                                color: Colors.black.withValues(alpha: 0.12),
-                                blurRadius: 10,
-                                offset: const Offset(0, 4),
-                              ),
-                            ],
-                          ),
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: const [
-                              Icon(Icons.flash_on_rounded, color: AppColors.primary, size: 20),
-                              SizedBox(width: 8),
-                              Text(
-                                "DISPATCH EMERGENCY MISSION",
-                                style: TextStyle(
-                                  color: AppColors.primary,
-                                  fontSize: 15,
-                                  fontWeight: FontWeight.w900,
-                                  letterSpacing: 0.4,
-                                ),
-                              ),
-                              SizedBox(width: 6),
-                              Icon(Icons.arrow_forward_rounded, color: AppColors.primary, size: 18),
-                            ],
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              ),
-              const SizedBox(height: 32),
-
-              // Operations Menu
-              const Text(
-                "Hospital Operations",
-                style: TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.w800,
-                  color: AppColors.slate900,
-                  letterSpacing: -0.3,
-                ),
-              ),
-              const SizedBox(height: 14),
-
-              _actionTile(
-                icon: Icons.assignment_rounded,
-                title: "Mission Center",
-                subtitle: "Monitor incoming & outgoing live transfer corridors",
-                badgeText: activeMissionCount > 0 ? "$activeMissionCount Active" : null,
-                onTap: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (_) => const MissionCenterScreen()),
-                  ).then((_) => loadDashboardData());
-                },
-              ),
-              const SizedBox(height: 12),
-
-              _actionTile(
-                icon: Icons.directions_car_filled_rounded,
-                title: "Manage Ambulances",
-                subtitle: "View fleet status, register and track emergency vehicles",
-                badgeText: "$ambulanceCount Vehicles",
-                onTap: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (_) => const ManageAmbulancesScreen()),
-                  ).then((_) => loadDashboardData());
-                },
-              ),
-              const SizedBox(height: 12),
-
-              _actionTile(
-                icon: Icons.airline_stops_rounded,
-                title: "Manage Drivers",
-                subtitle: "Onboard emergency transport drivers and monitor rosters",
-                badgeText: "$driverCount Drivers",
-                onTap: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (_) => const ManageDriversScreen()),
-                  ).then((_) => loadDashboardData());
-                },
-              ),
-            ],
+            ),
           ),
         ),
       ),
-    ),
-  ),
-);
+    );
+  }
+
+  Widget _buildFacilityHeaderCard(bool isDesktop) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(28),
+      decoration: BoxDecoration(
+        color: AppColors.slate900,
+        borderRadius: BorderRadius.circular(24),
+        boxShadow: [
+          BoxShadow(
+            color: AppColors.slate900.withValues(alpha: 0.15),
+            blurRadius: 24,
+            offset: const Offset(0, 10),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                      decoration: BoxDecoration(
+                        color: Colors.white.withValues(alpha: 0.1),
+                        borderRadius: BorderRadius.circular(8),
+                        border: Border.all(color: Colors.white.withValues(alpha: 0.15)),
+                      ),
+                      child: Text(
+                        "FACILITY CODE: $hospitalCode",
+                        style: GoogleFonts.jetBrainsMono(
+                          color: Colors.white,
+                          fontSize: 12,
+                          fontWeight: FontWeight.w700,
+                          letterSpacing: 0.5,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 14),
+                    Text(
+                      hospitalName,
+                      style: GoogleFonts.plusJakartaSans(
+                        color: Colors.white,
+                        fontSize: isDesktop ? 26 : 22,
+                        fontWeight: FontWeight.w900,
+                        letterSpacing: -0.6,
+                      ),
+                    ),
+                    if (hospitalAddress.isNotEmpty) ...[
+                      const SizedBox(height: 8),
+                      Row(
+                        children: [
+                          Icon(
+                            Icons.place_outlined,
+                            size: 16,
+                            color: Colors.white.withValues(alpha: 0.7),
+                          ),
+                          const SizedBox(width: 6),
+                          Expanded(
+                            child: Text(
+                              hospitalAddress,
+                              style: GoogleFonts.plusJakartaSans(
+                                color: Colors.white.withValues(alpha: 0.75),
+                                fontSize: 13,
+                              ),
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ],
+                ),
+              ),
+              const SizedBox(width: 16),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                decoration: BoxDecoration(
+                  color: AppColors.emerald.withValues(alpha: 0.15),
+                  borderRadius: BorderRadius.circular(20),
+                  border: Border.all(color: AppColors.emerald.withValues(alpha: 0.4)),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Container(
+                      width: 8,
+                      height: 8,
+                      decoration: const BoxDecoration(
+                        color: AppColors.emerald,
+                        shape: BoxShape.circle,
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    Text(
+                      "Bay Ready",
+                      style: GoogleFonts.plusJakartaSans(
+                        color: AppColors.emerald,
+                        fontSize: 12,
+                        fontWeight: FontWeight.w800,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildMetricsGrid(bool isDesktop) {
+    return Row(
+      children: [
+        Expanded(
+          child: _statCard(
+            icon: Icons.airport_shuttle_rounded,
+            title: "Ambulance Units",
+            value: "$ambulanceCount",
+            subtitle: "Registered in Depot",
+            accentColor: AppColors.primary,
+            bgColor: AppColors.primaryLight,
+          ),
+        ),
+        const SizedBox(width: 14),
+        Expanded(
+          child: _statCard(
+            icon: Icons.alt_route_rounded,
+            title: "Active Corridors",
+            value: "$activeMissionCount",
+            subtitle: activeMissionCount > 0 ? "Live Preemption ON" : "No Active Transfer",
+            accentColor: activeMissionCount > 0 ? AppColors.emerald : AppColors.slate700,
+            bgColor: activeMissionCount > 0 ? AppColors.emeraldLight : AppColors.slate100,
+          ),
+        ),
+        const SizedBox(width: 14),
+        Expanded(
+          child: _statCard(
+            icon: Icons.badge_rounded,
+            title: "Fleet Drivers",
+            value: "$driverCount",
+            subtitle: "Certified Staff",
+            accentColor: AppColors.info,
+            bgColor: AppColors.infoLight,
+          ),
+        ),
+      ],
+    );
   }
 
   Widget _statCard({
     required IconData icon,
     required String title,
     required String value,
+    required String subtitle,
     required Color accentColor,
     required Color bgColor,
   }) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 18),
-      decoration: AppDecorations.card(radius: 18),
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: AppColors.slate200),
+        boxShadow: [
+          BoxShadow(
+            color: AppColors.slate900.withValues(alpha: 0.04),
+            blurRadius: 16,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Container(
-            padding: const EdgeInsets.all(8),
-            decoration: BoxDecoration(
-              color: bgColor,
-              borderRadius: BorderRadius.circular(10),
-            ),
-            child: Icon(icon, color: accentColor, size: 20),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Container(
+                padding: const EdgeInsets.all(10),
+                decoration: BoxDecoration(
+                  color: bgColor,
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Icon(icon, color: accentColor, size: 22),
+              ),
+              Text(
+                value,
+                style: GoogleFonts.plusJakartaSans(
+                  fontSize: 28,
+                  fontWeight: FontWeight.w900,
+                  color: AppColors.slate900,
+                  letterSpacing: -0.8,
+                ),
+              ),
+            ],
           ),
           const SizedBox(height: 14),
           Text(
-            value,
-            style: const TextStyle(
-              fontSize: 26,
-              fontWeight: FontWeight.w800,
+            title,
+            style: GoogleFonts.plusJakartaSans(
               color: AppColors.slate900,
-              letterSpacing: -0.5,
+              fontSize: 14,
+              fontWeight: FontWeight.w700,
             ),
           ),
           const SizedBox(height: 2),
           Text(
-            title,
-            style: const TextStyle(
+            subtitle,
+            style: GoogleFonts.plusJakartaSans(
               color: AppColors.slate500,
               fontSize: 12,
-              fontWeight: FontWeight.w600,
+              fontWeight: FontWeight.w500,
             ),
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildEmergencyDispatchBanner() {
+    return Material(
+      color: Colors.transparent,
+      borderRadius: BorderRadius.circular(24),
+      child: InkWell(
+        borderRadius: BorderRadius.circular(24),
+        onTap: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (_) => const CreateMissionScreen(),
+            ),
+          ).then((_) => loadDashboardData());
+        },
+        child: Container(
+          width: double.infinity,
+          padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 28),
+          decoration: BoxDecoration(
+            gradient: AppGradients.emergency,
+            borderRadius: BorderRadius.circular(24),
+            boxShadow: [
+              BoxShadow(
+                color: AppColors.primary.withValues(alpha: 0.35),
+                blurRadius: 24,
+                offset: const Offset(0, 8),
+              ),
+            ],
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: Colors.white.withValues(alpha: 0.2),
+                      shape: BoxShape.circle,
+                    ),
+                    child: const Icon(
+                      Icons.emergency_rounded,
+                      color: Colors.white,
+                      size: 28,
+                    ),
+                  ),
+                  const SizedBox(width: 18),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          "Dispatch Emergency Green Corridor",
+                          style: GoogleFonts.plusJakartaSans(
+                            color: Colors.white,
+                            fontSize: 20,
+                            fontWeight: FontWeight.w900,
+                            letterSpacing: -0.4,
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          "Preempt municipal traffic lights for organ harvest, critical trauma, or urgent blood transit with zero intersection delay.",
+                          style: GoogleFonts.plusJakartaSans(
+                            color: Colors.white.withValues(alpha: 0.85),
+                            fontSize: 13,
+                            height: 1.4,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 20),
+              Align(
+                alignment: Alignment.centerRight,
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(14),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withValues(alpha: 0.12),
+                        blurRadius: 10,
+                        offset: const Offset(0, 4),
+                      ),
+                    ],
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const Icon(Icons.flash_on_rounded, color: AppColors.primary, size: 18),
+                      const SizedBox(width: 8),
+                      Text(
+                        "INITIALIZE FAST-TRACK DISPATCH",
+                        style: GoogleFonts.plusJakartaSans(
+                          color: AppColors.primary,
+                          fontSize: 13,
+                          fontWeight: FontWeight.w900,
+                          letterSpacing: 0.4,
+                        ),
+                      ),
+                      const SizedBox(width: 6),
+                      const Icon(Icons.arrow_forward_rounded, color: AppColors.primary, size: 16),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }
@@ -514,15 +635,27 @@ class _HospitalDashboardState extends State<HospitalDashboard> {
     required IconData icon,
     required String title,
     required String subtitle,
-    String? badgeText,
+    required String badgeText,
+    required Color badgeColor,
     required VoidCallback onTap,
   }) {
     return InkWell(
       onTap: onTap,
-      borderRadius: BorderRadius.circular(16),
+      borderRadius: BorderRadius.circular(20),
       child: Container(
-        padding: const EdgeInsets.all(16),
-        decoration: AppDecorations.card(radius: 16),
+        padding: const EdgeInsets.all(20),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(color: AppColors.slate200),
+          boxShadow: [
+            BoxShadow(
+              color: AppColors.slate900.withValues(alpha: 0.03),
+              blurRadius: 12,
+              offset: const Offset(0, 4),
+            ),
+          ],
+        ),
         child: Row(
           children: [
             Container(
@@ -531,7 +664,7 @@ class _HospitalDashboardState extends State<HospitalDashboard> {
                 color: AppColors.slate100,
                 borderRadius: BorderRadius.circular(14),
               ),
-              child: Icon(icon, color: AppColors.slate800, size: 22),
+              child: Icon(icon, color: AppColors.slate900, size: 22),
             ),
             const SizedBox(width: 16),
             Expanded(
@@ -542,36 +675,36 @@ class _HospitalDashboardState extends State<HospitalDashboard> {
                     children: [
                       Text(
                         title,
-                        style: const TextStyle(
+                        style: GoogleFonts.plusJakartaSans(
                           fontSize: 16,
-                          fontWeight: FontWeight.w700,
+                          fontWeight: FontWeight.w800,
                           color: AppColors.slate900,
+                          letterSpacing: -0.3,
                         ),
                       ),
-                      if (badgeText != null) ...[
-                        const SizedBox(width: 8),
-                        Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                          decoration: BoxDecoration(
-                            color: AppColors.emeraldLight,
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          child: Text(
-                            badgeText,
-                            style: const TextStyle(
-                              color: AppColors.emeraldDark,
-                              fontSize: 11,
-                              fontWeight: FontWeight.w700,
-                            ),
+                      const SizedBox(width: 10),
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                        decoration: BoxDecoration(
+                          color: badgeColor.withValues(alpha: 0.12),
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(color: badgeColor.withValues(alpha: 0.25)),
+                        ),
+                        child: Text(
+                          badgeText,
+                          style: GoogleFonts.plusJakartaSans(
+                            color: badgeColor,
+                            fontSize: 11,
+                            fontWeight: FontWeight.w700,
                           ),
                         ),
-                      ],
+                      ),
                     ],
                   ),
-                  const SizedBox(height: 3),
+                  const SizedBox(height: 4),
                   Text(
                     subtitle,
-                    style: const TextStyle(
+                    style: GoogleFonts.plusJakartaSans(
                       color: AppColors.slate500,
                       fontSize: 13,
                     ),
@@ -582,7 +715,7 @@ class _HospitalDashboardState extends State<HospitalDashboard> {
             const Icon(
               Icons.chevron_right_rounded,
               color: AppColors.slate400,
-              size: 22,
+              size: 24,
             ),
           ],
         ),

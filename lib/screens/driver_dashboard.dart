@@ -6,6 +6,7 @@ import 'package:geolocator/geolocator.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'dart:async';
 import 'dart:convert';
+import 'package:google_fonts/google_fonts.dart';
 import '../theme/app_theme.dart';
 import 'login_screen.dart';
 
@@ -1346,44 +1347,66 @@ class _DriverDashboardState extends State<DriverDashboard> {
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: AppBar(
+        titleSpacing: 20,
+        backgroundColor: Colors.white,
+        foregroundColor: AppColors.slate900,
+        elevation: 0,
+        bottom: PreferredSize(
+          preferredSize: const Size.fromHeight(1),
+          child: Container(color: AppColors.slate200, height: 1),
+        ),
         title: Row(
           children: [
             Container(
-              padding: const EdgeInsets.all(6),
+              padding: const EdgeInsets.all(7),
               decoration: BoxDecoration(
                 color: isReturnJourney
-                    ? AppColors.info.withValues(alpha: 0.2)
-                    : (isTransit
-                        ? AppColors.emerald.withValues(alpha: 0.2)
-                        : AppColors.primary.withValues(alpha: 0.2)),
-                borderRadius: BorderRadius.circular(8),
+                    ? AppColors.info
+                    : (isTransit ? AppColors.emerald : AppColors.primary),
+                borderRadius: BorderRadius.circular(10),
               ),
               child: Icon(
                 isReturnJourney
                     ? Icons.u_turn_left_rounded
                     : (isTransit ? Icons.sensors_rounded : Icons.airport_shuttle_rounded),
-                color: isReturnJourney
-                    ? AppColors.info
-                    : (isTransit ? AppColors.emerald : AppColors.primary),
+                color: Colors.white,
                 size: 20,
               ),
             ),
-            const SizedBox(width: 10),
-            Text(isReturnJourney ? "Return Navigation" : "Driver Transit Cockpit"),
+            const SizedBox(width: 12),
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  isReturnJourney ? "Return Navigation" : "Driver Transit Cockpit",
+                  style: GoogleFonts.plusJakartaSans(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w800,
+                    color: AppColors.slate900,
+                    letterSpacing: -0.3,
+                  ),
+                ),
+                Text(
+                  "Green Corridor Active Guidance",
+                  style: GoogleFonts.plusJakartaSans(
+                    fontSize: 11,
+                    fontWeight: FontWeight.w600,
+                    color: AppColors.slate500,
+                  ),
+                ),
+              ],
+            ),
           ],
         ),
-        backgroundColor: AppColors.slate900,
-        foregroundColor: Colors.white,
-        elevation: 0,
         actions: [
           IconButton(
             tooltip: "Refresh Cockpit",
-            icon: const Icon(Icons.refresh_rounded),
+            icon: const Icon(Icons.refresh_rounded, color: AppColors.slate700),
             onPressed: loadMission,
           ),
           IconButton(
             tooltip: "Sign Out",
-            icon: const Icon(Icons.logout_rounded),
+            icon: const Icon(Icons.logout_rounded, color: AppColors.slate700),
             onPressed: () async {
               trackingTimer?.cancel();
               positionStreamSubscription?.cancel();
@@ -1396,7 +1419,7 @@ class _DriverDashboardState extends State<DriverDashboard> {
               );
             },
           ),
-          const SizedBox(width: 8),
+          const SizedBox(width: 12),
         ],
       ),
       body: !hasMission
@@ -1419,19 +1442,20 @@ class _DriverDashboardState extends State<DriverDashboard> {
                       ),
                     ),
                     const SizedBox(height: 20),
-                    const Text(
+                    Text(
                       "Fleet Unit On Standby",
-                      style: TextStyle(
+                      style: GoogleFonts.plusJakartaSans(
                         fontSize: 22,
                         fontWeight: FontWeight.w800,
-                        color: AppColors.slate800,
+                        color: AppColors.slate900,
+                        letterSpacing: -0.4,
                       ),
                     ),
                     const SizedBox(height: 8),
-                    const Text(
+                    Text(
                       "Your unit is parked at base and Available for fast-track dispatches. Keep GPS enabled to receive instant alerts.",
                       textAlign: TextAlign.center,
-                      style: TextStyle(
+                      style: GoogleFonts.plusJakartaSans(
                         fontSize: 14,
                         color: AppColors.slate500,
                         height: 1.4,
@@ -1441,8 +1465,12 @@ class _DriverDashboardState extends State<DriverDashboard> {
                 ),
               ),
             )
-          : SingleChildScrollView(
-              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
+          : Align(
+              alignment: Alignment.topCenter,
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 1100),
+                child: SingleChildScrollView(
+                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -2070,6 +2098,8 @@ class _DriverDashboardState extends State<DriverDashboard> {
                 ],
               ),
             ),
+          ),
+        ),
     );
   }
 }

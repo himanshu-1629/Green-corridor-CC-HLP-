@@ -3,6 +3,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
+import 'package:google_fonts/google_fonts.dart';
 import '../theme/app_theme.dart';
 
 class CreateMissionScreen extends StatefulWidget {
@@ -328,14 +329,57 @@ class _CreateMissionScreenState extends State<CreateMissionScreen> {
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: AppBar(
-        title: const Text("Create Emergency Mission"),
-        backgroundColor: AppColors.slate900,
-        foregroundColor: Colors.white,
+        titleSpacing: 20,
+        backgroundColor: Colors.white,
+        foregroundColor: AppColors.slate900,
         elevation: 0,
+        bottom: PreferredSize(
+          preferredSize: const Size.fromHeight(1),
+          child: Container(color: AppColors.slate200, height: 1),
+        ),
+        title: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(7),
+              decoration: BoxDecoration(
+                color: AppColors.primary,
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: const Icon(Icons.flash_on_rounded, color: Colors.white, size: 20),
+            ),
+            const SizedBox(width: 12),
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  "Dispatch Emergency Mission",
+                  style: GoogleFonts.plusJakartaSans(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w800,
+                    color: AppColors.slate900,
+                    letterSpacing: -0.3,
+                  ),
+                ),
+                Text(
+                  "Configure Route, Fleet Unit & Driver Clearance",
+                  style: GoogleFonts.plusJakartaSans(
+                    fontSize: 11,
+                    fontWeight: FontWeight.w600,
+                    color: AppColors.slate500,
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
       ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
-        child: Column(
+      body: Align(
+        alignment: Alignment.topCenter,
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 960),
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
+            child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             // Section 1: Mission Type
@@ -754,7 +798,9 @@ class _CreateMissionScreenState extends State<CreateMissionScreen> {
           ],
         ),
       ),
-    );
+    ),
+  ),
+);
   }
 
   Widget _sectionHeader(String title, IconData icon) {

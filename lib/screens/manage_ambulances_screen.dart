@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../theme/app_theme.dart';
 
@@ -242,14 +243,53 @@ class _ManageAmbulancesScreenState extends State<ManageAmbulancesScreen> {
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: AppBar(
-        title: const Text("Ambulance Fleet"),
-        backgroundColor: AppColors.slate900,
-        foregroundColor: Colors.white,
+        titleSpacing: 20,
+        backgroundColor: Colors.white,
+        foregroundColor: AppColors.slate900,
         elevation: 0,
+        bottom: PreferredSize(
+          preferredSize: const Size.fromHeight(1),
+          child: Container(color: AppColors.slate200, height: 1),
+        ),
+        title: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(7),
+              decoration: BoxDecoration(
+                color: AppColors.primary,
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: const Icon(Icons.airport_shuttle_rounded, color: Colors.white, size: 20),
+            ),
+            const SizedBox(width: 12),
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  "Ambulance Fleet",
+                  style: GoogleFonts.plusJakartaSans(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w800,
+                    color: AppColors.slate900,
+                    letterSpacing: -0.3,
+                  ),
+                ),
+                Text(
+                  "Hospital Emergency Vehicles & Status",
+                  style: GoogleFonts.plusJakartaSans(
+                    fontSize: 11,
+                    fontWeight: FontWeight.w600,
+                    color: AppColors.slate500,
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
         actions: [
           IconButton(
             tooltip: "Refresh & Sync Fleet",
-            icon: const Icon(Icons.sync_rounded),
+            icon: const Icon(Icons.sync_rounded, color: AppColors.slate700),
             onPressed: fetchAmbulances,
           ),
           const SizedBox(width: 8),
@@ -260,18 +300,22 @@ class _ManageAmbulancesScreenState extends State<ManageAmbulancesScreen> {
         elevation: 4,
         onPressed: _showRegisterDialog,
         icon: const Icon(Icons.add_rounded, color: Colors.white),
-        label: const Text(
+        label: Text(
           "Add Ambulance",
-          style: TextStyle(color: Colors.white, fontWeight: FontWeight.w700),
+          style: GoogleFonts.plusJakartaSans(color: Colors.white, fontWeight: FontWeight.w700),
         ),
       ),
       body: isLoading
           ? const Center(child: CircularProgressIndicator())
-          : Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
+          : Align(
+              alignment: Alignment.topCenter,
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 1000),
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
                   // Search Bar
                   TextField(
                     controller: searchController,
@@ -456,6 +500,8 @@ class _ManageAmbulancesScreenState extends State<ManageAmbulancesScreen> {
                 ],
               ),
             ),
+          ),
+        ),
     );
   }
 }

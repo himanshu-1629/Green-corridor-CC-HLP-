@@ -6,6 +6,7 @@ import 'package:geolocator/geolocator.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:http/http.dart' as http;
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:google_fonts/google_fonts.dart';
 import '../services/citizen_alert_service.dart';
 import '../theme/app_theme.dart';
 import 'login_screen.dart';
@@ -466,18 +467,26 @@ class _CitizenScreenState extends State<CitizenScreen> with SingleTickerProvider
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: AppBar(
+        titleSpacing: 20,
+        backgroundColor: Colors.white,
+        foregroundColor: AppColors.slate900,
+        elevation: 0,
+        bottom: PreferredSize(
+          preferredSize: const Size.fromHeight(1),
+          child: Container(color: AppColors.slate200, height: 1),
+        ),
         title: Row(
           children: [
             Container(
               padding: const EdgeInsets.all(7),
               decoration: BoxDecoration(
                 color: isNearCritical
-                    ? AppColors.primary.withValues(alpha: 0.25)
+                    ? AppColors.primary
                     : isNearWarning
-                        ? AppColors.amber.withValues(alpha: 0.25)
+                        ? AppColors.amber
                         : inPath
-                            ? AppColors.info.withValues(alpha: 0.2)
-                            : AppColors.emerald.withValues(alpha: 0.2),
+                            ? AppColors.info
+                            : AppColors.emerald,
                 borderRadius: BorderRadius.circular(10),
               ),
               child: Icon(
@@ -488,21 +497,23 @@ class _CitizenScreenState extends State<CitizenScreen> with SingleTickerProvider
                         : inPath
                             ? Icons.alt_route_rounded
                             : Icons.satellite_alt_rounded,
-                color: isNearCritical
-                    ? AppColors.primary
-                    : isNearWarning
-                        ? AppColors.amber
-                        : inPath
-                            ? AppColors.info
-                            : AppColors.emerald,
+                color: Colors.white,
                 size: 20,
               ),
             ),
-            const SizedBox(width: 10),
+            const SizedBox(width: 12),
             Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text("Citizen Corridor Radar", style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800)),
+                Text(
+                  "Citizen Corridor Radar",
+                  style: GoogleFonts.plusJakartaSans(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w800,
+                    color: AppColors.slate900,
+                    letterSpacing: -0.3,
+                  ),
+                ),
                 Row(
                   children: [
                     Container(
@@ -520,12 +531,12 @@ class _CitizenScreenState extends State<CitizenScreen> with SingleTickerProvider
                       inPath
                           ? "In Active Corridor Path"
                           : (_hasGpsFix ? "Live GPS Connected" : "Acquiring GPS..."),
-                      style: TextStyle(
+                      style: GoogleFonts.plusJakartaSans(
                         fontSize: 11,
                         color: inPath
-                            ? AppColors.primaryLight
-                            : (_hasGpsFix ? AppColors.emeraldLight : AppColors.slate400),
-                        fontWeight: FontWeight.w600,
+                            ? AppColors.primary
+                            : (_hasGpsFix ? AppColors.emeraldDark : AppColors.slate500),
+                        fontWeight: FontWeight.w700,
                       ),
                     ),
                   ],
@@ -534,39 +545,52 @@ class _CitizenScreenState extends State<CitizenScreen> with SingleTickerProvider
             ),
           ],
         ),
-        backgroundColor: AppColors.slate900,
-        foregroundColor: Colors.white,
-        elevation: 0,
         actions: [
           // Audio Siren Mute Toggle
-          IconButton(
-            tooltip: _isMuted ? "Unmute Emergency Siren" : "Mute Siren",
-            icon: Icon(
-              _isMuted ? Icons.volume_off_rounded : Icons.volume_up_rounded,
-              color: _isMuted ? AppColors.slate400 : AppColors.emerald,
+          Container(
+            margin: const EdgeInsets.symmetric(vertical: 8),
+            decoration: BoxDecoration(
+              color: _isMuted ? AppColors.slate100 : AppColors.emeraldLight,
+              borderRadius: BorderRadius.circular(10),
+              border: Border.all(
+                color: _isMuted ? AppColors.slate200 : AppColors.emerald.withValues(alpha: 0.3),
+              ),
             ),
-            onPressed: () {
-              setState(() {
-                _isMuted = !_isMuted;
-              });
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  duration: const Duration(seconds: 2),
-                  behavior: SnackBarBehavior.floating,
-                  backgroundColor: _isMuted ? AppColors.slate800 : AppColors.emerald,
-                  content: Text(_isMuted ? "Siren muted" : "Emergency siren audio active"),
-                ),
-              );
-            },
+            child: IconButton(
+              tooltip: _isMuted ? "Unmute Emergency Siren" : "Mute Siren",
+              icon: Icon(
+                _isMuted ? Icons.volume_off_rounded : Icons.volume_up_rounded,
+                color: _isMuted ? AppColors.slate500 : AppColors.emeraldDark,
+                size: 20,
+              ),
+              onPressed: () {
+                setState(() {
+                  _isMuted = !_isMuted;
+                });
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    duration: const Duration(seconds: 2),
+                    behavior: SnackBarBehavior.floating,
+                    backgroundColor: _isMuted ? AppColors.slate800 : AppColors.emerald,
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                    content: Text(
+                      _isMuted ? "Siren audio muted" : "Emergency siren audio active",
+                      style: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.w600),
+                    ),
+                  ),
+                );
+              },
+            ),
           ),
+          const SizedBox(width: 8),
           IconButton(
             tooltip: "Refresh Scan",
-            icon: const Icon(Icons.refresh_rounded),
+            icon: const Icon(Icons.refresh_rounded, color: AppColors.slate700),
             onPressed: _pollActiveCorridors,
           ),
           IconButton(
             tooltip: "Sign Out",
-            icon: const Icon(Icons.logout_rounded),
+            icon: const Icon(Icons.logout_rounded, color: AppColors.slate700),
             onPressed: () async {
               await Supabase.instance.client.auth.signOut();
               if (!context.mounted) return;
@@ -577,83 +601,91 @@ class _CitizenScreenState extends State<CitizenScreen> with SingleTickerProvider
               );
             },
           ),
-          const SizedBox(width: 8),
+          const SizedBox(width: 12),
         ],
       ),
       body: _isGpsLoading
-          ? const Center(
+          ? Center(
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  CircularProgressIndicator(color: AppColors.emerald),
-                  SizedBox(height: 16),
-                  Text("Calibrating Geofence Radar...", style: TextStyle(color: AppColors.slate600)),
+                  const CircularProgressIndicator(color: AppColors.emerald),
+                  const SizedBox(height: 16),
+                  Text(
+                    "Calibrating Geofence Radar...",
+                    style: GoogleFonts.plusJakartaSans(color: AppColors.slate600, fontWeight: FontWeight.w600),
+                  ),
                 ],
               ),
             )
           : SingleChildScrollView(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // 1. DYNAMIC PROXIMITY ALERT BANNER
-                  if (isNearCritical)
-                    _buildCriticalAlertBanner()
-                  else if (isNearWarning)
-                    _buildWarningAlertBanner()
-                  else if (inPath)
-                    _buildInPathApproachingBanner()
-                  else
-                    _buildClearStatusBanner(isCorridorActive),
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
+              child: Align(
+                alignment: Alignment.topCenter,
+                child: ConstrainedBox(
+                  constraints: const BoxConstraints(maxWidth: 1100),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // 1. DYNAMIC PROXIMITY ALERT BANNER
+                      if (isNearCritical)
+                        _buildCriticalAlertBanner()
+                      else if (isNearWarning)
+                        _buildWarningAlertBanner()
+                      else if (inPath)
+                        _buildInPathApproachingBanner()
+                      else
+                        _buildClearStatusBanner(isCorridorActive),
 
-                  const SizedBox(height: 16),
+                      const SizedBox(height: 20),
 
-                  // 2. LIVE INTERACTIVE AMBULANCE & USER MAP
-                  // (User ONLY sees the ambulance GPS when they are in between the path!)
-                  _buildLiveRadarMap(defaultCenter, inPath, isCorridorActive),
+                      // 2. LIVE INTERACTIVE AMBULANCE & USER MAP
+                      _buildLiveRadarMap(defaultCenter, inPath, isCorridorActive),
 
-                  const SizedBox(height: 16),
+                      const SizedBox(height: 20),
 
-                  // 3. ACTIVE AMBULANCE TELEMETRY CARD
-                  // (Only displayed when the user is in between the path)
-                  if (inPath) _buildActiveAmbulanceCard(),
+                      // 3. ACTIVE AMBULANCE TELEMETRY CARD
+                      if (inPath) _buildActiveAmbulanceCard(),
 
-                  if (inPath) const SizedBox(height: 24),
+                      if (inPath) const SizedBox(height: 24),
 
-                  // 4. CITIZEN FAST-TRACK CLEARANCE PROTOCOLS
-                  const Text(
-                    "Citizen Fast-Track Protocol",
-                    style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.w800,
-                      color: AppColors.slate900,
-                    ),
+                      // 4. CITIZEN FAST-TRACK CLEARANCE PROTOCOLS
+                      Text(
+                        "Citizen Fast-Track Protocol",
+                        style: GoogleFonts.plusJakartaSans(
+                          fontSize: 18,
+                          fontWeight: FontWeight.w800,
+                          color: AppColors.slate900,
+                          letterSpacing: -0.4,
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+
+                      _guidelineTile(
+                        icon: Icons.volume_up_rounded,
+                        color: AppColors.primary,
+                        title: "Listen for Emergency Sirens",
+                        subtitle: "Green Corridor ambulances emit dual-tone sirens and strobe light signals.",
+                      ),
+                      const SizedBox(height: 10),
+                      _guidelineTile(
+                        icon: Icons.directions_car_rounded,
+                        color: AppColors.emerald,
+                        title: "Yield to the Extreme Left",
+                        subtitle: "Safely pull over to clear the center-right fast lane for medical transit.",
+                      ),
+                      const SizedBox(height: 10),
+                      _guidelineTile(
+                        icon: Icons.traffic_rounded,
+                        color: AppColors.amber,
+                        title: "Do Not Tailgate or Block Junctions",
+                        subtitle: "Maintain a minimum distance of 150 meters behind transit convoys.",
+                      ),
+
+                      const SizedBox(height: 36),
+                    ],
                   ),
-                  const SizedBox(height: 12),
-
-                  _guidelineTile(
-                    icon: Icons.volume_up_rounded,
-                    color: AppColors.primary,
-                    title: "Listen for Emergency Sirens",
-                    subtitle: "Green Corridor ambulances emit dual-tone sirens and strobe light signals.",
-                  ),
-                  const SizedBox(height: 10),
-                  _guidelineTile(
-                    icon: Icons.directions_car_rounded,
-                    color: AppColors.emerald,
-                    title: "Yield to the Extreme Left",
-                    subtitle: "Safely pull over to clear the center-right fast lane for medical transit.",
-                  ),
-                  const SizedBox(height: 10),
-                  _guidelineTile(
-                    icon: Icons.traffic_rounded,
-                    color: AppColors.amber,
-                    title: "Do Not Tailgate or Block Junctions",
-                    subtitle: "Maintain a minimum distance of 150 meters behind transit convoys.",
-                  ),
-
-                  const SizedBox(height: 28),
-                ],
+                ),
               ),
             ),
     );
@@ -666,17 +698,13 @@ class _CitizenScreenState extends State<CitizenScreen> with SingleTickerProvider
       scale: _pulseAnimation,
       child: Container(
         width: double.infinity,
-        padding: const EdgeInsets.all(18),
+        padding: const EdgeInsets.all(22),
         decoration: BoxDecoration(
-          gradient: const LinearGradient(
-            colors: [Color(0xFFDC2626), Color(0xFFB91C1C)],
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-          ),
-          borderRadius: BorderRadius.circular(20),
+          color: AppColors.primary,
+          borderRadius: BorderRadius.circular(22),
           boxShadow: [
             BoxShadow(
-              color: const Color(0xFFDC2626).withValues(alpha: 0.45),
+              color: AppColors.primary.withValues(alpha: 0.35),
               blurRadius: 22,
               offset: const Offset(0, 8),
             ),
@@ -693,29 +721,29 @@ class _CitizenScreenState extends State<CitizenScreen> with SingleTickerProvider
                     color: Colors.white,
                     shape: BoxShape.circle,
                   ),
-                  child: const Icon(Icons.emergency_rounded, color: Color(0xFFDC2626), size: 28),
+                  child: const Icon(Icons.emergency_rounded, color: AppColors.primary, size: 28),
                 ),
-                const SizedBox(width: 14),
+                const SizedBox(width: 16),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Text(
-                        "🚨 EMERGENCY CORRIDOR ON YOUR PATH (<500M)!",
-                        style: TextStyle(
+                      Text(
+                        "EMERGENCY CORRIDOR ON YOUR PATH (<500M)",
+                        style: GoogleFonts.plusJakartaSans(
                           color: Colors.white,
                           fontSize: 16,
                           fontWeight: FontWeight.w900,
-                          letterSpacing: 0.4,
+                          letterSpacing: 0.3,
                         ),
                       ),
-                      const SizedBox(height: 2),
+                      const SizedBox(height: 3),
                       Text(
                         "Ambulance ${activeAmbulancePlate()} is ${_distanceToAmbulance!.toStringAsFixed(0)} meters away on your road!",
-                        style: const TextStyle(
+                        style: GoogleFonts.plusJakartaSans(
                           color: Colors.white,
                           fontSize: 14,
-                          fontWeight: FontWeight.w700,
+                          fontWeight: FontWeight.w600,
                         ),
                       ),
                     ],
@@ -723,25 +751,25 @@ class _CitizenScreenState extends State<CitizenScreen> with SingleTickerProvider
                 ),
               ],
             ),
-            const SizedBox(height: 14),
+            const SizedBox(height: 16),
             Container(
               width: double.infinity,
-              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
               decoration: BoxDecoration(
-                color: Colors.black.withValues(alpha: 0.25),
-                borderRadius: BorderRadius.circular(12),
+                color: Colors.black.withValues(alpha: 0.22),
+                borderRadius: BorderRadius.circular(14),
               ),
-              child: const Row(
+              child: Row(
                 children: [
-                  Icon(Icons.warning_amber_rounded, color: Colors.amber, size: 20),
-                  SizedBox(width: 10),
+                  const Icon(Icons.warning_amber_rounded, color: Colors.amber, size: 20),
+                  const SizedBox(width: 12),
                   Expanded(
                     child: Text(
                       "IMMEDIATE ACTION: Safely pull over to the extreme left lane. Do NOT enter upcoming junctions.",
-                      style: TextStyle(
+                      style: GoogleFonts.plusJakartaSans(
                         color: Colors.white,
-                        fontSize: 12,
-                        fontWeight: FontWeight.w800,
+                        fontSize: 13,
+                        fontWeight: FontWeight.w700,
                         height: 1.3,
                       ),
                     ),
@@ -758,17 +786,13 @@ class _CitizenScreenState extends State<CitizenScreen> with SingleTickerProvider
   Widget _buildWarningAlertBanner() {
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.all(18),
+      padding: const EdgeInsets.all(22),
       decoration: BoxDecoration(
-        gradient: const LinearGradient(
-          colors: [Color(0xFFD97706), Color(0xFFB45309)],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
-        borderRadius: BorderRadius.circular(20),
+        color: const Color(0xFFD97706),
+        borderRadius: BorderRadius.circular(22),
         boxShadow: [
           BoxShadow(
-            color: const Color(0xFFD97706).withValues(alpha: 0.35),
+            color: const Color(0xFFD97706).withValues(alpha: 0.3),
             blurRadius: 18,
             offset: const Offset(0, 6),
           ),
@@ -777,30 +801,31 @@ class _CitizenScreenState extends State<CitizenScreen> with SingleTickerProvider
       child: Row(
         children: [
           Container(
-            padding: const EdgeInsets.all(10),
+            padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
               color: Colors.white.withValues(alpha: 0.2),
               shape: BoxShape.circle,
             ),
             child: const Icon(Icons.warning_rounded, color: Colors.white, size: 26),
           ),
-          const SizedBox(width: 14),
+          const SizedBox(width: 16),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text(
-                  "⚠️ AMBULANCE WITHIN 1 KM • ON YOUR ROUTE",
-                  style: TextStyle(
+                Text(
+                  "AMBULANCE WITHIN 1 KM • ON YOUR ROUTE",
+                  style: GoogleFonts.plusJakartaSans(
                     color: Colors.white,
                     fontSize: 15,
                     fontWeight: FontWeight.w900,
+                    letterSpacing: 0.2,
                   ),
                 ),
                 const SizedBox(height: 3),
                 Text(
                   "Ambulance ${activeAmbulancePlate()} is approaching along your road (${(_distanceToAmbulance! / 1000).toStringAsFixed(2)} km away). Prepare to yield.",
-                  style: const TextStyle(color: Colors.white70, fontSize: 13, height: 1.3),
+                  style: GoogleFonts.plusJakartaSans(color: Colors.white.withValues(alpha: 0.9), fontSize: 13, height: 1.3),
                 ),
               ],
             ),
@@ -813,17 +838,13 @@ class _CitizenScreenState extends State<CitizenScreen> with SingleTickerProvider
   Widget _buildInPathApproachingBanner() {
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.all(18),
+      padding: const EdgeInsets.all(22),
       decoration: BoxDecoration(
-        gradient: const LinearGradient(
-          colors: [Color(0xFF1E40AF), Color(0xFF1D4ED8)],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
-        borderRadius: BorderRadius.circular(20),
+        color: const Color(0xFF1D4ED8),
+        borderRadius: BorderRadius.circular(22),
         boxShadow: [
           BoxShadow(
-            color: const Color(0xFF1D4ED8).withValues(alpha: 0.35),
+            color: const Color(0xFF1D4ED8).withValues(alpha: 0.3),
             blurRadius: 18,
             offset: const Offset(0, 6),
           ),
@@ -832,30 +853,31 @@ class _CitizenScreenState extends State<CitizenScreen> with SingleTickerProvider
       child: Row(
         children: [
           Container(
-            padding: const EdgeInsets.all(10),
+            padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
               color: Colors.white.withValues(alpha: 0.2),
               shape: BoxShape.circle,
             ),
             child: const Icon(Icons.alt_route_rounded, color: Colors.white, size: 26),
           ),
-          const SizedBox(width: 14),
+          const SizedBox(width: 16),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text(
-                  "⚡ YOU ARE IN THE GREEN CORRIDOR PATH",
-                  style: TextStyle(
+                Text(
+                  "ACTIVE GREEN CORRIDOR IN PROGRESS",
+                  style: GoogleFonts.plusJakartaSans(
                     color: Colors.white,
                     fontSize: 15,
                     fontWeight: FontWeight.w900,
+                    letterSpacing: 0.2,
                   ),
                 ),
                 const SizedBox(height: 3),
                 Text(
                   "An active emergency ambulance is en route along your road (${(_distanceToAmbulance! / 1000).toStringAsFixed(1)} km away). Live GPS unlocked. Stay alert.",
-                  style: const TextStyle(color: Colors.white70, fontSize: 13, height: 1.3),
+                  style: GoogleFonts.plusJakartaSans(color: Colors.white.withValues(alpha: 0.9), fontSize: 13, height: 1.3),
                 ),
               ],
             ),
@@ -868,10 +890,10 @@ class _CitizenScreenState extends State<CitizenScreen> with SingleTickerProvider
   Widget _buildClearStatusBanner(bool isCorridorActive) {
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.all(18),
+      padding: const EdgeInsets.all(22),
       decoration: BoxDecoration(
-        gradient: AppGradients.emerald,
-        borderRadius: BorderRadius.circular(20),
+        color: AppColors.emerald,
+        borderRadius: BorderRadius.circular(22),
         boxShadow: [
           BoxShadow(
             color: AppColors.emerald.withValues(alpha: 0.25),
@@ -883,24 +905,25 @@ class _CitizenScreenState extends State<CitizenScreen> with SingleTickerProvider
       child: Row(
         children: [
           Container(
-            padding: const EdgeInsets.all(10),
+            padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
               color: Colors.white.withValues(alpha: 0.2),
               shape: BoxShape.circle,
             ),
             child: const Icon(Icons.shield_rounded, color: Colors.white, size: 26),
           ),
-          const SizedBox(width: 14),
+          const SizedBox(width: 16),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text(
+                Text(
                   "All Corridors Clear In Your Area",
-                  style: TextStyle(
+                  style: GoogleFonts.plusJakartaSans(
                     color: Colors.white,
-                    fontSize: 15,
+                    fontSize: 16,
                     fontWeight: FontWeight.w800,
+                    letterSpacing: -0.2,
                   ),
                 ),
                 const SizedBox(height: 3),
@@ -908,7 +931,7 @@ class _CitizenScreenState extends State<CitizenScreen> with SingleTickerProvider
                   isCorridorActive && _distanceToRoute != null && _distanceToRoute != double.infinity
                       ? "An emergency corridor is active elsewhere in the city (${(_distanceToRoute! / 1000).toStringAsFixed(1)} km from your road). You are outside the corridor path. Traffic normal."
                       : "Geofence active. You will only be alerted and shown live ambulance GPS if an emergency convoy is routed directly through your street.",
-                  style: const TextStyle(color: Colors.white70, fontSize: 13, height: 1.3),
+                  style: GoogleFonts.plusJakartaSans(color: Colors.white.withValues(alpha: 0.9), fontSize: 13, height: 1.35),
                 ),
               ],
             ),

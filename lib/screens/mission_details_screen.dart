@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:http/http.dart' as http;
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:google_fonts/google_fonts.dart';
 import '../theme/app_theme.dart';
 
 class MissionDetailsScreen extends StatefulWidget {
@@ -509,33 +510,57 @@ class _MissionDetailsScreenState extends State<MissionDetailsScreen> {
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: AppBar(
+        titleSpacing: 20,
+        backgroundColor: Colors.white,
+        foregroundColor: AppColors.slate900,
+        elevation: 0,
+        bottom: PreferredSize(
+          preferredSize: const Size.fromHeight(1),
+          child: Container(color: AppColors.slate200, height: 1),
+        ),
         title: Row(
           children: [
             Container(
-              padding: const EdgeInsets.all(6),
+              padding: const EdgeInsets.all(7),
               decoration: BoxDecoration(
-                color: isTransit
-                    ? AppColors.emerald.withValues(alpha: 0.2)
-                    : AppColors.primary.withValues(alpha: 0.2),
-                borderRadius: BorderRadius.circular(8),
+                color: isTransit ? AppColors.emerald : AppColors.primary,
+                borderRadius: BorderRadius.circular(10),
               ),
               child: Icon(
                 isTransit ? Icons.radar_rounded : Icons.local_hospital_rounded,
-                color: isTransit ? AppColors.emerald : AppColors.primary,
+                color: Colors.white,
                 size: 20,
               ),
             ),
-            const SizedBox(width: 10),
-            Text(isIncoming ? "Incoming Corridor Mission" : "Mission Dispatch Details"),
+            const SizedBox(width: 12),
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  isIncoming ? "Incoming Transfer Corridor" : "Mission Dispatch Details",
+                  style: GoogleFonts.plusJakartaSans(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w800,
+                    color: AppColors.slate900,
+                    letterSpacing: -0.3,
+                  ),
+                ),
+                Text(
+                  "Real-Time Telemetry & Route Preemption",
+                  style: GoogleFonts.plusJakartaSans(
+                    fontSize: 11,
+                    fontWeight: FontWeight.w600,
+                    color: AppColors.slate500,
+                  ),
+                ),
+              ],
+            ),
           ],
         ),
-        backgroundColor: AppColors.slate900,
-        foregroundColor: Colors.white,
-        elevation: 0,
         actions: [
           IconButton(
             tooltip: "Refresh Telemetry",
-            icon: const Icon(Icons.refresh_rounded),
+            icon: const Icon(Icons.refresh_rounded, color: AppColors.slate700),
             onPressed: () => _loadAllMissionData(refreshRoute: true),
           ),
           const SizedBox(width: 8),
@@ -543,9 +568,13 @@ class _MissionDetailsScreenState extends State<MissionDetailsScreen> {
       ),
       body: isLoading
           ? const Center(child: CircularProgressIndicator())
-          : SingleChildScrollView(
-              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
-              child: Column(
+          : Align(
+              alignment: Alignment.topCenter,
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 1040),
+                child: SingleChildScrollView(
+                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
+                  child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   // Proximity Alert Banner (<500m)
@@ -1138,6 +1167,8 @@ class _MissionDetailsScreenState extends State<MissionDetailsScreen> {
                 ],
               ),
             ),
+          ),
+        ),
     );
   }
 

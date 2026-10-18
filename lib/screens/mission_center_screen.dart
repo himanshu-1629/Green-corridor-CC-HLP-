@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../theme/app_theme.dart';
 import 'mission_details_screen.dart';
@@ -182,47 +183,97 @@ class _MissionCenterScreenState extends State<MissionCenterScreen> {
       child: Scaffold(
         backgroundColor: AppColors.background,
         appBar: AppBar(
-          title: const Text("Mission Dispatch Center"),
-          backgroundColor: AppColors.slate900,
-          foregroundColor: Colors.white,
+          titleSpacing: 20,
+          backgroundColor: Colors.white,
+          foregroundColor: AppColors.slate900,
           elevation: 0,
-          bottom: TabBar(
-            indicatorColor: AppColors.primary,
-            indicatorWeight: 3,
-            labelColor: Colors.white,
-            unselectedLabelColor: AppColors.slate400,
-            labelStyle: const TextStyle(fontWeight: FontWeight.w700, fontSize: 14),
-            tabs: [
-              Tab(
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    const Icon(Icons.outbox_rounded, size: 18),
-                    const SizedBox(width: 8),
-                    Text("Outgoing (${outgoingMissions.length})"),
-                  ],
+          title: Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(7),
+                decoration: BoxDecoration(
+                  color: AppColors.primary,
+                  borderRadius: BorderRadius.circular(10),
                 ),
+                child: const Icon(Icons.alt_route_rounded, color: Colors.white, size: 20),
               ),
-              Tab(
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    const Icon(Icons.move_to_inbox_rounded, size: 18),
-                    const SizedBox(width: 8),
-                    Text("Incoming (${incomingMissions.length})"),
-                  ],
-                ),
+              const SizedBox(width: 12),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    "Mission Dispatch Center",
+                    style: GoogleFonts.plusJakartaSans(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w800,
+                      color: AppColors.slate900,
+                      letterSpacing: -0.3,
+                    ),
+                  ),
+                  Text(
+                    "Real-Time Corridor Tracking & Ingestion",
+                    style: GoogleFonts.plusJakartaSans(
+                      fontSize: 11,
+                      fontWeight: FontWeight.w600,
+                      color: AppColors.slate500,
+                    ),
+                  ),
+                ],
               ),
             ],
+          ),
+          bottom: PreferredSize(
+            preferredSize: const Size.fromHeight(50),
+            child: Container(
+              decoration: const BoxDecoration(
+                border: Border(bottom: BorderSide(color: AppColors.slate200, width: 1)),
+              ),
+              child: TabBar(
+                indicatorColor: AppColors.primary,
+                indicatorWeight: 3,
+                labelColor: AppColors.primary,
+                unselectedLabelColor: AppColors.slate500,
+                labelStyle: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.w700, fontSize: 13),
+                unselectedLabelStyle: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.w600, fontSize: 13),
+                tabs: [
+                  Tab(
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        const Icon(Icons.outbox_rounded, size: 16),
+                        const SizedBox(width: 8),
+                        Text("Outgoing (${outgoingMissions.length})"),
+                      ],
+                    ),
+                  ),
+                  Tab(
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        const Icon(Icons.move_to_inbox_rounded, size: 16),
+                        const SizedBox(width: 8),
+                        Text("Incoming (${incomingMissions.length})"),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
           ),
         ),
         body: isLoading
             ? const Center(child: CircularProgressIndicator())
-            : TabBarView(
-                children: [
-                  _missionList(outgoingMissions, isOutgoing: true),
-                  _missionList(incomingMissions, isOutgoing: false),
-                ],
+            : Align(
+                alignment: Alignment.topCenter,
+                child: ConstrainedBox(
+                  constraints: const BoxConstraints(maxWidth: 1000),
+                  child: TabBarView(
+                    children: [
+                      _missionList(outgoingMissions, isOutgoing: true),
+                      _missionList(incomingMissions, isOutgoing: false),
+                    ],
+                  ),
+                ),
               ),
       ),
     );

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../theme/app_theme.dart';
 import 'login_screen.dart';
@@ -63,32 +64,58 @@ class _SuperAdminDashboardState extends State<SuperAdminDashboard> {
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: AppBar(
+        titleSpacing: 20,
+        backgroundColor: Colors.white,
+        foregroundColor: AppColors.slate900,
+        elevation: 0,
+        bottom: PreferredSize(
+          preferredSize: const Size.fromHeight(1),
+          child: Container(color: AppColors.slate200, height: 1),
+        ),
         title: Row(
           children: [
             Container(
-              padding: const EdgeInsets.all(6),
+              padding: const EdgeInsets.all(7),
               decoration: BoxDecoration(
-                color: AppColors.primary.withValues(alpha: 0.2),
-                borderRadius: BorderRadius.circular(8),
+                color: AppColors.slate900,
+                borderRadius: BorderRadius.circular(10),
               ),
-              child: const Icon(Icons.security_rounded, color: AppColors.primary, size: 20),
+              child: const Icon(Icons.security_rounded, color: Colors.white, size: 20),
             ),
-            const SizedBox(width: 10),
-            const Text("Super Admin Command"),
+            const SizedBox(width: 12),
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  "Super Admin Command",
+                  style: GoogleFonts.plusJakartaSans(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w800,
+                    color: AppColors.slate900,
+                    letterSpacing: -0.3,
+                  ),
+                ),
+                Text(
+                  "National Emergency Preemption Grid Overseer",
+                  style: GoogleFonts.plusJakartaSans(
+                    fontSize: 11,
+                    fontWeight: FontWeight.w600,
+                    color: AppColors.slate500,
+                  ),
+                ),
+              ],
+            ),
           ],
         ),
-        backgroundColor: AppColors.slate900,
-        foregroundColor: Colors.white,
-        elevation: 0,
         actions: [
           IconButton(
             tooltip: "Refresh Stats",
-            icon: const Icon(Icons.refresh_rounded),
+            icon: const Icon(Icons.refresh_rounded, color: AppColors.slate700),
             onPressed: loadSystemStats,
           ),
           IconButton(
             tooltip: "Sign Out",
-            icon: const Icon(Icons.logout_rounded),
+            icon: const Icon(Icons.logout_rounded, color: AppColors.slate700),
             onPressed: () async {
               await Supabase.instance.client.auth.signOut();
               if (!context.mounted) return;
@@ -107,10 +134,14 @@ class _SuperAdminDashboardState extends State<SuperAdminDashboard> {
           : RefreshIndicator(
               onRefresh: loadSystemStats,
               color: AppColors.primary,
-              child: SingleChildScrollView(
-                physics: const AlwaysScrollableScrollPhysics(),
-                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
-                child: Column(
+              child: Align(
+                alignment: Alignment.topCenter,
+                child: ConstrainedBox(
+                  constraints: const BoxConstraints(maxWidth: 1080),
+                  child: SingleChildScrollView(
+                    physics: const AlwaysScrollableScrollPhysics(),
+                    padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
+                    child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     // Banner
@@ -248,6 +279,8 @@ class _SuperAdminDashboardState extends State<SuperAdminDashboard> {
                 ),
               ),
             ),
+          ),
+        ),
     );
   }
 
