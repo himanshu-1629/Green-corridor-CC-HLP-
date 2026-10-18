@@ -1,418 +1,461 @@
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import '../theme/app_theme.dart';
+
 class ManageAmbulancesScreen extends StatefulWidget {
   const ManageAmbulancesScreen({super.key});
 
   @override
-  State<ManageAmbulancesScreen> createState() =>
-      _ManageAmbulancesScreenState();
+  State<ManageAmbulancesScreen> createState() => _ManageAmbulancesScreenState();
 }
 
-class _ManageAmbulancesScreenState
-    extends State<ManageAmbulancesScreen> {
+class _ManageAmbulancesScreenState extends State<ManageAmbulancesScreen> {
+  List<Map<String, dynamic>> ambulances = [];
+  List<Map<String, dynamic>> filteredAmbulances = [];
+  final vehicleNameController = TextEditingController();
+  final vehicleNumberController = TextEditingController();
+  final searchController = TextEditingController();
+  bool isLoading = true;
 
- List<Map<String, dynamic>> ambulances = [];
- final vehicleNameController =
-    TextEditingController();
-
-final vehicleNumberController =
-    TextEditingController();
-Future<void> fetchAmbulances() async {
-  final userId =
-      Supabase.instance.client.auth.currentUser!.id;
-
-  final user = await Supabase.instance.client
-      .from('users')
-      .select()
-      .eq('id', userId)
-      .single();
-
-  final hospitalId = user['id'];
-
-  final data = await Supabase.instance.client
-      .from('ambulances')
-      .select()
-      .eq('hospital_id', hospitalId);
-
-  setState(() {
-    ambulances = List<Map<String, dynamic>>.from(data);
-  });
-}
-@override
-void initState() {
-  super.initState();
-  fetchAmbulances();
-}
   @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: const Color(0xFFF5F7FA),
-
-      appBar: AppBar(
-        title: const Text("Manage Ambulances"),
-        backgroundColor: const Color(0xFFE53935),
-        foregroundColor: Colors.white,
-      ),
-
-      floatingActionButton: FloatingActionButton.extended(
-        backgroundColor: const Color(0xFFE53935),
-        onPressed: _showRegisterDialog,
-        icon: const Icon(Icons.add, color: Colors.white),
-        label: const Text(
-          "Register",
-          style: TextStyle(color: Colors.white),
-        ),
-      ),
-
-      body: Padding(
-        padding: const EdgeInsets.all(20),
-
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-
-          children: [
-
-            const Text(
-              "Hospital Ambulance Fleet",
-              style: TextStyle(
-                fontSize: 24,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-
-            const SizedBox(height: 5),
-
-            const Text(
-              "Manage and monitor registered ambulances",
-              style: TextStyle(
-                color: Colors.grey,
-              ),
-            ),
-
-            const SizedBox(height: 20),
-
-            TextField(
-              decoration: InputDecoration(
-                hintText: "Search Ambulance...",
-                prefixIcon: const Icon(Icons.search),
-
-                filled: true,
-                fillColor: Colors.white,
-
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(15),
-                  borderSide: BorderSide.none,
-                ),
-              ),
-            ),
-
-            const SizedBox(height: 20),
-
-            Expanded(
-              child: ListView.builder(
-                itemCount: ambulances.length,
-
-                itemBuilder: (context, index) {
-
-                  final ambulance = ambulances[index];
-
-                  return Container(
-                    margin: const EdgeInsets.only(bottom: 15),
-
-                    padding: const EdgeInsets.all(18),
-
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-
-                      borderRadius:
-                          BorderRadius.circular(20),
-
-                      boxShadow: [
-                        BoxShadow(
-                          color:
-                              Colors.black.withOpacity(0.05),
-                          blurRadius: 10,
-                          offset: const Offset(0, 5),
-                        ),
-                      ],
-                    ),
-
-                    child: Column(
-                      crossAxisAlignment:
-                          CrossAxisAlignment.start,
-
-                      children: [
-
-                        Row(
-                          children: [
-
-                            const CircleAvatar(
-                              radius: 24,
-                              backgroundColor:
-                                  Color(0xFFFFEBEE),
-
-                              child: Icon(
-                                Icons.local_hospital,
-                                color: Color(0xFFE53935),
-                              ),
-                            ),
-
-                            const SizedBox(width: 15),
-
-                            Expanded(
-                              child: Text(
-                                ambulance["ambulance_code"] ?? "",
-                                style: const TextStyle(
-                                  fontSize: 18,
-                                  fontWeight:
-                                      FontWeight.bold,
-                                ),
-                              ),
-                            ),
-
-                          
-  Row(
-  children: [
-
-    _statusChip(
-      ambulance["is_available"] == true,
-    ),
-
-    IconButton(
-      icon: const Icon(
-        Icons.delete,
-        color: Colors.red,
-      ),
-      onPressed: () async {
-
-  final confirm = await showDialog(
-    context: context,
-    builder: (_) => AlertDialog(
-      title: const Text("Delete Driver?"),
-      content: const Text(
-        "This action cannot be undone.",
-      ),
-      actions: [
-
-        TextButton(
-          onPressed: () =>
-              Navigator.pop(context, false),
-          child: const Text("Cancel"),
-        ),
-
-        ElevatedButton(
-          onPressed: () =>
-              Navigator.pop(context, true),
-          child: const Text("Delete"),
-        ),
-      ],
-    ),
-  );
-   if (confirm == true) {
-        await Supabase.instance.client
-            .from('ambulances')
-            .delete()
-            .eq('id', ambulance['id']);
-
-        fetchAmbulances();}
-      },
-    ),
-  ],
-),
-                          ],
-                        ),
-
-                        const SizedBox(height: 15),
-
-                       Text(
-  "Vehicle Name: ${ambulance["vehicle_name"] ?? ""}",
-),
-
-                        const SizedBox(height: 5),
-
-                        Text(
-  "Vehicle Number: ${ambulance["vehicle_number"] ?? ""}",
-),
-                      ],
-                    ),
-                  );
-                },
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
+  void initState() {
+    super.initState();
+    fetchAmbulances();
   }
 
-Widget _statusChip(bool isAvailable) {
-  final color =
-      isAvailable ? Colors.green : Colors.red;
+  Future<void> fetchAmbulances() async {
+    try {
+      final userId = Supabase.instance.client.auth.currentUser!.id;
 
-  return Container(
-    padding: const EdgeInsets.symmetric(
-      horizontal: 12,
-      vertical: 6,
-    ),
-    decoration: BoxDecoration(
-      color: color.withOpacity(0.12),
-      borderRadius: BorderRadius.circular(20),
-    ),
-    child: Text(
-      isAvailable
-          ? "Available"
-          : "Unavailable",
-      style: TextStyle(
-        color: color,
-        fontWeight: FontWeight.bold,
+      // Fetch all hospital ambulances
+      final data = await Supabase.instance.client
+          .from('ambulances')
+          .select()
+          .eq('hospital_id', userId)
+          .order('ambulance_sequence', ascending: true);
+
+      final ambulanceList = List<Map<String, dynamic>>.from(data);
+
+      if (mounted) {
+        setState(() {
+          ambulances = ambulanceList;
+          filteredAmbulances = ambulances;
+          isLoading = false;
+        });
+      }
+    } catch (e) {
+      debugPrint("Error fetching ambulances: $e");
+      if (mounted) setState(() => isLoading = false);
+    }
+  }
+
+  void _filterAmbulances(String query) {
+    if (query.isEmpty) {
+      setState(() => filteredAmbulances = ambulances);
+      return;
+    }
+
+    final lower = query.toLowerCase();
+    setState(() {
+      filteredAmbulances = ambulances.where((amb) {
+        final name = amb['vehicle_name']?.toString().toLowerCase() ?? '';
+        final number = amb['vehicle_number']?.toString().toLowerCase() ?? '';
+        final code = amb['ambulance_code']?.toString().toLowerCase() ?? '';
+        return name.contains(lower) || number.contains(lower) || code.contains(lower);
+      }).toList();
+    });
+  }
+
+  Future<void> toggleAmbulanceAvailability(String id, bool currentStatus) async {
+    try {
+      final newStatus = !currentStatus;
+      await Supabase.instance.client
+          .from('ambulances')
+          .update({'is_available': newStatus})
+          .eq('id', id);
+
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          backgroundColor: newStatus ? AppColors.emerald : AppColors.warning,
+          behavior: SnackBarBehavior.floating,
+          content: Text(
+            newStatus ? "Ambulance marked as Available" : "Ambulance marked as Unavailable",
+          ),
+        ),
+      );
+
+      await fetchAmbulances();
+    } catch (e) {
+      debugPrint("Error toggling ambulance: $e");
+    }
+  }
+
+  Future<void> deleteAmbulance(String id) async {
+    final confirm = await showDialog<bool>(
+      context: context,
+      builder: (_) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
+        title: const Text("Decommission Ambulance?", style: TextStyle(fontWeight: FontWeight.w800)),
+        content: const Text("Are you sure you want to remove this vehicle from your emergency fleet?"),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text("Cancel"),
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppColors.primary,
+              foregroundColor: Colors.white,
+            ),
+            onPressed: () => Navigator.pop(context, true),
+            child: const Text("Decommission"),
+          ),
+        ],
       ),
-    ),
-  );
-}
-  void _showRegisterDialog() {
+    );
 
+    if (confirm == true) {
+      await Supabase.instance.client.from('ambulances').delete().eq('id', id);
+      await fetchAmbulances();
+    }
+  }
+
+  void _showRegisterDialog() {
     showDialog(
       context: context,
-
       builder: (_) {
-
         return AlertDialog(
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(22)),
           title: const Text(
-            "Register Ambulance",
+            "Register New Ambulance",
+            style: TextStyle(fontWeight: FontWeight.w800, fontSize: 18),
           ),
-
           content: SingleChildScrollView(
             child: Column(
               mainAxisSize: MainAxisSize.min,
-
               children: [
-
-               TextField(
-  controller: vehicleNameController,
-  decoration: const InputDecoration(
-    labelText: "Vehicle Name",
-  ),
-),
-
-const SizedBox(height: 10),
-
-TextField(
-  controller: vehicleNumberController,
-  decoration: const InputDecoration(
-    labelText: "Vehicle Number",
-  ),
-),
+                const SizedBox(height: 6),
+                TextField(
+                  controller: vehicleNameController,
+                  decoration: AppDecorations.input(
+                    labelText: "Vehicle Model / Unit Name",
+                    hintText: "e.g. Force Traveler ICU 01",
+                    prefixIcon: const Icon(Icons.airport_shuttle_rounded, color: AppColors.slate400, size: 20),
+                  ),
+                ),
+                const SizedBox(height: 14),
+                TextField(
+                  controller: vehicleNumberController,
+                  decoration: AppDecorations.input(
+                    labelText: "Vehicle Registration Number",
+                    hintText: "e.g. MH 12 GC 1008",
+                    prefixIcon: const Icon(Icons.pin_rounded, color: AppColors.slate400, size: 20),
+                  ),
+                ),
               ],
             ),
           ),
-
           actions: [
-
             TextButton(
               onPressed: () {
-
-  vehicleNameController.clear();
-  vehicleNumberController.clear();
-
-  Navigator.pop(context);
-},
-
+                vehicleNameController.clear();
+                vehicleNumberController.clear();
+                Navigator.pop(context);
+              },
               child: const Text("Cancel"),
             ),
-
             ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.primary,
+                foregroundColor: Colors.white,
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+              ),
               onPressed: () async {
+                if (vehicleNameController.text.trim().isEmpty ||
+                    vehicleNumberController.text.trim().isEmpty) {
+                  return;
+                }
 
-  try {
+                try {
+                  final userId = Supabase.instance.client.auth.currentUser!.id;
+                  final hospital = await Supabase.instance.client
+                      .from('users')
+                      .select('id, hospital_code')
+                      .eq('id', userId)
+                      .single();
 
-    final userId =
-        Supabase.instance.client.auth.currentUser!.id;
+                  final hospitalId = hospital['id'];
+                  final hospitalCode = hospital['hospital_code'] ?? "FAC";
 
-    final hospital = await Supabase.instance.client
-        .from('users')
-        .select()
-        .eq('id', userId)
-        .single();
+                  final lastAmbulance = await Supabase.instance.client
+                      .from('ambulances')
+                      .select('ambulance_sequence')
+                      .eq('hospital_id', hospitalId)
+                      .order('ambulance_sequence', ascending: false)
+                      .limit(1);
 
-    final hospitalId = hospital['id'];
-    final hospitalCode =
-        hospital['hospital_code'];
+                  int nextSequence = 1;
+                  if (lastAmbulance.isNotEmpty && lastAmbulance.first['ambulance_sequence'] != null) {
+                    nextSequence = (lastAmbulance.first['ambulance_sequence'] as int) + 1;
+                  }
 
-    final lastAmbulance =
-        await Supabase.instance.client
-            .from('ambulances')
-            .select('ambulance_sequence')
-            .eq('hospital_id', hospitalId)
-            .order(
-              'ambulance_sequence',
-              ascending: false,
-            )
-            .limit(1);
+                  final ambulanceCode = "$hospitalCode-A${nextSequence.toString().padLeft(3, '0')}";
 
-    int nextSequence = 1;
+                  await Supabase.instance.client.from('ambulances').insert({
+                    'hospital_id': hospitalId,
+                    'vehicle_name': vehicleNameController.text.trim(),
+                    'vehicle_number': vehicleNumberController.text.trim(),
+                    'ambulance_code': ambulanceCode,
+                    'ambulance_sequence': nextSequence,
+                    'is_available': true,
+                  });
 
-    if (lastAmbulance.isNotEmpty) {
-      nextSequence =
-          (lastAmbulance.first['ambulance_sequence']
-                  as int) +
-              1;
-    }
+                  vehicleNameController.clear();
+                  vehicleNumberController.clear();
 
-    final ambulanceCode =
-        "$hospitalCode-A${nextSequence.toString().padLeft(3, '0')}";
-
-    await Supabase.instance.client
-        .from('ambulances')
-        .insert({
-
-      'hospital_id': hospitalId,
-
-      'vehicle_name':
-          vehicleNameController.text.trim(),
-
-      'vehicle_number':
-          vehicleNumberController.text.trim(),
-
-      'ambulance_code': ambulanceCode,
-
-      'ambulance_sequence':
-          nextSequence,
-
-     
-
-      'is_available': true,
-    });
-
-    await fetchAmbulances();
-vehicleNameController.clear();
-vehicleNumberController.clear();
-    Navigator.pop(context);
-
-    ScaffoldMessenger.of(context)
-        .showSnackBar(
-      SnackBar(
-        content: Text(
-          "$ambulanceCode Registered",
-        ),
-      ),
-    );
-
-  } catch (e) {
-
-    ScaffoldMessenger.of(context)
-        .showSnackBar(
-      SnackBar(
-        content: Text(e.toString()),
-      ),
-    );
-  }
-},
-
-              child: const Text("Register"),
+                  if (!mounted) return;
+                  Navigator.pop(context);
+                  await fetchAmbulances();
+                } catch (e) {
+                  debugPrint("Error registering ambulance: $e");
+                }
+              },
+              child: const Text("Register Unit"),
             ),
           ],
         );
       },
+    );
+  }
+
+  @override
+  void dispose() {
+    vehicleNameController.dispose();
+    vehicleNumberController.dispose();
+    searchController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: AppColors.background,
+      appBar: AppBar(
+        title: const Text("Ambulance Fleet"),
+        backgroundColor: AppColors.slate900,
+        foregroundColor: Colors.white,
+        elevation: 0,
+        actions: [
+          IconButton(
+            tooltip: "Refresh & Sync Fleet",
+            icon: const Icon(Icons.sync_rounded),
+            onPressed: fetchAmbulances,
+          ),
+          const SizedBox(width: 8),
+        ],
+      ),
+      floatingActionButton: FloatingActionButton.extended(
+        backgroundColor: AppColors.primary,
+        elevation: 4,
+        onPressed: _showRegisterDialog,
+        icon: const Icon(Icons.add_rounded, color: Colors.white),
+        label: const Text(
+          "Add Ambulance",
+          style: TextStyle(color: Colors.white, fontWeight: FontWeight.w700),
+        ),
+      ),
+      body: isLoading
+          ? const Center(child: CircularProgressIndicator())
+          : Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Search Bar
+                  TextField(
+                    controller: searchController,
+                    onChanged: _filterAmbulances,
+                    decoration: AppDecorations.input(
+                      labelText: "Search Fleet",
+                      hintText: "Search by vehicle name, plate or code...",
+                      prefixIcon: const Icon(Icons.search_rounded, color: AppColors.slate400),
+                      suffixIcon: searchController.text.isNotEmpty
+                          ? IconButton(
+                              icon: const Icon(Icons.clear_rounded, size: 18),
+                              onPressed: () {
+                                searchController.clear();
+                                _filterAmbulances("");
+                              },
+                            )
+                          : null,
+                    ),
+                  ),
+                  const SizedBox(height: 20),
+
+                  // Header Counter
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        "Fleet Inventory (${filteredAmbulances.length})",
+                        style: const TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w800,
+                          color: AppColors.slate900,
+                        ),
+                      ),
+                      Text(
+                        "${filteredAmbulances.where((a) => a['is_available'] == true).length} Available",
+                        style: const TextStyle(
+                          fontSize: 13,
+                          fontWeight: FontWeight.w700,
+                          color: AppColors.emeraldDark,
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 12),
+
+                  // List of Ambulances
+                  Expanded(
+                    child: filteredAmbulances.isEmpty
+                        ? Center(
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: const [
+                                Icon(Icons.airport_shuttle_outlined, size: 48, color: AppColors.slate400),
+                                SizedBox(height: 12),
+                                Text(
+                                  "No ambulances registered yet",
+                                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700, color: AppColors.slate700),
+                                ),
+                              ],
+                            ),
+                          )
+                        : RefreshIndicator(
+                            onRefresh: fetchAmbulances,
+                            color: AppColors.primary,
+                            child: ListView.separated(
+                              itemCount: filteredAmbulances.length,
+                              separatorBuilder: (_, _) => const SizedBox(height: 12),
+                              itemBuilder: (context, index) {
+                                final ambulance = filteredAmbulances[index];
+                                final isAvailable = ambulance['is_available'] == true;
+                                final code = ambulance['ambulance_code'] ?? "A-00";
+
+                                return Container(
+                                  padding: const EdgeInsets.all(18),
+                                  decoration: AppDecorations.card(radius: 18),
+                                  child: Row(
+                                    children: [
+                                      Container(
+                                        padding: const EdgeInsets.all(12),
+                                        decoration: BoxDecoration(
+                                          color: isAvailable ? AppColors.emeraldLight : AppColors.warningLight,
+                                          borderRadius: BorderRadius.circular(14),
+                                        ),
+                                        child: Icon(
+                                          Icons.airport_shuttle_rounded,
+                                          color: isAvailable ? AppColors.emeraldDark : AppColors.warning,
+                                          size: 24,
+                                        ),
+                                      ),
+                                      const SizedBox(width: 16),
+                                      Expanded(
+                                        child: Column(
+                                          crossAxisAlignment: CrossAxisAlignment.start,
+                                          children: [
+                                            Row(
+                                              children: [
+                                                Text(
+                                                  ambulance['vehicle_name'] ?? "Ambulance Unit",
+                                                  style: const TextStyle(
+                                                    fontSize: 16,
+                                                    fontWeight: FontWeight.w800,
+                                                    color: AppColors.slate900,
+                                                  ),
+                                                ),
+                                                const SizedBox(width: 8),
+                                                Container(
+                                                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                                  decoration: BoxDecoration(
+                                                    color: AppColors.slate100,
+                                                    borderRadius: BorderRadius.circular(6),
+                                                  ),
+                                                  child: Text(
+                                                    code,
+                                                    style: const TextStyle(
+                                                      fontSize: 11,
+                                                      fontWeight: FontWeight.w700,
+                                                      color: AppColors.slate700,
+                                                    ),
+                                                  ),
+                                                ),
+                                              ],
+                                            ),
+                                            const SizedBox(height: 4),
+                                            Text(
+                                              "Plate: ${ambulance['vehicle_number'] ?? 'N/A'}",
+                                              style: const TextStyle(
+                                                fontSize: 13,
+                                                color: AppColors.slate500,
+                                                fontWeight: FontWeight.w500,
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+
+                                      // Interactive Toggle Button
+                                      InkWell(
+                                        onTap: () => toggleAmbulanceAvailability(ambulance['id'], isAvailable),
+                                        borderRadius: BorderRadius.circular(12),
+                                        child: Container(
+                                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                                          decoration: BoxDecoration(
+                                            color: isAvailable ? AppColors.emeraldLight : AppColors.warningLight,
+                                            borderRadius: BorderRadius.circular(12),
+                                            border: Border.all(
+                                              color: (isAvailable ? AppColors.emerald : AppColors.warning).withValues(alpha: 0.4),
+                                            ),
+                                          ),
+                                          child: Row(
+                                            mainAxisSize: MainAxisSize.min,
+                                            children: [
+                                              Icon(
+                                                isAvailable ? Icons.check_circle_rounded : Icons.replay_rounded,
+                                                size: 14,
+                                                color: isAvailable ? AppColors.emeraldDark : AppColors.warning,
+                                              ),
+                                              const SizedBox(width: 4),
+                                              Text(
+                                                isAvailable ? "Available" : "Free Up Unit",
+                                                style: TextStyle(
+                                                  color: isAvailable ? AppColors.emeraldDark : AppColors.warning,
+                                                  fontWeight: FontWeight.w700,
+                                                  fontSize: 11,
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                      ),
+
+                                      IconButton(
+                                        icon: const Icon(Icons.delete_outline_rounded, color: AppColors.slate400, size: 20),
+                                        onPressed: () => deleteAmbulance(ambulance['id']),
+                                      ),
+                                    ],
+                                  ),
+                                );
+                              },
+                            ),
+                          ),
+                  ),
+                ],
+              ),
+            ),
     );
   }
 }

@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "576803754283",
+    "project_id": "green-corridor-web",
+    "storage_bucket": "green-corridor-web.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:576803754283:android:034fb35691e9d60e7a756e",
+        "android_client_info": {
+          "package_name": "com.example.green_corridor"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAet_WFvwTxeRI5jwXDrAEIRRueuDHUMhg"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
