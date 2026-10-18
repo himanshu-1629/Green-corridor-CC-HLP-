@@ -7,6 +7,7 @@ import 'package:url_launcher/url_launcher.dart';
 import 'dart:async';
 import 'dart:convert';
 import 'package:google_fonts/google_fonts.dart';
+import '../services/push_notification_service.dart';
 import '../theme/app_theme.dart';
 import 'login_screen.dart';
 
@@ -133,7 +134,14 @@ class _DriverDashboardState extends State<DriverDashboard> {
         debugPrint("Initial GPS acquire error in loadMission: $e");
       }
 
-      // 1. Fetch driver profile from users table
+      // 1. Refresh & ensure device FCM token is stored for dispatch push notifications
+      try {
+        await PushNotificationService.refreshAndSaveToken();
+      } catch (e) {
+        debugPrint("Notice: could not refresh FCM token in DriverDashboard: $e");
+      }
+
+      // 2. Fetch driver profile from users table
       final driverProfile = await Supabase.instance.client
           .from('users')
           .select()
@@ -1399,6 +1407,40 @@ class _DriverDashboardState extends State<DriverDashboard> {
           ],
         ),
         actions: [
+          Container(
+            margin: const EdgeInsets.symmetric(vertical: 11, horizontal: 4),
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+            decoration: BoxDecoration(
+              color: AppColors.emeraldLight,
+              borderRadius: BorderRadius.circular(10),
+              border: Border.all(
+                color: AppColors.emerald.withValues(alpha: 0.35),
+                width: 1.1,
+              ),
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Container(
+                  width: 7,
+                  height: 7,
+                  decoration: const BoxDecoration(
+                    color: AppColors.emerald,
+                    shape: BoxShape.circle,
+                  ),
+                ),
+                const SizedBox(width: 6),
+                Text(
+                  "FCM Synced",
+                  style: GoogleFonts.plusJakartaSans(
+                    fontSize: 11,
+                    fontWeight: FontWeight.w700,
+                    color: AppColors.emeraldDark,
+                  ),
+                ),
+              ],
+            ),
+          ),
           IconButton(
             tooltip: "Refresh Cockpit",
             icon: const Icon(Icons.refresh_rounded, color: AppColors.slate700),

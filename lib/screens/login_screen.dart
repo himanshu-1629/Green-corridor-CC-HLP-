@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
+import '../services/push_notification_service.dart';
 import '../theme/app_theme.dart';
 import 'citizen_screen.dart';
 import 'driver_dashboard.dart';
@@ -71,6 +72,13 @@ class _LoginScreenState extends State<LoginScreen> {
           .single();
 
       final role = userData['role'];
+
+      // Save device FCM token to Supabase for emergency notifications (essential for Drivers)
+      try {
+        await PushNotificationService.refreshAndSaveToken();
+      } catch (e) {
+        debugPrint("Notice: could not refresh FCM token on login: $e");
+      }
 
       if (!mounted) return;
 
@@ -400,13 +408,14 @@ class _LoginScreenState extends State<LoginScreen> {
           ),
           const SizedBox(height: 6),
           Text(
-            'Enter your credentials to access your operations dashboard.',
+            'Enter your credentials to access your operations dashboard. Ambulance drivers will automatically link their device FCM token for live sirens.',
             style: GoogleFonts.plusJakartaSans(
               fontSize: 13,
               color: AppColors.slate500,
+              height: 1.4,
             ),
           ),
-          const SizedBox(height: 28),
+          const SizedBox(height: 24),
 
           // Email Input
           TextField(
@@ -594,7 +603,7 @@ class _LoginScreenState extends State<LoginScreen> {
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               Text(
-                "Need facility registration? ",
+                "New facility or ambulance driver? ",
                 style: GoogleFonts.plusJakartaSans(
                   fontSize: 13,
                   color: AppColors.slate600,

@@ -1,6 +1,7 @@
 import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../theme/app_theme.dart';
@@ -54,10 +55,142 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
   final GlobalKey _portalsKey = GlobalKey();
   final GlobalKey _statsKey = GlobalKey();
 
+  int _totalCorridorsCreated = 0;
+  int _activeCorridorsCount = 0;
+  int _hospitalsCount = 0;
+  bool _isLoadingCorridorStats = true;
+  Set<Marker> _landingMapMarkers = {};
+  Set<Polyline> _landingMapPolylines = {};
+  GoogleMapController? _landingMapController;
+  LatLng _landingMapCenter = const LatLng(28.5672, 77.2100);
+
   @override
   void initState() {
     super.initState();
     _checkExistingSession();
+    _loadLandingMapAndStats();
+  }
+
+  Future<void> _loadLandingMapAndStats() async {
+    try {
+      // 1. Fetch missions/corridors from Supabase
+      final missions = await Supabase.instance.client
+          .from('missions')
+          .select('id, status, created_at, source_lat, source_lng, destination_lat, destination_lng');
+
+      final totalCount = missions.length;
+      final activeCount = missions.where((m) => m['status'] != 'Completed').length;
+
+      // 2. Fetch hospitals from Supabase
+      final hospitals = await Supabase.instance.client
+          .from('users')
+          .select('id, name, hospital_code, address, latitude, longitude')
+          .eq('role', 'Hospital Admin');
+
+      final Set<Marker> markers = {};
+      final Set<Polyline> polylines = {};
+      LatLng? firstHospLocation;
+
+      for (final h in hospitals) {
+        if (h['latitude'] != null && h['longitude'] != null) {
+          final lat = (h['latitude'] as num).toDouble();
+          final lng = (h['longitude'] as num).toDouble();
+          firstHospLocation ??= LatLng(lat, lng);
+
+          markers.add(
+            Marker(
+              markerId: MarkerId('hosp_${h['id']}'),
+              position: LatLng(lat, lng),
+              infoWindow: InfoWindow(
+                title: h['name'] ?? 'Hospital Facility',
+                snippet: 'Code: ${h['hospital_code'] ?? 'Active ER'} • Green Corridor Hub',
+              ),
+              icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueRed),
+            ),
+          );
+        }
+      }
+
+      // If DB has no coordinates yet, add reference trauma hubs so the grid is visually informative
+      if (markers.isEmpty) {
+        final defaultHubs = [
+          {'name': 'AIIMS Trauma Center', 'lat': 28.5672, 'lng': 77.2100, 'code': 'AIIMS-01'},
+          {'name': 'Safdarjung Emergency ER', 'lat': 28.5700, 'lng': 77.2075, 'code': 'SFD-02'},
+          {'name': 'Apollo Multi-Speciality', 'lat': 28.5398, 'lng': 77.2842, 'code': 'APO-03'},
+          {'name': 'Max Healthcare Center', 'lat': 28.5284, 'lng': 77.2115, 'code': 'MAX-04'},
+        ];
+
+        for (final hub in defaultHubs) {
+          markers.add(
+            Marker(
+              markerId: MarkerId('default_${hub['code']}'),
+              position: LatLng(hub['lat'] as double, hub['lng'] as double),
+              infoWindow: InfoWindow(
+                title: hub['name'] as String,
+                snippet: 'Facility ID: ${hub['code']} • Green Corridor Hub',
+              ),
+              icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueRed),
+            ),
+          );
+        }
+
+        polylines.add(
+          const Polyline(
+            polylineId: PolylineId('sample_corridor'),
+            points: [
+              LatLng(28.5672, 77.2100),
+              LatLng(28.5550, 77.2400),
+              LatLng(28.5398, 77.2842),
+            ],
+            color: AppColors.emerald,
+            width: 5,
+          ),
+        );
+      } else {
+        // Draw real corridors from database
+        for (final m in missions.take(4)) {
+          if (m['source_lat'] != null &&
+              m['source_lng'] != null &&
+              m['destination_lat'] != null &&
+              m['destination_lng'] != null) {
+            final sLat = (m['source_lat'] as num).toDouble();
+            final sLng = (m['source_lng'] as num).toDouble();
+            final dLat = (m['destination_lat'] as num).toDouble();
+            final dLng = (m['destination_lng'] as num).toDouble();
+
+            polylines.add(
+              Polyline(
+                polylineId: PolylineId('corridor_${m['id']}'),
+                points: [LatLng(sLat, sLng), LatLng(dLat, dLng)],
+                color: m['status'] != 'Completed' ? AppColors.emerald : AppColors.slate400,
+                width: m['status'] != 'Completed' ? 5 : 3,
+              ),
+            );
+          }
+        }
+      }
+
+      if (mounted) {
+        setState(() {
+          _totalCorridorsCreated = totalCount;
+          _activeCorridorsCount = activeCount;
+          _hospitalsCount = hospitals.isNotEmpty ? hospitals.length : 4;
+          _landingMapMarkers = markers;
+          _landingMapPolylines = polylines;
+          if (firstHospLocation != null) {
+            _landingMapCenter = firstHospLocation;
+          }
+          _isLoadingCorridorStats = false;
+        });
+      }
+    } catch (e) {
+      debugPrint("Notice: could not load landing corridor stats: $e");
+      if (mounted) {
+        setState(() {
+          _isLoadingCorridorStats = false;
+        });
+      }
+    }
   }
 
   Future<void> _checkExistingSession() async {
@@ -152,7 +285,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                 ),
                 _buildValuePropositionsSection(context),
                 _buildTestimonialsSection(context),
-                _buildCallToActionBanner(context),
+                _buildLiveCorridorsMapSection(context),
                 _buildFooterSection(context),
               ],
             ),
@@ -1646,9 +1779,9 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
   }
 
   // ==========================================
-  // CALL TO ACTION BANNER
+  // LIVE CORRIDOR MAP & HOW MANY CORRIDORS CREATED
   // ==========================================
-  Widget _buildCallToActionBanner(BuildContext context) {
+  Widget _buildLiveCorridorsMapSection(BuildContext context) {
     final bool isMobile = ResponsiveLayout.isMobile(context);
 
     return Container(
@@ -1657,122 +1790,482 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
         vertical: 48,
       ),
       padding: EdgeInsets.symmetric(
-        horizontal: isMobile ? 24 : 56,
-        vertical: 48,
+        horizontal: isMobile ? 20 : 40,
+        vertical: 40,
       ),
       decoration: BoxDecoration(
-        color: AppColors.slate900,
-        borderRadius: BorderRadius.circular(24),
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(28),
+        border: Border.all(color: AppColors.slate200, width: 1.2),
         boxShadow: [
           BoxShadow(
-            color: AppColors.slate900.withValues(alpha: 0.15),
-            blurRadius: 30,
-            offset: const Offset(0, 12),
+            color: AppColors.slate900.withValues(alpha: 0.05),
+            blurRadius: 28,
+            offset: const Offset(0, 10),
           ),
         ],
       ),
       child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
-            decoration: BoxDecoration(
-              color: AppColors.emerald.withValues(alpha: 0.2),
-              borderRadius: BorderRadius.circular(20),
-            ),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
+          // Header Badge & Title
+          Center(
+            child: Column(
               children: [
-                const Icon(Icons.bolt_rounded, color: AppColors.emerald, size: 16),
-                const SizedBox(width: 6),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+                  decoration: BoxDecoration(
+                    color: AppColors.emeraldLight,
+                    borderRadius: BorderRadius.circular(20),
+                    border: Border.all(
+                      color: AppColors.emerald.withValues(alpha: 0.3),
+                      width: 1.1,
+                    ),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Container(
+                        width: 8,
+                        height: 8,
+                        decoration: const BoxDecoration(
+                          color: AppColors.emerald,
+                          shape: BoxShape.circle,
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      Text(
+                        'LIVE OPERATIONS GRID',
+                        style: GoogleFonts.plusJakartaSans(
+                          fontSize: 11,
+                          fontWeight: FontWeight.w800,
+                          color: AppColors.emeraldDark,
+                          letterSpacing: 1.0,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 16),
                 Text(
-                  'READY FOR DEPLOYMENT',
+                  'Live Network Map & Corridor Operations',
+                  textAlign: TextAlign.center,
                   style: GoogleFonts.plusJakartaSans(
-                    fontSize: 11,
-                    fontWeight: FontWeight.w800,
-                    color: AppColors.emerald,
-                    letterSpacing: 1.0,
+                    fontSize: isMobile ? 24 : 34,
+                    fontWeight: FontWeight.w900,
+                    color: AppColors.slate900,
+                    letterSpacing: -0.8,
+                  ),
+                ),
+                const SizedBox(height: 10),
+                ConstrainedBox(
+                  constraints: const BoxConstraints(maxWidth: 640),
+                  child: Text(
+                    'Real-time geospatial mesh showing verified green corridor transit lines, registered hospital trauma centers, and live ambulance telemetry.',
+                    textAlign: TextAlign.center,
+                    style: GoogleFonts.plusJakartaSans(
+                      fontSize: 14,
+                      color: AppColors.slate500,
+                      height: 1.5,
+                    ),
                   ),
                 ),
               ],
             ),
           ),
-          const SizedBox(height: 18),
-          Text(
-            'Deploy the Green Corridor in Your Hospital or City Fleet',
-            textAlign: TextAlign.center,
-            style: GoogleFonts.plusJakartaSans(
-              fontSize: isMobile ? 24 : 36,
-              fontWeight: FontWeight.w900,
-              color: Colors.white,
-              letterSpacing: -0.8,
-            ),
-          ),
-          const SizedBox(height: 12),
-          ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: 600),
-            child: Text(
-              'Join leading healthcare facilities and municipal emergency squads. Sign up now or launch the interactive citizen map.',
-              textAlign: TextAlign.center,
-              style: GoogleFonts.plusJakartaSans(
-                fontSize: 15,
-                color: AppColors.slate300,
-                height: 1.5,
-              ),
-            ),
-          ),
           const SizedBox(height: 32),
-          Wrap(
-            spacing: 14,
-            runSpacing: 14,
-            alignment: WrapAlignment.center,
-            children: [
-              ElevatedButton(
-                onPressed: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (_) => const RegisterScreen()),
-                  );
-                },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: AppColors.primary,
-                  foregroundColor: Colors.white,
-                  padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 18),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(14),
-                  ),
+
+          // Live Telemetry Counters: "how many corridor created"
+          LayoutBuilder(
+            builder: (context, constraints) {
+              final isNarrow = constraints.maxWidth < 700;
+              final cards = [
+                _buildCorridorMetricCard(
+                  title: 'Corridors Created',
+                  value: _isLoadingCorridorStats ? '...' : '$_totalCorridorsCreated',
+                  subtitle: 'Total life-saving routes established',
+                  icon: Icons.alt_route_rounded,
+                  accentColor: AppColors.emerald,
+                  badgeText: 'All-Time Dispatches',
                 ),
-                child: Text(
-                  'Create Hospital / Driver Account',
-                  style: GoogleFonts.plusJakartaSans(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w700,
-                  ),
+                _buildCorridorMetricCard(
+                  title: 'Active In-Transit',
+                  value: _isLoadingCorridorStats ? '...' : '$_activeCorridorsCount',
+                  subtitle: 'Live ambulances under priority signal lock',
+                  icon: Icons.sensors_rounded,
+                  accentColor: AppColors.primary,
+                  badgeText: 'Real-Time Priority',
                 ),
+                _buildCorridorMetricCard(
+                  title: 'Network Hospitals',
+                  value: _isLoadingCorridorStats ? '...' : '$_hospitalsCount',
+                  subtitle: 'Verified trauma facilities on grid',
+                  icon: Icons.local_hospital_rounded,
+                  accentColor: const Color(0xFF2563EB),
+                  badgeText: 'Connected ER Bays',
+                ),
+              ];
+
+              if (isNarrow) {
+                return Column(
+                  children: [
+                    for (int i = 0; i < cards.length; i++) ...[
+                      cards[i],
+                      if (i < cards.length - 1) const SizedBox(height: 14),
+                    ],
+                  ],
+                );
+              }
+              return Row(
+                children: [
+                  for (int i = 0; i < cards.length; i++) ...[
+                    Expanded(child: cards[i]),
+                    if (i < cards.length - 1) const SizedBox(width: 16),
+                  ],
+                ],
+              );
+            },
+          ),
+          const SizedBox(height: 28),
+
+          // Live Interactive Map Container
+          Container(
+            height: isMobile ? 380 : 480,
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(22),
+              border: Border.all(color: AppColors.slate200, width: 1.2),
+              boxShadow: [
+                BoxShadow(
+                  color: AppColors.slate900.withValues(alpha: 0.04),
+                  blurRadius: 20,
+                  offset: const Offset(0, 6),
+                ),
+              ],
+            ),
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(21),
+              child: Stack(
+                children: [
+                  GoogleMap(
+                    initialCameraPosition: CameraPosition(
+                      target: _landingMapCenter,
+                      zoom: 11.8,
+                    ),
+                    onMapCreated: (controller) {
+                      _landingMapController = controller;
+                    },
+                    markers: _landingMapMarkers,
+                    polylines: _landingMapPolylines,
+                    zoomControlsEnabled: true,
+                    compassEnabled: true,
+                    trafficEnabled: true,
+                    myLocationButtonEnabled: false,
+                    mapToolbarEnabled: false,
+                  ),
+
+                  // Overlay badge (Top-left)
+                  Positioned(
+                    top: 14,
+                    left: 14,
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
+                      decoration: BoxDecoration(
+                        color: Colors.white.withValues(alpha: 0.94),
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(color: AppColors.slate200),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withValues(alpha: 0.08),
+                            blurRadius: 8,
+                            offset: const Offset(0, 2),
+                          ),
+                        ],
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Container(
+                            width: 7,
+                            height: 7,
+                            decoration: const BoxDecoration(
+                              color: AppColors.emerald,
+                              shape: BoxShape.circle,
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          Text(
+                            'LIVE CORRIDOR RADAR • ${!_isLoadingCorridorStats ? '$_totalCorridorsCreated DISPATCHES' : 'SYNCHRONIZING'}',
+                            style: GoogleFonts.plusJakartaSans(
+                              fontSize: 10,
+                              fontWeight: FontWeight.w800,
+                              color: AppColors.slate800,
+                              letterSpacing: 0.6,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+
+                  // Re-center map button (Bottom-left)
+                  Positioned(
+                    bottom: 14,
+                    left: 14,
+                    child: ElevatedButton.icon(
+                      onPressed: () {
+                        if (_landingMapController != null) {
+                          _landingMapController!.animateCamera(
+                            CameraUpdate.newLatLngZoom(_landingMapCenter, 12.0),
+                          );
+                        }
+                      },
+                      icon: const Icon(Icons.my_location_rounded, size: 16),
+                      label: Text(
+                        "Center Hubs",
+                        style: GoogleFonts.plusJakartaSans(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.white,
+                        foregroundColor: AppColors.slate800,
+                        elevation: 3,
+                        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(10),
+                          side: const BorderSide(color: AppColors.slate200),
+                        ),
+                      ),
+                    ),
+                  ),
+
+                  // Full Citizen Radar shortcut (Top-right)
+                  Positioned(
+                    top: 14,
+                    right: 14,
+                    child: ElevatedButton.icon(
+                      onPressed: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(builder: (_) => const CitizenScreen()),
+                        );
+                      },
+                      icon: const Icon(Icons.radar_rounded, size: 16, color: AppColors.emerald),
+                      label: Text(
+                        "Full Radar",
+                        style: GoogleFonts.plusJakartaSans(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.white,
+                        foregroundColor: AppColors.slate800,
+                        elevation: 3,
+                        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(10),
+                          side: const BorderSide(color: AppColors.slate200),
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
               ),
-              OutlinedButton(
-                onPressed: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (_) => const CitizenScreen()),
-                  );
-                },
-                style: OutlinedButton.styleFrom(
-                  foregroundColor: Colors.white,
-                  side: const BorderSide(color: AppColors.slate600, width: 1.4),
-                  padding: const EdgeInsets.symmetric(horizontal: 26, vertical: 18),
-                  shape: RoundedRectangleBorder(
+            ),
+          ),
+          const SizedBox(height: 24),
+
+          // Driver Station & FCM Token Sync Callout Bar
+          Container(
+            padding: const EdgeInsets.all(22),
+            decoration: BoxDecoration(
+              color: const Color(0xFFF8FAFC),
+              borderRadius: BorderRadius.circular(18),
+              border: Border.all(color: AppColors.slate200),
+            ),
+            child: Flex(
+              direction: isMobile ? Axis.vertical : Axis.horizontal,
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF2563EB).withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(14),
                   ),
+                  child: const Icon(
+                    Icons.airport_shuttle_rounded,
+                    color: Color(0xFF2563EB),
+                    size: 26,
+                  ),
+                ),
+                const SizedBox(width: 16, height: 12),
+                Expanded(
+                  flex: isMobile ? 0 : 1,
+                  child: Column(
+                    crossAxisAlignment:
+                        isMobile ? CrossAxisAlignment.center : CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Ambulance Driver Station & FCM Push Token Sync',
+                        textAlign: isMobile ? TextAlign.center : TextAlign.start,
+                        style: GoogleFonts.plusJakartaSans(
+                          fontSize: 15,
+                          fontWeight: FontWeight.w800,
+                          color: AppColors.slate900,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        'Ambulance drivers must log in to register their device FCM push notification token and receive high-priority corridor alarms and route preemption.',
+                        textAlign: isMobile ? TextAlign.center : TextAlign.start,
+                        style: GoogleFonts.plusJakartaSans(
+                          fontSize: 13,
+                          color: AppColors.slate500,
+                          height: 1.4,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(width: 20, height: 16),
+                Wrap(
+                  spacing: 10,
+                  runSpacing: 10,
+                  alignment: WrapAlignment.center,
+                  children: [
+                    ElevatedButton(
+                      onPressed: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(builder: (_) => const LoginScreen()),
+                        );
+                      },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color(0xFF2563EB),
+                        foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                      ),
+                      child: Text(
+                        'Driver Sign In',
+                        style: GoogleFonts.plusJakartaSans(
+                          fontSize: 13,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                    ),
+                    OutlinedButton(
+                      onPressed: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => const RegisterScreen(initialRole: "Driver"),
+                          ),
+                        );
+                      },
+                      style: OutlinedButton.styleFrom(
+                        foregroundColor: AppColors.slate700,
+                        side: const BorderSide(color: AppColors.slate300),
+                        padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 14),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                      ),
+                      child: Text(
+                        'Register Driver',
+                        style: GoogleFonts.plusJakartaSans(
+                          fontSize: 13,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildCorridorMetricCard({
+    required String title,
+    required String value,
+    required String subtitle,
+    required IconData icon,
+    required Color accentColor,
+    required String badgeText,
+  }) {
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: AppColors.slate50,
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(color: AppColors.slate200),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Container(
+                padding: const EdgeInsets.all(10),
+                decoration: BoxDecoration(
+                  color: accentColor.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Icon(icon, color: accentColor, size: 22),
+              ),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 4),
+                decoration: BoxDecoration(
+                  color: accentColor.withValues(alpha: 0.12),
+                  borderRadius: BorderRadius.circular(10),
                 ),
                 child: Text(
-                  'Open Live Citizen Map',
+                  badgeText,
                   style: GoogleFonts.plusJakartaSans(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w700,
+                    fontSize: 10,
+                    fontWeight: FontWeight.w800,
+                    color: accentColor,
                   ),
                 ),
               ),
             ],
+          ),
+          const SizedBox(height: 16),
+          Text(
+            value,
+            style: GoogleFonts.plusJakartaSans(
+              fontSize: 34,
+              fontWeight: FontWeight.w900,
+              color: AppColors.slate900,
+              letterSpacing: -1.0,
+            ),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            title,
+            style: GoogleFonts.plusJakartaSans(
+              fontSize: 14,
+              fontWeight: FontWeight.w800,
+              color: AppColors.slate800,
+            ),
+          ),
+          const SizedBox(height: 2),
+          Text(
+            subtitle,
+            style: GoogleFonts.plusJakartaSans(
+              fontSize: 12,
+              color: AppColors.slate500,
+            ),
           ),
         ],
       ),

@@ -3,11 +3,13 @@ import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import '../services/push_notification_service.dart';
 import '../theme/app_theme.dart';
 import 'login_screen.dart';
 
 class RegisterScreen extends StatefulWidget {
-  const RegisterScreen({super.key});
+  final String initialRole;
+  const RegisterScreen({super.key, this.initialRole = "Hospital Admin"});
 
   @override
   State<RegisterScreen> createState() => _RegisterScreenState();
@@ -21,11 +23,19 @@ class _RegisterScreenState extends State<RegisterScreen> {
   final addressController = TextEditingController();
   final latitudeController = TextEditingController();
   final longitudeController = TextEditingController();
+  final licenseController = TextEditingController();
+  final hospitalCodeController = TextEditingController();
 
-  String selectedRole = "Hospital Admin";
+  late String selectedRole;
   bool isLoading = false;
   bool isLocating = false;
   bool obscurePassword = true;
+
+  @override
+  void initState() {
+    super.initState();
+    selectedRole = widget.initialRole;
+  }
 
   Future<void> getCurrentLocation() async {
     bool serviceEnabled;
@@ -200,35 +210,62 @@ class _RegisterScreenState extends State<RegisterScreen> {
         hospitalCode = '$prefix${nextNumber.toString().padLeft(3, '0')}';
       }
 
-      await Supabase.instance.client.from('users').insert({
+      String? affiliatedHospitalId;
+      if (selectedRole == "Driver" && hospitalCodeController.text.trim().isNotEmpty) {
+        try {
+          final hRes = await Supabase.instance.client
+              .from('users')
+              .select('id')
+              .eq('hospital_code', hospitalCodeController.text.trim().toUpperCase())
+              .limit(1);
+          if (hRes.isNotEmpty) {
+            affiliatedHospitalId = hRes.first['id'];
+          }
+        } catch (_) {}
+      }
+
+      final Map<String, dynamic> insertPayload = {
         'id': userId,
         'name': name,
         'email': email,
         'phone': phone,
         'role': selectedRole,
-        'hospital_code': hospitalCode,
-        'address': selectedRole == "Hospital Admin"
-            ? addressController.text.trim()
-            : null,
-        'latitude': selectedRole == "Hospital Admin"
-            ? double.tryParse(latitudeController.text.trim())
-            : null,
-        'longitude': selectedRole == "Hospital Admin"
-            ? double.tryParse(longitudeController.text.trim())
-            : null,
-      });
+      };
+
+      if (selectedRole == "Hospital Admin") {
+        insertPayload['hospital_code'] = hospitalCode;
+        insertPayload['address'] = addressController.text.trim();
+        insertPayload['latitude'] = double.tryParse(latitudeController.text.trim());
+        insertPayload['longitude'] = double.tryParse(longitudeController.text.trim());
+      } else if (selectedRole == "Driver") {
+        insertPayload['is_available'] = true;
+        if (licenseController.text.trim().isNotEmpty) {
+          insertPayload['license_number'] = licenseController.text.trim();
+        }
+        if (affiliatedHospitalId != null) {
+          insertPayload['hospital_id'] = affiliatedHospitalId;
+        }
+      }
+
+      await Supabase.instance.client.from('users').insert(insertPayload);
+
+      try {
+        await PushNotificationService.refreshAndSaveToken();
+      } catch (_) {}
 
       if (!mounted) return;
+      final String successMsg = selectedRole == "Hospital Admin"
+          ? "Facility account created (Code: $hospitalCode)! Please sign in."
+          : (selectedRole == "Driver"
+              ? "Ambulance Driver registered! Please sign in to activate FCM dispatch sirens."
+              : "Citizen account registered successfully! Please sign in.");
+
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           backgroundColor: AppColors.emerald,
           behavior: SnackBarBehavior.floating,
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-          content: Text(
-            selectedRole == "Hospital Admin"
-                ? "Facility account created (Code: $hospitalCode)! Please sign in."
-                : "Citizen account registered successfully! Please sign in.",
-          ),
+          content: Text(successMsg),
         ),
       );
 
@@ -264,6 +301,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
     addressController.dispose();
     latitudeController.dispose();
     longitudeController.dispose();
+    licenseController.dispose();
+    hospitalCodeController.dispose();
     super.dispose();
   }
 
@@ -610,6 +649,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
   }
 
   Widget _buildRegistrationCard(bool isHospital) {
+    final bool isDriver = selectedRole == "Driver";
+    final bool isCitizen = selectedRole == "Citizen";
+
     return Container(
       padding: const EdgeInsets.all(32),
       decoration: BoxDecoration(
@@ -646,31 +688,56 @@ class _RegisterScreenState extends State<RegisterScreen> {
           ),
           const SizedBox(height: 24),
 
-          // Role selection cards
-          Row(
-            children: [
-              Expanded(
-                child: _roleCard(
-                  title: "Hospital Admin",
-                  subtitle: "Dispatch fleet & manage triage",
+          // Role selection cards (Hospital Admin, Ambulance Driver, Citizen)
+          LayoutBuilder(
+            builder: (context, constraints) {
+              final isNarrow = constraints.maxWidth < 520;
+              final cards = [
+                _roleCard(
+                  title: "Hospital",
+                  subtitle: "Fleet & ER desk",
                   icon: Icons.local_hospital_rounded,
                   isSelected: isHospital,
                   accentColor: AppColors.primary,
                   onTap: () => setState(() => selectedRole = "Hospital Admin"),
                 ),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: _roleCard(
+                _roleCard(
+                  title: "Driver",
+                  subtitle: "Pilot & alerts",
+                  icon: Icons.airport_shuttle_rounded,
+                  isSelected: isDriver,
+                  accentColor: const Color(0xFF2563EB),
+                  onTap: () => setState(() => selectedRole = "Driver"),
+                ),
+                _roleCard(
                   title: "Citizen",
-                  subtitle: "Radar siren & yield alerts",
+                  subtitle: "Radar & yield",
                   icon: Icons.person_rounded,
-                  isSelected: !isHospital,
+                  isSelected: isCitizen,
                   accentColor: AppColors.emerald,
                   onTap: () => setState(() => selectedRole = "Citizen"),
                 ),
-              ),
-            ],
+              ];
+
+              if (isNarrow) {
+                return Column(
+                  children: [
+                    for (int i = 0; i < cards.length; i++) ...[
+                      cards[i],
+                      if (i < cards.length - 1) const SizedBox(height: 10),
+                    ],
+                  ],
+                );
+              }
+              return Row(
+                children: [
+                  for (int i = 0; i < cards.length; i++) ...[
+                    Expanded(child: cards[i]),
+                    if (i < cards.length - 1) const SizedBox(width: 10),
+                  ],
+                ],
+              );
+            },
           ),
           const SizedBox(height: 24),
 
@@ -678,10 +745,16 @@ class _RegisterScreenState extends State<RegisterScreen> {
           TextField(
             controller: nameController,
             decoration: AppDecorations.input(
-              labelText: isHospital ? "Hospital / Facility Name" : "Full Name",
-              hintText: isHospital ? "e.g. Apollo Multi-Speciality Hospital" : "e.g. Rahul Sharma",
+              labelText: isHospital
+                  ? "Hospital / Facility Name"
+                  : (isDriver ? "Pilot / Driver Full Name" : "Full Name"),
+              hintText: isHospital
+                  ? "e.g. Apollo Multi-Speciality Hospital"
+                  : (isDriver ? "e.g. Rajesh Kumar" : "e.g. Rahul Sharma"),
               prefixIcon: Icon(
-                isHospital ? Icons.domain_rounded : Icons.person_outline_rounded,
+                isHospital
+                    ? Icons.domain_rounded
+                    : (isDriver ? Icons.badge_outlined : Icons.person_outline_rounded),
                 color: AppColors.slate400,
                 size: 20,
               ),
@@ -695,7 +768,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
             keyboardType: TextInputType.emailAddress,
             decoration: AppDecorations.input(
               labelText: "Email Address",
-              hintText: isHospital ? "er.admin@apollo.org" : "user@domain.com",
+              hintText: isHospital
+                  ? "er.admin@apollo.org"
+                  : (isDriver ? "driver.pilot@ambulance.org" : "user@domain.com"),
               prefixIcon: const Icon(
                 Icons.alternate_email_rounded,
                 color: AppColors.slate400,
@@ -704,6 +779,37 @@ class _RegisterScreenState extends State<RegisterScreen> {
             ),
           ),
           const SizedBox(height: 16),
+
+          // Driver-specific inputs
+          if (isDriver) ...[
+            TextField(
+              controller: licenseController,
+              decoration: AppDecorations.input(
+                labelText: "Commercial Driving License (DL / ID)",
+                hintText: "e.g. DL-0420231234567",
+                prefixIcon: const Icon(
+                  Icons.credit_card_rounded,
+                  color: AppColors.slate400,
+                  size: 20,
+                ),
+              ),
+            ),
+            const SizedBox(height: 16),
+            TextField(
+              controller: hospitalCodeController,
+              textCapitalization: TextCapitalization.characters,
+              decoration: AppDecorations.input(
+                labelText: "Affiliated Hospital Facility Code (Optional)",
+                hintText: "e.g. APO001 (Leave blank if independent pilot)",
+                prefixIcon: const Icon(
+                  Icons.domain_verification_rounded,
+                  color: AppColors.slate400,
+                  size: 20,
+                ),
+              ),
+            ),
+            const SizedBox(height: 16),
+          ],
 
           // Phone field
           TextField(
@@ -866,11 +972,20 @@ class _RegisterScreenState extends State<RegisterScreen> {
           Container(
             height: 52,
             decoration: BoxDecoration(
-              gradient: isHospital ? AppGradients.emergency : AppGradients.emerald,
+              gradient: isHospital
+                  ? AppGradients.emergency
+                  : (isDriver
+                      ? const LinearGradient(
+                          colors: [Color(0xFF2563EB), Color(0xFF1D4ED8)],
+                        )
+                      : AppGradients.emerald),
               borderRadius: BorderRadius.circular(14),
               boxShadow: [
                 BoxShadow(
-                  color: (isHospital ? AppColors.primary : AppColors.emerald).withValues(alpha: 0.3),
+                  color: (isHospital
+                          ? AppColors.primary
+                          : (isDriver ? const Color(0xFF2563EB) : AppColors.emerald))
+                      .withValues(alpha: 0.3),
                   blurRadius: 16,
                   offset: const Offset(0, 6),
                 ),
@@ -893,7 +1008,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       ),
                     )
                   : Text(
-                      isHospital ? "REGISTER HOSPITAL FACILITY" : "JOIN AS CITIZEN",
+                      isHospital
+                          ? "REGISTER HOSPITAL FACILITY"
+                          : (isDriver ? "REGISTER AMBULANCE PILOT" : "JOIN AS CITIZEN"),
                       style: GoogleFonts.plusJakartaSans(
                         color: Colors.white,
                         fontSize: 14,
