@@ -408,7 +408,7 @@ class _LoginScreenState extends State<LoginScreen> {
           ),
           const SizedBox(height: 6),
           Text(
-            'Enter your credentials to access your operations dashboard. Ambulance drivers will automatically link their device FCM token for live sirens.',
+            'Enter your credentials to access your operations dashboard. Drivers registered by their hospital will automatically link their device FCM token upon sign in.',
             style: GoogleFonts.plusJakartaSans(
               fontSize: 13,
               color: AppColors.slate500,
@@ -603,7 +603,7 @@ class _LoginScreenState extends State<LoginScreen> {
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               Text(
-                "New facility or ambulance driver? ",
+                "Need hospital facility onboarding? ",
                 style: GoogleFonts.plusJakartaSans(
                   fontSize: 13,
                   color: AppColors.slate600,
@@ -617,7 +617,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   );
                 },
                 child: Text(
-                  "Create Account",
+                  "Register Facility",
                   style: GoogleFonts.plusJakartaSans(
                     fontSize: 13,
                     fontWeight: FontWeight.w800,

@@ -2119,7 +2119,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                       ),
                       const SizedBox(height: 4),
                       Text(
-                        'Ambulance drivers must log in to register their device FCM push notification token and receive high-priority corridor alarms and route preemption.',
+                        'Ambulance drivers are registered exclusively by their hospital authority. Once provisioned by your hospital, sign in here to link your device FCM token for live sirens and green wave navigation.',
                         textAlign: isMobile ? TextAlign.center : TextAlign.start,
                         style: GoogleFonts.plusJakartaSans(
                           fontSize: 13,
@@ -2131,60 +2131,29 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                   ),
                 ),
                 const SizedBox(width: 20, height: 16),
-                Wrap(
-                  spacing: 10,
-                  runSpacing: 10,
-                  alignment: WrapAlignment.center,
-                  children: [
-                    ElevatedButton(
-                      onPressed: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(builder: (_) => const LoginScreen()),
-                        );
-                      },
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFF2563EB),
-                        foregroundColor: Colors.white,
-                        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                      ),
-                      child: Text(
-                        'Driver Sign In',
-                        style: GoogleFonts.plusJakartaSans(
-                          fontSize: 13,
-                          fontWeight: FontWeight.w700,
-                        ),
-                      ),
+                ElevatedButton.icon(
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (_) => const LoginScreen()),
+                    );
+                  },
+                  icon: const Icon(Icons.login_rounded, size: 18),
+                  label: Text(
+                    'Driver Sign In (Sync FCM)',
+                    style: GoogleFonts.plusJakartaSans(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w700,
                     ),
-                    OutlinedButton(
-                      onPressed: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (_) => const RegisterScreen(initialRole: "Driver"),
-                          ),
-                        );
-                      },
-                      style: OutlinedButton.styleFrom(
-                        foregroundColor: AppColors.slate700,
-                        side: const BorderSide(color: AppColors.slate300),
-                        padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 14),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                      ),
-                      child: Text(
-                        'Register Driver',
-                        style: GoogleFonts.plusJakartaSans(
-                          fontSize: 13,
-                          fontWeight: FontWeight.w700,
-                        ),
-                      ),
+                  ),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFF2563EB),
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(horizontal: 22, vertical: 15),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
                     ),
-                  ],
+                  ),
                 ),
               ],
             ),
