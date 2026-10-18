@@ -1,4 +1,4 @@
-# JeevanPath (Green Corridor) 🚑⚡
+# Green Corridor 🚑⚡
 ### Intelligent Emergency Organ Transit & Hyper-Localized Citizen Clearance Infrastructure
 
 [![Flutter](https://img.shields.io/badge/Flutter-3.x-02569B?logo=flutter)](https://flutter.dev)
