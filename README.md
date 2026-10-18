@@ -289,6 +289,6 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 
 ---
 
-### Developed for Viksit Bharat @2047 & Seva First Innovation Challenge (SFIC) 2026
-**Theme**: *Swasth & Samavesh Bharat (Healthcare & Inclusion)*  
-**Institution**: Vellore Institute of Technology (VIT), Chennai
+### 👨‍💻 Author & Developer
+**Developed by [Himanshu Singh](https://github.com/himanshu-1629)**  
+*Project Repository*: [https://github.com/himanshu-1629/green-corridor](https://github.com/himanshu-1629/green-corridor)
