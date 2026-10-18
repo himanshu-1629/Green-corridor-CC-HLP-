@@ -2031,29 +2031,37 @@ class _GreenCorridorSimulationHeroState
 
                     // Main Interactive City Map Canvas with Corridor & Vehicles
                     Expanded(
-                      child: Stack(
-                        children: [
-                          // Vector City Map & Glowing Corridor
-                          Positioned.fill(
-                            child: CustomPaint(
-                              painter: _CityMapSimulationPainter(
-                                progress: t,
-                                pulse: _pulseController.value,
+                      child: LayoutBuilder(
+                        builder: (context, mapConstraints) {
+                          final mapW = mapConstraints.maxWidth;
+                          final mapH = mapConstraints.maxHeight;
+
+                          return Stack(
+                            children: [
+                              // Vector City Map & Glowing Corridor
+                              Positioned.fill(
+                                child: CustomPaint(
+                                  size: Size(mapW, mapH),
+                                  painter: _CityMapSimulationPainter(
+                                    progress: t,
+                                    pulse: _pulseController.value,
+                                  ),
+                                ),
                               ),
-                            ),
-                          ),
 
-                          // Dynamic Interactive Overlays (Pins, Signals, Citizens, Ambulance)
-                          _buildMapOverlayElements(t, cardWidth, cardHeight - 120),
+                              // Dynamic Interactive Overlays (Pins, Signals, Citizens, Ambulance)
+                              _buildMapOverlayElements(t, mapW, mapH),
 
-                          // Live Motivation Banner at Bottom
-                          Positioned(
-                            left: 16,
-                            right: 16,
-                            bottom: 12,
-                            child: _buildMotiveNarrationBanner(t),
-                          ),
-                        ],
+                              // Live Motivation Banner at Bottom
+                              Positioned(
+                                left: 16,
+                                right: 16,
+                                bottom: 10,
+                                child: _buildMotiveNarrationBanner(t),
+                              ),
+                            ],
+                          );
+                        },
                       ),
                     ),
                   ],
