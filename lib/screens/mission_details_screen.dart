@@ -625,7 +625,7 @@ class _MissionDetailsScreenState extends State<MissionDetailsScreen> {
                                 ),
                                 const SizedBox(height: 3),
                                 Text(
-                                  "Vehicle ${ambulanceData?['plate_number'] ?? ''} is approaching ${destinationHospital?['name'] ?? destination}. Organ handover imminent (${distance!.toStringAsFixed(0)} m remaining).",
+                                  "Vehicle ${ambulanceData?['vehicle_number'] ?? ambulanceData?['ambulance_code'] ?? ambulanceData?['plate_number'] ?? ''} is approaching ${destinationHospital?['name'] ?? destination}. Organ handover imminent (${distance!.toStringAsFixed(0)} m remaining).",
                                   style: const TextStyle(
                                     color: AppColors.slate700,
                                     fontSize: 12,
@@ -799,7 +799,7 @@ class _MissionDetailsScreenState extends State<MissionDetailsScreen> {
                                 markerId: const MarkerId('ambulance_live'),
                                 position: LatLng(ambulanceLat!, ambulanceLng!),
                                 infoWindow: InfoWindow(
-                                  title: "Ambulance ${ambulanceData?['plate_number'] ?? ''} (LIVE GPS)",
+                                  title: "Ambulance ${ambulanceData?['vehicle_number'] ?? ambulanceData?['ambulance_code'] ?? ambulanceData?['plate_number'] ?? ''} (LIVE GPS)",
                                   snippet: isTransit
                                       ? "In Transit to destination"
                                       : "Standing by at facility",
@@ -1019,7 +1019,7 @@ class _MissionDetailsScreenState extends State<MissionDetailsScreen> {
                                   ),
                                   const SizedBox(width: 6),
                                   Text(
-                                    "${ambulanceData?['plate_number'] ?? 'Ambulance'} • ${driverData?['name'] ?? 'Assigned Driver'}",
+                                    "${ambulanceData?['vehicle_number'] ?? ambulanceData?['ambulance_code'] ?? ambulanceData?['plate_number'] ?? 'Ambulance'} • ${driverData?['name'] ?? 'Assigned Driver'}",
                                     style: const TextStyle(
                                       color: Colors.white,
                                       fontSize: 11,
@@ -1070,7 +1070,7 @@ class _MissionDetailsScreenState extends State<MissionDetailsScreen> {
                           icon: Icons.airport_shuttle_rounded,
                           label: "Ambulance Vehicle",
                           value: ambulanceData != null
-                              ? "${ambulanceData!['plate_number'] ?? ''} (${ambulanceData!['model'] ?? 'Unit'})"
+                              ? "${ambulanceData!['vehicle_number'] ?? ambulanceData!['ambulance_code'] ?? ambulanceData!['plate_number'] ?? ''} (${ambulanceData!['vehicle_name'] ?? ambulanceData!['model'] ?? 'Unit'})"
                               : (currentMission?['ambulance_id'] != null ? "Unit Assigned" : "Not Assigned"),
                         ),
                         const Divider(height: 24, color: AppColors.slate100),

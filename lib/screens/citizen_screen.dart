@@ -1318,6 +1318,9 @@ class _CitizenScreenState extends State<CitizenScreen> with SingleTickerProvider
   }
 
   String activeAmbulancePlate() {
-    return _activeAmbulance?['plate_number'] ?? "Unit";
+    return _activeAmbulance?['vehicle_number'] ??
+        _activeAmbulance?['ambulance_code'] ??
+        _activeAmbulance?['plate_number'] ??
+        "Unit";
   }
 }

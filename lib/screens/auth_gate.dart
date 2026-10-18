@@ -30,24 +30,23 @@ void initState() {
   final session = Supabase.instance.client.auth.currentSession;
 final user = session?.user;
 final url = Uri.base.toString();
-print("FULL URL => $url");
+debugPrint("FULL URL => $url");
 if (url.contains("code=")) {
   try {
     final uri = Uri.base;
     final code = uri.queryParameters['code'];
 
-    print("CODE => $code");
+    debugPrint("CODE => $code");
 
     if (code != null) {
       final result =
           await Supabase.instance.client.auth
               .exchangeCodeForSession(code);
 
-      print("EXCHANGE SUCCESS");
-      print(result.session);
+      debugPrint("EXCHANGE SUCCESS: ${result.session.user.id}");
     }
   } catch (e) {
-    print("EXCHANGE ERROR => $e");
+    debugPrint("EXCHANGE ERROR => $e");
   }
 
   if (!mounted) return;

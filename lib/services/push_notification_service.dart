@@ -31,7 +31,7 @@ Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
 
   final data = message.data;
   final String? routeStr = data['route_points'];
-  final String plate = data['plate_number'] ?? 'Emergency Unit';
+  final String plate = data['vehicle_number'] ?? data['ambulance_code'] ?? data['plate_number'] ?? 'Emergency Unit';
   final String dest = data['destination'] ?? 'Hospital';
 
   List<LatLng> routePoints = [];
@@ -128,8 +128,10 @@ class PushNotificationService {
       }
     }
 
-    // 3. Register Background Handler
-    FirebaseMessaging.onBackgroundMessage(firebaseMessagingBackgroundHandler);
+    // 3. Register Background Handler (Native Android/iOS only, Web uses Service Worker)
+    if (!kIsWeb) {
+      FirebaseMessaging.onBackgroundMessage(firebaseMessagingBackgroundHandler);
+    }
 
     // 4. Request Push Notification Permissions
     try {

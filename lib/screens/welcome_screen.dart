@@ -76,7 +76,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
       // 1. Fetch missions/corridors from Supabase
       final missions = await Supabase.instance.client
           .from('missions')
-          .select('id, status, created_at, source_lat, source_lng, destination_lat, destination_lng');
+          .select('id, status, created_at, hospital_id, destination_hospital_id, ambulance_id');
 
       final totalCount = missions.length;
       final activeCount = missions.where((m) => m['status'] != 'Completed').length;
@@ -89,18 +89,21 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
 
       final Set<Marker> markers = {};
       final Set<Polyline> polylines = {};
+      final Map<String, LatLng> hospitalMap = {};
       LatLng? firstHospLocation;
 
       for (final h in hospitals) {
         if (h['latitude'] != null && h['longitude'] != null) {
           final lat = (h['latitude'] as num).toDouble();
           final lng = (h['longitude'] as num).toDouble();
-          firstHospLocation ??= LatLng(lat, lng);
+          final pos = LatLng(lat, lng);
+          firstHospLocation ??= pos;
+          hospitalMap[h['id'].toString()] = pos;
 
           markers.add(
             Marker(
               markerId: MarkerId('hosp_${h['id']}'),
-              position: LatLng(lat, lng),
+              position: pos,
               infoWindow: InfoWindow(
                 title: h['name'] ?? 'Hospital Facility',
                 snippet: 'Code: ${h['hospital_code'] ?? 'Active ER'} • Green Corridor Hub',
@@ -111,8 +114,41 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
         }
       }
 
-      // If DB has no coordinates yet, add reference trauma hubs so the grid is visually informative
-      if (markers.isEmpty) {
+      // Connect corridors between origin & destination hospitals
+      for (final m in missions.take(6)) {
+        final originId = m['hospital_id']?.toString();
+        final destId = m['destination_hospital_id']?.toString();
+        if (originId != null &&
+            destId != null &&
+            hospitalMap.containsKey(originId) &&
+            hospitalMap.containsKey(destId)) {
+          final start = hospitalMap[originId]!;
+          final end = hospitalMap[destId]!;
+          polylines.add(
+            Polyline(
+              polylineId: PolylineId('corridor_${m['id']}'),
+              points: [start, end],
+              color: m['status'] != 'Completed' ? AppColors.emerald : AppColors.slate400,
+              width: m['status'] != 'Completed' ? 5 : 3,
+            ),
+          );
+        }
+      }
+
+      // If no corridors connected yet or markers empty, provide baseline reference corridors
+      if (polylines.isEmpty && hospitalMap.length >= 2) {
+        final hospList = hospitalMap.values.toList();
+        for (int i = 0; i < hospList.length - 1; i++) {
+          polylines.add(
+            Polyline(
+              polylineId: PolylineId('hub_corridor_$i'),
+              points: [hospList[i], hospList[i + 1]],
+              color: AppColors.emerald,
+              width: 4,
+            ),
+          );
+        }
+      } else if (markers.isEmpty) {
         final defaultHubs = [
           {'name': 'AIIMS Trauma Center', 'lat': 28.5672, 'lng': 77.2100, 'code': 'AIIMS-01'},
           {'name': 'Safdarjung Emergency ER', 'lat': 28.5700, 'lng': 77.2075, 'code': 'SFD-02'},
@@ -146,28 +182,6 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
             width: 5,
           ),
         );
-      } else {
-        // Draw real corridors from database
-        for (final m in missions.take(4)) {
-          if (m['source_lat'] != null &&
-              m['source_lng'] != null &&
-              m['destination_lat'] != null &&
-              m['destination_lng'] != null) {
-            final sLat = (m['source_lat'] as num).toDouble();
-            final sLng = (m['source_lng'] as num).toDouble();
-            final dLat = (m['destination_lat'] as num).toDouble();
-            final dLng = (m['destination_lng'] as num).toDouble();
-
-            polylines.add(
-              Polyline(
-                polylineId: PolylineId('corridor_${m['id']}'),
-                points: [LatLng(sLat, sLng), LatLng(dLat, dLng)],
-                color: m['status'] != 'Completed' ? AppColors.emerald : AppColors.slate400,
-                width: m['status'] != 'Completed' ? 5 : 3,
-              ),
-            );
-          }
-        }
       }
 
       if (mounted) {

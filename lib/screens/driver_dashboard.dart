@@ -754,7 +754,10 @@ class _DriverDashboardState extends State<DriverDashboard> {
 
   Future<void> _markReturnedToBase() async {
     final hospitalName = sourceHospital?['name'] ?? "Home Base Hospital";
-    final ambulancePlate = ambulanceData?['plate_number'] ?? "Ambulance Unit";
+    final ambulancePlate = ambulanceData?['vehicle_number'] ??
+        ambulanceData?['ambulance_code'] ??
+        ambulanceData?['plate_number'] ??
+        "Ambulance Unit";
 
     final confirm = await showDialog<bool>(
       context: context,
@@ -1567,7 +1570,10 @@ class _DriverDashboardState extends State<DriverDashboard> {
                               ),
                             ),
                             Text(
-                              ambulanceData?['plate_number'] ?? (mission?['priority'] ?? "Unit Assigned"),
+                              ambulanceData?['vehicle_number'] ??
+                                  ambulanceData?['ambulance_code'] ??
+                                  ambulanceData?['plate_number'] ??
+                                  (mission?['priority'] ?? "Unit Assigned"),
                               style: const TextStyle(
                                 color: Colors.white,
                                 fontSize: 12,
