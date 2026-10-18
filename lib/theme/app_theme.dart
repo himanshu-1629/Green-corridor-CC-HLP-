@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 class AppColors {
   // Brand & Emergency Accents
@@ -171,9 +172,55 @@ class AppDecorations {
   }
 }
 
+class AppTypography {
+  // Primary Emergency Environment Font: Plus Jakarta Sans / Inter style
+  static TextStyle headlineLarge({Color color = AppColors.slate900, double size = 36}) =>
+      GoogleFonts.plusJakartaSans(
+        fontSize: size,
+        fontWeight: FontWeight.w800,
+        color: color,
+        letterSpacing: -1.0,
+        height: 1.15,
+      );
+
+  static TextStyle titleMedium({Color color = AppColors.slate900, double size = 18}) =>
+      GoogleFonts.plusJakartaSans(
+        fontSize: size,
+        fontWeight: FontWeight.w700,
+        color: color,
+        letterSpacing: -0.3,
+      );
+
+  static TextStyle bodyMedium({Color color = AppColors.slate600, double size = 15}) =>
+      GoogleFonts.plusJakartaSans(
+        fontSize: size,
+        fontWeight: FontWeight.w400,
+        color: color,
+        height: 1.55,
+      );
+
+  // Tactical / Telemetry Monospace & Pill Font for Emergency Metrics
+  static TextStyle tacticalBadge({Color color = AppColors.primary, double size = 12}) =>
+      GoogleFonts.plusJakartaSans(
+        fontSize: size,
+        fontWeight: FontWeight.w700,
+        color: color,
+        letterSpacing: 1.2,
+      );
+
+  static TextStyle metricValue({Color color = AppColors.slate900, double size = 32}) =>
+      GoogleFonts.plusJakartaSans(
+        fontSize: size,
+        fontWeight: FontWeight.w900,
+        color: color,
+        letterSpacing: -1.2,
+        fontFeatures: const [FontFeature.tabularFigures()],
+      );
+}
+
 class AppTheme {
   static ThemeData get lightTheme {
-    return ThemeData(
+    final baseTheme = ThemeData(
       useMaterial3: true,
       scaffoldBackgroundColor: AppColors.background,
       colorScheme: ColorScheme.fromSeed(
@@ -182,12 +229,16 @@ class AppTheme {
         secondary: AppColors.emerald,
         surface: AppColors.surface,
       ),
-      appBarTheme: const AppBarTheme(
+    );
+
+    return baseTheme.copyWith(
+      textTheme: GoogleFonts.plusJakartaSansTextTheme(baseTheme.textTheme),
+      appBarTheme: AppBarTheme(
         backgroundColor: AppColors.slate900,
         foregroundColor: Colors.white,
         elevation: 0,
         centerTitle: false,
-        titleTextStyle: TextStyle(
+        titleTextStyle: GoogleFonts.plusJakartaSans(
           fontSize: 18,
           fontWeight: FontWeight.w700,
           color: Colors.white,
@@ -203,7 +254,7 @@ class AppTheme {
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(14),
           ),
-          textStyle: const TextStyle(
+          textStyle: GoogleFonts.plusJakartaSans(
             fontSize: 15,
             fontWeight: FontWeight.w600,
             letterSpacing: 0.2,
