@@ -398,10 +398,10 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
             child: _buildHeroLeftContent(context, isMobile: false),
           ),
           const SizedBox(width: 48),
-          // Right 3D Moving Ambulance Vehicle
+          // Right Interactive Simulation Hero
           const Expanded(
             flex: 13,
-            child: MovingAmbulance3DHero(),
+            child: GreenCorridorSimulationHero(),
           ),
         ],
       ),
@@ -416,7 +416,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
         children: [
           _buildHeroLeftContent(context, isMobile: true),
           const SizedBox(height: 36),
-          const MovingAmbulance3DHero(),
+          const GreenCorridorSimulationHero(),
         ],
       ),
     );
@@ -1912,74 +1912,76 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
 }
 
 // ==========================================
-// 3D MOVING AMBULANCE FIGURE WITH LIVE STROBES & ROAD SPEEDLINES
+// INTERACTIVE GREEN CORRIDOR SIMULATION HERO
+// Explains the entire motive: Connects 2 destinations, turns path green,
+// alerts citizens with real-time push notification, citizens pull over,
+// traffic signals turn green automatically, and ambulance arrives with 0 delays.
 // ==========================================
-class MovingAmbulance3DHero extends StatefulWidget {
-  const MovingAmbulance3DHero({super.key});
+class GreenCorridorSimulationHero extends StatefulWidget {
+  const GreenCorridorSimulationHero({super.key});
 
   @override
-  State<MovingAmbulance3DHero> createState() => _MovingAmbulance3DHeroState();
+  State<GreenCorridorSimulationHero> createState() =>
+      _GreenCorridorSimulationHeroState();
 }
 
-class _MovingAmbulance3DHeroState extends State<MovingAmbulance3DHero>
+class _GreenCorridorSimulationHeroState
+    extends State<GreenCorridorSimulationHero>
     with TickerProviderStateMixin {
-  late final AnimationController _suspensionController;
-  late final AnimationController _roadController;
-  late final AnimationController _strobeController;
+  late final AnimationController _simController;
+  late final AnimationController _pulseController;
+  late final AnimationController _sirenController;
 
-  // Interactive 3D tilt tracking
-  double _tiltX = 0.0;
-  double _tiltY = 0.0;
+  bool _isPlaying = true;
 
   @override
   void initState() {
     super.initState();
 
-    // 1. Suspension / floating bobbing animation (sinusoidal)
-    _suspensionController = AnimationController(
+    // Main 11-second simulation loop covering all 4 core stages
+    _simController = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 2400),
-    )..repeat(reverse: true);
-
-    // 2. Road speed line flow (continuous forward velocity)
-    _roadController = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 1400),
+      duration: const Duration(milliseconds: 11000),
     )..repeat();
 
-    // 3. Emergency roof strobe lightbar (dual-phase high-speed emergency pulse)
-    _strobeController = AnimationController(
+    // Pulse animation for radar ripples and beacon halos
+    _pulseController = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 800),
+      duration: const Duration(milliseconds: 900),
+    )..repeat(reverse: true);
+
+    // High-speed dual-strobe siren animation
+    _sirenController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 400),
     )..repeat();
   }
 
   @override
   void dispose() {
-    _suspensionController.dispose();
-    _roadController.dispose();
-    _strobeController.dispose();
+    _simController.dispose();
+    _pulseController.dispose();
+    _sirenController.dispose();
     super.dispose();
   }
 
-  void _onPointerMove(PointerEvent details, BoxConstraints constraints) {
-    final centerX = constraints.maxWidth / 2;
-    final centerY = constraints.maxHeight / 2;
-
-    // Normalizing tilt between -0.15 and 0.15 radians
-    final dx = (details.localPosition.dx - centerX) / centerX;
-    final dy = (details.localPosition.dy - centerY) / centerY;
-
+  void _seekToPhase(double targetProgress) {
     setState(() {
-      _tiltY = dx * 0.14; // Y rotation on horizontal mouse movement
-      _tiltX = -dy * 0.10; // X rotation on vertical mouse movement
+      _simController.value = targetProgress;
+      if (!_isPlaying) {
+        _simController.stop();
+      }
     });
   }
 
-  void _onPointerExit(PointerEvent details) {
+  void _togglePlayPause() {
     setState(() {
-      _tiltX = 0.0;
-      _tiltY = 0.0;
+      _isPlaying = !_isPlaying;
+      if (_isPlaying) {
+        _simController.repeat();
+      } else {
+        _simController.stop();
+      }
     });
   }
 
@@ -1988,208 +1990,75 @@ class _MovingAmbulance3DHeroState extends State<MovingAmbulance3DHero>
     return LayoutBuilder(
       builder: (context, constraints) {
         final cardWidth = constraints.maxWidth;
-        final cardHeight = cardWidth * 0.95;
+        final cardHeight = math.min(cardWidth * 0.88, 520.0);
 
-        return MouseRegion(
-          onHover: (e) => _onPointerMove(e, constraints),
-          onExit: _onPointerExit,
-          child: Container(
-            width: cardWidth,
-            height: cardHeight,
-            constraints: const BoxConstraints(minHeight: 380, maxHeight: 520),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(28),
-              border: Border.all(
-                color: AppColors.slate200.withValues(alpha: 0.9),
-                width: 1.5,
+        return Container(
+          width: cardWidth,
+          height: cardHeight,
+          constraints: const BoxConstraints(minHeight: 460, maxHeight: 540),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(24),
+            border: Border.all(color: AppColors.slate200, width: 1.5),
+            boxShadow: [
+              BoxShadow(
+                color: AppColors.slate900.withValues(alpha: 0.05),
+                blurRadius: 28,
+                offset: const Offset(0, 12),
               ),
-              boxShadow: [
-                BoxShadow(
-                  color: AppColors.slate900.withValues(alpha: 0.06),
-                  blurRadius: 32,
-                  offset: const Offset(0, 16),
-                ),
-                BoxShadow(
-                  color: AppColors.emerald.withValues(alpha: 0.05),
-                  blurRadius: 40,
-                  offset: const Offset(0, 8),
-                ),
-              ],
-            ),
-            child: ClipRRect(
-              borderRadius: BorderRadius.circular(28),
-              child: Stack(
-                alignment: Alignment.center,
-                children: [
-                  // 1. Background Grid & Subtle Corridor Gradient
-                  Positioned.fill(
-                    child: Container(
-                      decoration: BoxDecoration(
-                        gradient: RadialGradient(
-                          center: const Alignment(0.0, -0.2),
-                          radius: 1.2,
-                          colors: [
-                            AppColors.emeraldLight.withValues(alpha: 0.35),
-                            Colors.white,
-                          ],
-                        ),
-                      ),
-                    ),
-                  ),
+              BoxShadow(
+                color: AppColors.emerald.withValues(alpha: 0.06),
+                blurRadius: 36,
+                offset: const Offset(0, 6),
+              ),
+            ],
+          ),
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(24),
+            child: AnimatedBuilder(
+              animation: Listenable.merge([
+                _simController,
+                _pulseController,
+                _sirenController,
+              ]),
+              builder: (context, child) {
+                final double t = _simController.value;
 
-                  // 2. Animated Moving Road Beneath the 3D Ambulance
-                  Positioned(
-                    bottom: 0,
-                    left: 0,
-                    right: 0,
-                    height: 160,
-                    child: AnimatedBuilder(
-                      animation: _roadController,
-                      builder: (context, child) {
-                        return CustomPaint(
-                          painter: _MovingCorridorRoadPainter(
-                            progress: _roadController.value,
-                          ),
-                        );
-                      },
-                    ),
-                  ),
+                return Column(
+                  children: [
+                    // Top Simulator Navigation & Step Bar
+                    _buildSimulatorHeader(t),
 
-                  // 3. Dynamic Vehicle Shadow (breathes with suspension)
-                  AnimatedBuilder(
-                    animation: _suspensionController,
-                    builder: (context, child) {
-                      final bob = math.sin(_suspensionController.value * math.pi);
-                      final shadowScale = 1.0 - (bob * 0.08);
-                      final shadowOpacity = 0.16 - (bob * 0.05);
-
-                      return Positioned(
-                        bottom: 70 - (bob * 2),
-                        child: Transform.scale(
-                          scaleX: shadowScale * 1.3,
-                          scaleY: shadowScale * 0.45,
-                          child: Container(
-                            width: 240,
-                            height: 60,
-                            decoration: BoxDecoration(
-                              shape: BoxShape.circle,
-                              boxShadow: [
-                                BoxShadow(
-                                  color: AppColors.slate900
-                                      .withValues(alpha: shadowOpacity),
-                                  blurRadius: 28,
-                                  spreadRadius: 8,
-                                ),
-                              ],
-                            ),
-                          ),
-                        ),
-                      );
-                    },
-                  ),
-
-                  // 4. The 3D Ambulance Figure with Interactive 3D Perspective Tilt & Suspension
-                  AnimatedBuilder(
-                    animation: Listenable.merge([
-                      _suspensionController,
-                      _strobeController,
-                    ]),
-                    builder: (context, child) {
-                      final bobOffset =
-                          math.sin(_suspensionController.value * math.pi) * 8.0;
-
-                      return Transform(
-                        alignment: Alignment.center,
-                        transform: Matrix4.identity()
-                          ..setEntry(3, 2, 0.001) // perspective
-                          ..rotateX(_tiltX)
-                          ..rotateY(_tiltY)
-                          ..translateByDouble(0.0, -bobOffset, 0.0, 1.0),
-                        child: Stack(
-                          alignment: Alignment.center,
-                          children: [
-                            // The 3D Render Asset with robust network & vector fallbacks
-                            Container(
-                              padding: const EdgeInsets.all(16),
-                              child: Image.asset(
-                                'assets/images/ambulance_3d.png',
-                                fit: BoxFit.contain,
-                                width: math.min(cardWidth * 0.84, 390),
-                                height: math.min(cardHeight * 0.80, 390),
-                                errorBuilder: (context, error, stackTrace) {
-                                  // Fallback to hosted web asset so live dev servers always display the 3D model
-                                  return Image.network(
-                                    'https://green-corridor-web.web.app/assets/assets/images/ambulance_3d.png',
-                                    fit: BoxFit.contain,
-                                    width: math.min(cardWidth * 0.84, 390),
-                                    height: math.min(cardHeight * 0.80, 390),
-                                    errorBuilder: (context, netError, netStackTrace) {
-                                      return _build3DFallbackAmbulanceGraphic(cardWidth, cardHeight);
-                                    },
-                                  );
-                                },
+                    // Main Interactive City Map Canvas with Corridor & Vehicles
+                    Expanded(
+                      child: Stack(
+                        children: [
+                          // Vector City Map & Glowing Corridor
+                          Positioned.fill(
+                            child: CustomPaint(
+                              painter: _CityMapSimulationPainter(
+                                progress: t,
+                                pulse: _pulseController.value,
                               ),
                             ),
-
-                            // Dual-Frequency Emergency Roof Strobe Glows
-                            _buildStrobeBeaconOverlay(),
-                          ],
-                        ),
-                      );
-                    },
-                  ),
-
-                  // 5. Floating Tactical Telemetry Chips Anchored around the 3D Ambulance
-                  _buildFloatingTelemetryHUD(),
-
-                  // 6. Interactive Hint Pill at Bottom Right
-                  Positioned(
-                    bottom: 12,
-                    right: 16,
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 10,
-                        vertical: 5,
-                      ),
-                      decoration: BoxDecoration(
-                        color: Colors.white.withValues(alpha: 0.9),
-                        borderRadius: BorderRadius.circular(10),
-                        border: Border.all(
-                          color: AppColors.slate200,
-                          width: 1,
-                        ),
-                        boxShadow: [
-                          BoxShadow(
-                            color: AppColors.slate900.withValues(alpha: 0.04),
-                            blurRadius: 6,
                           ),
-                        ],
-                      ),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          const Icon(
-                            Icons.view_in_ar_rounded,
-                            size: 14,
-                            color: AppColors.slate600,
-                          ),
-                          const SizedBox(width: 5),
-                          Text(
-                            '3D FIGURINE • HOVER TO TILT',
-                            style: GoogleFonts.plusJakartaSans(
-                              fontSize: 9,
-                              fontWeight: FontWeight.w800,
-                              color: AppColors.slate600,
-                              letterSpacing: 0.6,
-                            ),
+
+                          // Dynamic Interactive Overlays (Pins, Signals, Citizens, Ambulance)
+                          _buildMapOverlayElements(t, cardWidth, cardHeight - 120),
+
+                          // Live Motivation Banner at Bottom
+                          Positioned(
+                            left: 16,
+                            right: 16,
+                            bottom: 12,
+                            child: _buildMotiveNarrationBanner(t),
                           ),
                         ],
                       ),
                     ),
-                  ),
-                ],
-              ),
+                  ],
+                );
+              },
             ),
           ),
         );
@@ -2197,213 +2066,102 @@ class _MovingAmbulance3DHeroState extends State<MovingAmbulance3DHero>
     );
   }
 
-  // Dual-frequency emergency strobe overlay positioned on roof lightbar
-  Widget _buildStrobeBeaconOverlay() {
-    final v = _strobeController.value;
-    // Phase 1 (0.0 to 0.5): Red Flash; Phase 2 (0.5 to 1.0): Cyan Flash
-    final bool redActive = (v < 0.22) || (v > 0.30 && v < 0.44);
-    final bool cyanActive = (v > 0.50 && v < 0.72) || (v > 0.80 && v < 0.94);
+  // ==========================================
+  // SIMULATION HEADER: STEPS & CONTROLS
+  // ==========================================
+  Widget _buildSimulatorHeader(double t) {
+    final int currentStep = t < 0.18
+        ? 1
+        : t < 0.50
+            ? 2
+            : t < 0.82
+                ? 3
+                : 4;
 
-    return Positioned(
-      top: 54,
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          // Left Red Beacon Strobe
-          AnimatedOpacity(
-            opacity: redActive ? 0.95 : 0.05,
-            duration: const Duration(milliseconds: 70),
-            child: Container(
-              width: 38,
-              height: 38,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                gradient: RadialGradient(
-                  colors: [
-                    AppColors.primary,
-                    AppColors.primary.withValues(alpha: 0.0),
-                  ],
-                ),
-              ),
-            ),
-          ),
-          const SizedBox(width: 24),
-          // Right Cyan Beacon Strobe
-          AnimatedOpacity(
-            opacity: cyanActive ? 0.95 : 0.05,
-            duration: const Duration(milliseconds: 70),
-            child: Container(
-              width: 38,
-              height: 38,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                gradient: RadialGradient(
-                  colors: [
-                    const Color(0xFF06B6D4),
-                    const Color(0xFF06B6D4).withValues(alpha: 0.0),
-                  ],
-                ),
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  // Vector fallback graphic if image assets are still indexing
-  Widget _build3DFallbackAmbulanceGraphic(double cardWidth, double cardHeight) {
     return Container(
-      width: math.min(cardWidth * 0.72, 320),
-      height: 210,
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(24),
-        border: Border.all(color: AppColors.slate200, width: 2),
-        boxShadow: [
-          BoxShadow(
-            color: AppColors.emerald.withValues(alpha: 0.12),
-            blurRadius: 24,
-            offset: const Offset(0, 10),
-          ),
-        ],
+        color: AppColors.background,
+        border: const Border(bottom: BorderSide(color: AppColors.slate200)),
       ),
       child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          // Roof Emergency Siren Lightbar
-          Container(
-            width: 80,
-            height: 12,
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(6),
-              gradient: const LinearGradient(
-                colors: [AppColors.primary, Color(0xFF06B6D4)],
-              ),
-            ),
-          ),
-          const SizedBox(height: 14),
-          // Large Ambulance Emblem
-          Container(
-            padding: const EdgeInsets.all(18),
-            decoration: const BoxDecoration(
-              color: AppColors.emeraldLight,
-              shape: BoxShape.circle,
-            ),
-            child: const Icon(
-              Icons.airport_shuttle_rounded,
-              color: AppColors.emeraldDark,
-              size: 52,
-            ),
-          ),
-          const SizedBox(height: 12),
-          Text(
-            'AMBULANCE 911',
-            style: GoogleFonts.plusJakartaSans(
-              fontSize: 15,
-              fontWeight: FontWeight.w900,
-              color: AppColors.slate900,
-              letterSpacing: 1.2,
-            ),
-          ),
-          Text(
-            'FAST-TRACK EMERGENCY CORRIDOR',
-            style: GoogleFonts.plusJakartaSans(
-              fontSize: 10,
-              fontWeight: FontWeight.w800,
-              color: AppColors.emeraldDark,
-              letterSpacing: 0.8,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  // Tactical HUD telemetry cards floating around the vehicle
-  Widget _buildFloatingTelemetryHUD() {
-    return Positioned.fill(
-      child: Stack(
-        children: [
-          // Top-Left: Active Mission Unit Tag
-          Positioned(
-            top: 20,
-            left: 20,
-            child: _hudCard(
-              icon: Icons.emergency_rounded,
-              iconColor: AppColors.primary,
-              title: 'UNIT-911',
-              subtitle: 'PRIORITY 1 DISPATCH',
-              badge: 'EMERGENCY',
-              badgeColor: AppColors.primary,
-            ),
-          ),
-
-          // Top-Right: Green Wave Lock
-          Positioned(
-            top: 20,
-            right: 20,
-            child: _hudCard(
-              icon: Icons.check_circle_rounded,
-              iconColor: AppColors.emerald,
-              title: 'GREEN WAVE',
-              subtitle: '4 SIGNALS LOCKED',
-              badge: 'SYNC 100%',
-              badgeColor: AppColors.emerald,
-            ),
-          ),
-
-          // Bottom-Left: Live Speed & Telemetry
-          Positioned(
-            bottom: 24,
-            left: 20,
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-              decoration: BoxDecoration(
-                color: Colors.white.withValues(alpha: 0.94),
-                borderRadius: BorderRadius.circular(14),
-                border: Border.all(color: AppColors.slate200),
-                boxShadow: [
-                  BoxShadow(
-                    color: AppColors.slate900.withValues(alpha: 0.05),
-                    blurRadius: 12,
-                    offset: const Offset(0, 4),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Row(
+                children: [
+                  Container(
+                    width: 9,
+                    height: 9,
+                    decoration: const BoxDecoration(
+                      color: AppColors.emerald,
+                      shape: BoxShape.circle,
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  Text(
+                    'LIVE SATELLITE RADAR • HOW IT WORKS',
+                    style: GoogleFonts.plusJakartaSans(
+                      fontSize: 11,
+                      fontWeight: FontWeight.w800,
+                      color: AppColors.slate800,
+                      letterSpacing: 0.8,
+                    ),
                   ),
                 ],
               ),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  const Icon(
-                    Icons.speed_rounded,
-                    color: AppColors.slate800,
-                    size: 18,
+              InkWell(
+                onTap: _togglePlayPause,
+                borderRadius: BorderRadius.circular(8),
+                child: Container(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(color: AppColors.slate200),
                   ),
-                  const SizedBox(width: 8),
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
+                  child: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      Text(
-                        '78 KM/H',
-                        style: GoogleFonts.plusJakartaSans(
-                          fontSize: 13,
-                          fontWeight: FontWeight.w900,
-                          color: AppColors.slate900,
-                        ),
+                      Icon(
+                        _isPlaying
+                            ? Icons.pause_rounded
+                            : Icons.play_arrow_rounded,
+                        size: 14,
+                        color: AppColors.slate700,
                       ),
+                      const SizedBox(width: 4),
                       Text(
-                        'ETA: 03:42 MIN',
+                        _isPlaying ? 'Pause' : 'Play',
                         style: GoogleFonts.plusJakartaSans(
                           fontSize: 10,
                           fontWeight: FontWeight.w700,
-                          color: AppColors.emeraldDark,
+                          color: AppColors.slate700,
                         ),
                       ),
                     ],
                   ),
-                ],
+                ),
               ),
+            ],
+          ),
+          const SizedBox(height: 8),
+
+          // Clickable Step Chips
+          SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            child: Row(
+              children: [
+                _stepScrubberPill(1, '1. Route Lock', currentStep == 1, 0.05),
+                const SizedBox(width: 6),
+                _stepScrubberPill(2, '2. En Route', currentStep == 2, 0.28),
+                const SizedBox(width: 6),
+                _stepScrubberPill(3, '3. Citizen Alert', currentStep == 3, 0.58),
+                const SizedBox(width: 6),
+                _stepScrubberPill(4, '4. ER Handoff', currentStep == 4, 0.88),
+              ],
             ),
           ),
         ],
@@ -2411,24 +2169,569 @@ class _MovingAmbulance3DHeroState extends State<MovingAmbulance3DHero>
     );
   }
 
-  Widget _hudCard({
+  Widget _stepScrubberPill(
+      int index, String label, bool isActive, double seekPos) {
+    return InkWell(
+      onTap: () => _seekToPhase(seekPos),
+      borderRadius: BorderRadius.circular(8),
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 250),
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+        decoration: BoxDecoration(
+          color: isActive ? AppColors.emerald : Colors.white,
+          borderRadius: BorderRadius.circular(8),
+          border: Border.all(
+            color: isActive ? AppColors.emerald : AppColors.slate200,
+            width: 1,
+          ),
+        ),
+        child: Text(
+          label,
+          style: GoogleFonts.plusJakartaSans(
+            fontSize: 10,
+            fontWeight: FontWeight.w800,
+            color: isActive ? Colors.white : AppColors.slate600,
+          ),
+        ),
+      ),
+    );
+  }
+
+  // ==========================================
+  // DYNAMIC MAP OVERLAYS (AMBULANCE, CITIZENS, SIGNALS)
+  // ==========================================
+  Widget _buildMapOverlayElements(double t, double width, double height) {
+    // Coordinate Anchors
+    final startX = width * 0.12;
+    final startY = height * 0.72;
+    final corner1X = width * 0.40;
+    final corner1Y = height * 0.72;
+    final corner2X = width * 0.40;
+    final corner2Y = height * 0.28;
+    final endX = width * 0.86;
+    final endY = height * 0.28;
+
+    final seg1 = (corner1X - startX).abs();
+    final seg2 = (corner1Y - corner2Y).abs();
+    final seg3 = (endX - corner2X).abs();
+    final totalDist = seg1 + seg2 + seg3;
+
+    // Ambulance Trajectory Calculation
+    double ambX = startX;
+    double ambY = startY;
+    double ambAngle = 0.0;
+
+    if (t < 0.14) {
+      ambX = startX;
+      ambY = startY;
+      ambAngle = 0.0;
+    } else if (t >= 0.84) {
+      ambX = endX;
+      ambY = endY;
+      ambAngle = 0.0;
+    } else {
+      final subP = (t - 0.14) / 0.70; // 0.0 to 1.0 movement
+      final d = subP * totalDist;
+
+      if (d <= seg1) {
+        ambX = startX + d;
+        ambY = startY;
+        ambAngle = 0.0; // Heading east
+      } else if (d <= seg1 + seg2) {
+        ambX = corner1X;
+        ambY = startY - (d - seg1);
+        ambAngle = -math.pi / 2; // Heading north
+      } else {
+        ambX = corner2X + (d - seg1 - seg2);
+        ambY = corner2Y;
+        ambAngle = 0.0; // Heading east
+      }
+    }
+
+    // Citizen 1 (In path on Segment 1)
+    final cit1X = width * 0.28;
+    double cit1Y = startY;
+    bool cit1Alerted = (t >= 0.18 && t <= 0.42);
+    // Yields to bottom shoulder when ambulance approaches
+    if (t >= 0.22 && t < 0.34) {
+      cit1Y = startY + ((t - 0.22) / 0.12) * (height * 0.10);
+    } else if (t >= 0.34) {
+      cit1Y = startY + (height * 0.10); // Fully pulled over
+    }
+
+    // Signal 1 at Corner 1 (Preempts to GREEN at t >= 0.25)
+    final bool signal1Green = (t >= 0.25);
+
+    // Citizen 2 (In path on Segment 3)
+    final cit2X = width * 0.65;
+    double cit2Y = corner2Y;
+    bool cit2Alerted = (t >= 0.50 && t <= 0.76);
+    // Yields to top shoulder when ambulance approaches
+    if (t >= 0.54 && t < 0.66) {
+      cit2Y = corner2Y - ((t - 0.54) / 0.12) * (height * 0.10);
+    } else if (t >= 0.66) {
+      cit2Y = corner2Y - (height * 0.10); // Fully pulled over
+    }
+
+    // Signal 2 at Corner 2 (Preempts to GREEN at t >= 0.46)
+    final bool signal2Green = (t >= 0.46);
+
+    return Stack(
+      children: [
+        // 1. Origin Pin: Emergency Incident Location (Point A)
+        Positioned(
+          left: startX - 22,
+          top: startY - 48,
+          child: _buildMapPin(
+            icon: Icons.emergency_rounded,
+            color: AppColors.primary,
+            label: 'Incident Site',
+            subLabel: 'Point A • SOS Triggered',
+          ),
+        ),
+
+        // 2. Destination Pin: Apex Trauma ER (Point B)
+        Positioned(
+          left: endX - 22,
+          top: endY - 48,
+          child: _buildMapPin(
+            icon: Icons.local_hospital_rounded,
+            color: AppColors.emerald,
+            label: 'Apex Trauma ER',
+            subLabel: 'Point B • Ready',
+            isDestination: true,
+            isReached: t >= 0.84,
+          ),
+        ),
+
+        // 3. Traffic Signal 1 (Intersection 1)
+        Positioned(
+          left: corner1X - 16,
+          top: corner1Y - 40,
+          child: _buildTrafficSignal(signal1Green, 'Crossing 1'),
+        ),
+
+        // 4. Traffic Signal 2 (Intersection 2)
+        Positioned(
+          left: corner2X - 16,
+          top: corner2Y - 40,
+          child: _buildTrafficSignal(signal2Green, 'Crossing 2'),
+        ),
+
+        // 5. Citizen Commuter 1 with Live Push Notification Bubble
+        Positioned(
+          left: cit1X - 14,
+          top: cit1Y - 14,
+          child: _buildCitizenCar(
+            name: 'Aarav (Commuter)',
+            isPulledOver: t >= 0.34,
+            isAlerted: cit1Alerted,
+          ),
+        ),
+        if (cit1Alerted)
+          Positioned(
+            left: math.max(10.0, cit1X - 90),
+            top: cit1Y - 76,
+            child: _buildPushNotificationPopup(
+              title: '⚠️ AMBULANCE IN 300M',
+              message: 'Pull to left curb immediately!',
+              status: t >= 0.32 ? '✓ YIELDED' : 'MOVING...',
+            ),
+          ),
+
+        // 6. Citizen Commuter 2 with Live Push Notification Bubble
+        Positioned(
+          left: cit2X - 14,
+          top: cit2Y - 14,
+          child: _buildCitizenCar(
+            name: 'Priya (Commuter)',
+            isPulledOver: t >= 0.66,
+            isAlerted: cit2Alerted,
+          ),
+        ),
+        if (cit2Alerted)
+          Positioned(
+            left: math.max(10.0, cit2X - 95),
+            top: cit2Y + 24,
+            child: _buildPushNotificationPopup(
+              title: '⚠️ GREEN CORRIDOR ACTIVE',
+              message: 'Emergency vehicle behind. Yield right.',
+              status: t >= 0.64 ? '✓ YIELDED' : 'YIELDING...',
+            ),
+          ),
+
+        // 7. Moving Ambulance Vehicle with Siren Strobes & Radar Pulse
+        Positioned(
+          left: ambX - 20,
+          top: ambY - 20,
+          child: _buildMovingAmbulanceMarker(ambAngle, t >= 0.84),
+        ),
+
+        // 8. ER Arrival Success Badge
+        if (t >= 0.84)
+          Positioned(
+            right: 18,
+            top: 14,
+            child: _buildSuccessDeliveryBadge(),
+          ),
+      ],
+    );
+  }
+
+  // Map Location Marker Pin
+  Widget _buildMapPin({
     required IconData icon,
-    required Color iconColor,
-    required String title,
-    required String subtitle,
-    required String badge,
-    required Color badgeColor,
+    required Color color,
+    required String label,
+    required String subLabel,
+    bool isDestination = false,
+    bool isReached = false,
   }) {
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(8),
+            border: Border.all(color: color.withValues(alpha: 0.4)),
+            boxShadow: [
+              BoxShadow(
+                color: AppColors.slate900.withValues(alpha: 0.08),
+                blurRadius: 8,
+                offset: const Offset(0, 3),
+              ),
+            ],
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                label,
+                style: GoogleFonts.plusJakartaSans(
+                  fontSize: 10,
+                  fontWeight: FontWeight.w800,
+                  color: color,
+                ),
+              ),
+              Text(
+                subLabel,
+                style: GoogleFonts.plusJakartaSans(
+                  fontSize: 8,
+                  fontWeight: FontWeight.w600,
+                  color: AppColors.slate500,
+                ),
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(height: 3),
+        Container(
+          padding: const EdgeInsets.all(6),
+          decoration: BoxDecoration(
+            color: color,
+            shape: BoxShape.circle,
+            boxShadow: [
+              BoxShadow(
+                color: color.withValues(alpha: 0.4),
+                blurRadius: 10,
+                spreadRadius: isReached ? 4 : 1,
+              ),
+            ],
+          ),
+          child: Icon(icon, color: Colors.white, size: 14),
+        ),
+      ],
+    );
+  }
+
+  // Traffic Light Indicator
+  Widget _buildTrafficSignal(bool isGreen, String label) {
+    final activeColor = isGreen ? AppColors.emerald : AppColors.primary;
+
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
       decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.94),
-        borderRadius: BorderRadius.circular(14),
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(10),
         border: Border.all(color: AppColors.slate200),
         boxShadow: [
           BoxShadow(
-            color: AppColors.slate900.withValues(alpha: 0.05),
-            blurRadius: 12,
+            color: AppColors.slate900.withValues(alpha: 0.06),
+            blurRadius: 6,
+          ),
+        ],
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Container(
+            width: 12,
+            height: 12,
+            decoration: BoxDecoration(
+              color: activeColor,
+              shape: BoxShape.circle,
+              boxShadow: [
+                BoxShadow(
+                  color: activeColor.withValues(alpha: 0.6),
+                  blurRadius: 8,
+                  spreadRadius: 2,
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 3),
+          Text(
+            isGreen ? 'GREEN' : 'RED',
+            style: GoogleFonts.plusJakartaSans(
+              fontSize: 8,
+              fontWeight: FontWeight.w900,
+              color: activeColor,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // Citizen Commuter Vehicle Marker
+  Widget _buildCitizenCar({
+    required String name,
+    required bool isPulledOver,
+    required bool isAlerted,
+  }) {
+    final statusColor = isPulledOver ? AppColors.emerald : AppColors.slate700;
+
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        AnimatedContainer(
+          duration: const Duration(milliseconds: 300),
+          padding: const EdgeInsets.all(6),
+          decoration: BoxDecoration(
+            color: isAlerted
+                ? AppColors.primaryLight
+                : isPulledOver
+                    ? AppColors.emeraldLight
+                    : Colors.white,
+            shape: BoxShape.circle,
+            border: Border.all(
+              color: isAlerted
+                  ? AppColors.primary
+                  : isPulledOver
+                      ? AppColors.emerald
+                      : AppColors.slate300,
+              width: 1.5,
+            ),
+            boxShadow: [
+              BoxShadow(
+                color: (isAlerted ? AppColors.primary : AppColors.slate900)
+                    .withValues(alpha: 0.15),
+                blurRadius: 8,
+              ),
+            ],
+          ),
+          child: Icon(
+            Icons.directions_car_rounded,
+            color: isAlerted
+                ? AppColors.primary
+                : isPulledOver
+                    ? AppColors.emeraldDark
+                    : AppColors.slate700,
+            size: 16,
+          ),
+        ),
+        const SizedBox(height: 2),
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
+          decoration: BoxDecoration(
+            color: Colors.white.withValues(alpha: 0.9),
+            borderRadius: BorderRadius.circular(4),
+          ),
+          child: Text(
+            isPulledOver ? '✓ Yielded' : 'Commuter',
+            style: GoogleFonts.plusJakartaSans(
+              fontSize: 8,
+              fontWeight: FontWeight.w700,
+              color: statusColor,
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  // The Push Notification Alert Bubble
+  Widget _buildPushNotificationPopup({
+    required String title,
+    required String message,
+    required String status,
+  }) {
+    return Container(
+      width: 180,
+      padding: const EdgeInsets.all(8),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: AppColors.primary, width: 1.2),
+        boxShadow: [
+          BoxShadow(
+            color: AppColors.primary.withValues(alpha: 0.18),
+            blurRadius: 14,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Container(
+            padding: const EdgeInsets.all(4),
+            decoration: BoxDecoration(
+              color: AppColors.primaryLight,
+              borderRadius: BorderRadius.circular(6),
+            ),
+            child: const Icon(
+              Icons.notifications_active_rounded,
+              color: AppColors.primary,
+              size: 14,
+            ),
+          ),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Expanded(
+                      child: Text(
+                        title,
+                        style: GoogleFonts.plusJakartaSans(
+                          fontSize: 8.5,
+                          fontWeight: FontWeight.w900,
+                          color: AppColors.primaryDark,
+                        ),
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 4, vertical: 1),
+                      decoration: BoxDecoration(
+                        color: AppColors.emeraldLight,
+                        borderRadius: BorderRadius.circular(4),
+                      ),
+                      child: Text(
+                        status,
+                        style: GoogleFonts.plusJakartaSans(
+                          fontSize: 7,
+                          fontWeight: FontWeight.w800,
+                          color: AppColors.emeraldDark,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  message,
+                  style: GoogleFonts.plusJakartaSans(
+                    fontSize: 8,
+                    fontWeight: FontWeight.w600,
+                    color: AppColors.slate700,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // Moving Ambulance Vehicle Marker with Siren Flash
+  Widget _buildMovingAmbulanceMarker(double angle, bool hasArrived) {
+    final sirenPhase = _sirenController.value;
+    final bool redFlash = sirenPhase < 0.5;
+
+    return Transform.rotate(
+      angle: angle,
+      child: Stack(
+        alignment: Alignment.center,
+        children: [
+          // Geofence Radar Aura
+          Container(
+            width: 48,
+            height: 48,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: (redFlash ? AppColors.primary : AppColors.emerald)
+                  .withValues(alpha: 0.15),
+            ),
+          ),
+
+          // Ambulance Vehicle Body
+          Container(
+            width: 38,
+            height: 22,
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(6),
+              border: Border.all(color: AppColors.slate300, width: 1.2),
+              boxShadow: [
+                BoxShadow(
+                  color: AppColors.slate900.withValues(alpha: 0.18),
+                  blurRadius: 8,
+                  offset: const Offset(0, 3),
+                ),
+              ],
+            ),
+            child: Stack(
+              alignment: Alignment.center,
+              children: [
+                // Red Side Decals
+                Positioned(
+                  left: 2,
+                  right: 2,
+                  height: 3,
+                  child: Container(color: AppColors.primary),
+                ),
+                // Flashing Roof Siren Bar
+                Container(
+                  width: 14,
+                  height: 6,
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(3),
+                    gradient: LinearGradient(
+                      colors: redFlash
+                          ? [AppColors.primary, const Color(0xFF06B6D4)]
+                          : [const Color(0xFF06B6D4), AppColors.primary],
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // Success Delivery Toast
+  Widget _buildSuccessDeliveryBadge() {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+      decoration: BoxDecoration(
+        color: AppColors.emerald,
+        borderRadius: BorderRadius.circular(12),
+        boxShadow: [
+          BoxShadow(
+            color: AppColors.emerald.withValues(alpha: 0.4),
+            blurRadius: 16,
             offset: const Offset(0, 4),
           ),
         ],
@@ -2436,54 +2739,26 @@ class _MovingAmbulance3DHeroState extends State<MovingAmbulance3DHero>
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Container(
-            padding: const EdgeInsets.all(6),
-            decoration: BoxDecoration(
-              color: iconColor.withValues(alpha: 0.12),
-              shape: BoxShape.circle,
-            ),
-            child: Icon(icon, color: iconColor, size: 14),
-          ),
-          const SizedBox(width: 10),
+          const Icon(Icons.check_circle_rounded, color: Colors.white, size: 16),
+          const SizedBox(width: 8),
           Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             mainAxisSize: MainAxisSize.min,
             children: [
-              Row(
-                children: [
-                  Text(
-                    title,
-                    style: GoogleFonts.plusJakartaSans(
-                      fontSize: 12,
-                      fontWeight: FontWeight.w900,
-                      color: AppColors.slate900,
-                    ),
-                  ),
-                  const SizedBox(width: 6),
-                  Container(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 5, vertical: 1),
-                    decoration: BoxDecoration(
-                      color: badgeColor.withValues(alpha: 0.15),
-                      borderRadius: BorderRadius.circular(4),
-                    ),
-                    child: Text(
-                      badge,
-                      style: GoogleFonts.plusJakartaSans(
-                        fontSize: 8,
-                        fontWeight: FontWeight.w800,
-                        color: badgeColor,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
               Text(
-                subtitle,
+                'TRAUMA ER ADMISSION SUCCESS',
                 style: GoogleFonts.plusJakartaSans(
                   fontSize: 10,
+                  fontWeight: FontWeight.w900,
+                  color: Colors.white,
+                ),
+              ),
+              Text(
+                'Zero delays • 4.2 minutes preserved',
+                style: GoogleFonts.plusJakartaSans(
+                  fontSize: 8.5,
                   fontWeight: FontWeight.w600,
-                  color: AppColors.slate500,
+                  color: Colors.white.withValues(alpha: 0.9),
                 ),
               ),
             ],
@@ -2492,73 +2767,292 @@ class _MovingAmbulance3DHeroState extends State<MovingAmbulance3DHero>
       ),
     );
   }
+
+  // Explanatory Motive Ticker at Bottom
+  Widget _buildMotiveNarrationBanner(double t) {
+    String stepNumber = 'STEP 1';
+    String motiveTitle = 'Route Locked & Green Corridor Activated';
+    String motiveDesc =
+        'System interconnects Incident Location and Apex Hospital, creating a dedicated green fast-track.';
+    Color accentColor = AppColors.emerald;
+
+    if (t < 0.18) {
+      stepNumber = 'STEP 1: ROUTE LOCK';
+      motiveTitle = 'Origin & Hospital Connected on Map';
+      motiveDesc =
+          'Direct route calculated between emergency site and hospital trauma bay, illuminated as Active Green Corridor.';
+      accentColor = AppColors.emerald;
+    } else if (t < 0.50) {
+      stepNumber = 'STEP 2: CITIZEN PUSH ALERT';
+      motiveTitle = 'Proximity Warnings Sent to Drivers';
+      motiveDesc =
+          'Commuters in the path receive real-time siren notifications on their phones and pull over to clear the lane.';
+      accentColor = AppColors.primary;
+    } else if (t < 0.82) {
+      stepNumber = 'STEP 3: AUTOMATED GREEN WAVE';
+      motiveTitle = 'Traffic Signals Overridden Automatically';
+      motiveDesc =
+          'Intersections turn Green before arrival. Ambulance moves continuously without ever stopping at red lights.';
+      accentColor = AppColors.emeraldDark;
+    } else {
+      stepNumber = 'STEP 4: GOLDEN HOUR SAVED';
+      motiveTitle = 'Zero-Delay Trauma Bay Intake';
+      motiveDesc =
+          'Patient arrives safely inside the critical golden hour with surgery team prepped and zero transit friction.';
+      accentColor = AppColors.emerald;
+    }
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+      decoration: BoxDecoration(
+        color: Colors.white.withValues(alpha: 0.96),
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: accentColor.withValues(alpha: 0.3)),
+        boxShadow: [
+          BoxShadow(
+            color: AppColors.slate900.withValues(alpha: 0.05),
+            blurRadius: 10,
+            offset: const Offset(0, 3),
+          ),
+        ],
+      ),
+      child: Row(
+        children: [
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+            decoration: BoxDecoration(
+              color: accentColor.withValues(alpha: 0.14),
+              borderRadius: BorderRadius.circular(6),
+            ),
+            child: Text(
+              stepNumber,
+              style: GoogleFonts.plusJakartaSans(
+                fontSize: 9,
+                fontWeight: FontWeight.w900,
+                color: accentColor,
+              ),
+            ),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  motiveTitle,
+                  style: GoogleFonts.plusJakartaSans(
+                    fontSize: 11,
+                    fontWeight: FontWeight.w800,
+                    color: AppColors.slate900,
+                  ),
+                ),
+                Text(
+                  motiveDesc,
+                  style: GoogleFonts.plusJakartaSans(
+                    fontSize: 9.5,
+                    color: AppColors.slate600,
+                  ),
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
 }
 
-// Custom Painter for animated moving green corridor road markings
-class _MovingCorridorRoadPainter extends CustomPainter {
+// Custom Painter for stylized city map grid and dynamic glowing green corridor
+class _CityMapSimulationPainter extends CustomPainter {
   final double progress;
+  final double pulse;
 
-  _MovingCorridorRoadPainter({required this.progress});
+  _CityMapSimulationPainter({
+    required this.progress,
+    required this.pulse,
+  });
 
   @override
   void paint(Canvas canvas, Size size) {
-    // 1. Perspective Road Trapezoid
-    final roadPaint = Paint()
-      ..color = AppColors.slate100.withValues(alpha: 0.7)
+    final w = size.width;
+    final h = size.height;
+
+    // 1. Subtle City Street Blocks Grid
+    final blockPaint = Paint()
+      ..color = AppColors.slate100.withValues(alpha: 0.8)
       ..style = PaintingStyle.fill;
 
-    final roadPath = Path()
-      ..moveTo(size.width * 0.15, size.height)
-      ..lineTo(size.width * 0.85, size.height)
-      ..lineTo(size.width * 0.70, 0)
-      ..lineTo(size.width * 0.30, 0)
-      ..close();
+    // Background building blocks
+    canvas.drawRRect(
+      RRect.fromRectAndRadius(
+        Rect.fromLTWH(w * 0.08, h * 0.10, w * 0.26, h * 0.52),
+        const Radius.circular(12),
+      ),
+      blockPaint,
+    );
+    canvas.drawRRect(
+      RRect.fromRectAndRadius(
+        Rect.fromLTWH(w * 0.46, h * 0.38, w * 0.36, h * 0.46),
+        const Radius.circular(12),
+      ),
+      blockPaint,
+    );
+    canvas.drawRRect(
+      RRect.fromRectAndRadius(
+        Rect.fromLTWH(w * 0.46, h * 0.08, w * 0.36, h * 0.14),
+        const Radius.circular(12),
+      ),
+      blockPaint,
+    );
 
-    canvas.drawPath(roadPath, roadPaint);
-
-    // 2. Green Corridor Outer Glowing Borders
-    final borderPaint = Paint()
-      ..color = AppColors.emerald.withValues(alpha: 0.4)
-      ..strokeWidth = 2.0
+    // 2. Base Road Asphalt Network
+    final roadPaint = Paint()
+      ..color = AppColors.slate200.withValues(alpha: 0.9)
+      ..strokeWidth = 24.0
+      ..strokeCap = StrokeCap.round
+      ..strokeJoin = StrokeJoin.round
       ..style = PaintingStyle.stroke;
 
-    canvas.drawLine(
-      Offset(size.width * 0.15, size.height),
-      Offset(size.width * 0.30, 0),
-      borderPaint,
-    );
-    canvas.drawLine(
-      Offset(size.width * 0.85, size.height),
-      Offset(size.width * 0.70, 0),
-      borderPaint,
-    );
+    final startX = w * 0.12;
+    final startY = h * 0.72;
+    final corner1X = w * 0.40;
+    final corner1Y = h * 0.72;
+    final corner2X = w * 0.40;
+    final corner2Y = h * 0.28;
+    final endX = w * 0.86;
+    final endY = h * 0.28;
 
-    // 3. Moving Corridor Dashed Speed Lines (drawn with progress offset)
-    final stripePaint = Paint()
-      ..color = AppColors.emerald.withValues(alpha: 0.75)
-      ..strokeWidth = 3.5
-      ..strokeCap = StrokeCap.round;
+    final roadPath = Path()
+      ..moveTo(startX, startY)
+      ..lineTo(corner1X, corner1Y)
+      ..lineTo(corner2X, corner2Y)
+      ..lineTo(endX, endY);
 
-    const int stripeCount = 6;
-    for (int i = 0; i < stripeCount; i++) {
-      final double normalized = ((i / stripeCount) + progress) % 1.0;
-      // Linear perspective scale from horizon (0) to bottom (1)
-      final double y = normalized * size.height;
-      final double stripeLen = 10.0 + (normalized * 22.0);
+    // Draw gray asphalt path
+    canvas.drawPath(roadPath, roadPaint);
 
-      // Centered along path
-      final double x = size.width * 0.50;
+    // 3. Active Green Corridor (Lights up into glowing emerald)
+    final bool corridorActive = (progress >= 0.06);
 
-      canvas.drawLine(
-        Offset(x, y),
-        Offset(x, math.min(size.height, y + stripeLen)),
-        stripePaint,
+    if (corridorActive) {
+      // Outer Radiant Emerald Glow
+      final glowPaint = Paint()
+        ..color = AppColors.emerald.withValues(alpha: 0.22 + (pulse * 0.10))
+        ..strokeWidth = 32.0 + (pulse * 6.0)
+        ..strokeCap = StrokeCap.round
+        ..strokeJoin = StrokeJoin.round
+        ..style = PaintingStyle.stroke
+        ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 12);
+
+      canvas.drawPath(roadPath, glowPaint);
+
+      // Core Vibrant Green Corridor Line
+      final corridorPaint = Paint()
+        ..color = AppColors.emerald
+        ..strokeWidth = 10.0
+        ..strokeCap = StrokeCap.round
+        ..strokeJoin = StrokeJoin.round
+        ..style = PaintingStyle.stroke;
+
+      canvas.drawPath(roadPath, corridorPaint);
+
+      // Animated White/Green Speed Dashes
+      final dashPaint = Paint()
+        ..color = Colors.white.withValues(alpha: 0.85)
+        ..strokeWidth = 2.5
+        ..strokeCap = StrokeCap.round;
+
+      // Draw dashed lane markings along Segment 1
+      _drawDashedLine(
+        canvas,
+        Offset(startX, startY),
+        Offset(corner1X, corner1Y),
+        dashPaint,
+        dashLen: 8,
+        spaceLen: 8,
+      );
+      // Segment 2
+      _drawDashedLine(
+        canvas,
+        Offset(corner1X, corner1Y),
+        Offset(corner2X, corner2Y),
+        dashPaint,
+        dashLen: 8,
+        spaceLen: 8,
+      );
+      // Segment 3
+      _drawDashedLine(
+        canvas,
+        Offset(corner2X, corner2Y),
+        Offset(endX, endY),
+        dashPaint,
+        dashLen: 8,
+        spaceLen: 8,
+      );
+    } else {
+      // Initial dashed route calculation before corridor activates
+      final connectingPaint = Paint()
+        ..color = AppColors.slate400
+        ..strokeWidth = 3.0
+        ..style = PaintingStyle.stroke;
+
+      _drawDashedLine(
+        canvas,
+        Offset(startX, startY),
+        Offset(corner1X, corner1Y),
+        connectingPaint,
+        dashLen: 6,
+        spaceLen: 6,
+      );
+      _drawDashedLine(
+        canvas,
+        Offset(corner1X, corner1Y),
+        Offset(corner2X, corner2Y),
+        connectingPaint,
+        dashLen: 6,
+        spaceLen: 6,
+      );
+      _drawDashedLine(
+        canvas,
+        Offset(corner2X, corner2Y),
+        Offset(endX, endY),
+        connectingPaint,
+        dashLen: 6,
+        spaceLen: 6,
       );
     }
   }
 
+  void _drawDashedLine(
+    Canvas canvas,
+    Offset p1,
+    Offset p2,
+    Paint paint, {
+    double dashLen = 8,
+    double spaceLen = 8,
+  }) {
+    final double dx = p2.dx - p1.dx;
+    final double dy = p2.dy - p1.dy;
+    final double dist = math.sqrt(dx * dx + dy * dy);
+    final double unitX = dx / dist;
+    final double unitY = dy / dist;
+
+    double currentDist = 0.0;
+    while (currentDist < dist) {
+      final double endDist = math.min(dist, currentDist + dashLen);
+      canvas.drawLine(
+        Offset(p1.dx + unitX * currentDist, p1.dy + unitY * currentDist),
+        Offset(p1.dx + unitX * endDist, p1.dy + unitY * endDist),
+        paint,
+      );
+      currentDist += dashLen + spaceLen;
+    }
+  }
+
   @override
-  bool shouldRepaint(_MovingCorridorRoadPainter oldDelegate) {
-    return oldDelegate.progress != progress;
+  bool shouldRepaint(_CityMapSimulationPainter oldDelegate) {
+    return oldDelegate.progress != progress || oldDelegate.pulse != pulse;
   }
 }
