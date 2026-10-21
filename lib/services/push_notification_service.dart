@@ -12,8 +12,8 @@ import 'citizen_alert_service.dart';
 final FlutterLocalNotificationsPlugin _localNotifications = FlutterLocalNotificationsPlugin();
 
 const AndroidNotificationChannel _emergencyChannel = AndroidNotificationChannel(
-  'emergency_corridor_channel_v2',
-  '🚨 Emergency Green Corridor Alerts',
+  'emergency_corridor_siren_v3',
+  '🚨 Emergency Green Corridor Siren',
   description: 'Urgent sirens when an emergency medical transport approaches your road.',
   importance: Importance.max,
   playSound: true,
@@ -83,8 +83,8 @@ Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
   // 3. Always display high-priority heads-up notification with custom siren sound
   if (!kIsWeb) {
     const androidDetails = AndroidNotificationDetails(
-      'emergency_corridor_channel_v2',
-      '🚨 Emergency Green Corridor Alerts',
+      'emergency_corridor_siren_v3',
+      '🚨 Emergency Green Corridor Siren',
       channelDescription: 'Urgent sirens when an emergency medical transport approaches your road.',
       importance: Importance.max,
       priority: Priority.high,
@@ -198,8 +198,8 @@ class PushNotificationService {
           message.notification!.body,
           const NotificationDetails(
             android: AndroidNotificationDetails(
-              'emergency_corridor_channel_v2',
-              '🚨 Emergency Green Corridor Alerts',
+              'emergency_corridor_siren_v3',
+              '🚨 Emergency Green Corridor Siren',
               importance: Importance.max,
               priority: Priority.high,
               sound: RawResourceAndroidNotificationSound('emergency_siren'),

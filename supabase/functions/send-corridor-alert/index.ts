@@ -94,9 +94,10 @@ serve(async (req) => {
           android: {
             priority: "HIGH",
             notification: {
-              sound: "default",
-              default_sound: true,
-              default_vibrate_timings: true,
+              channel_id: "emergency_corridor_siren_v3",
+              sound: "emergency_siren",
+              default_sound: false,
+              default_vibrate_timings: false,
               notification_priority: "PRIORITY_MAX",
               visibility: "PUBLIC",
             },
@@ -141,9 +142,10 @@ serve(async (req) => {
         android: {
           priority: "HIGH",
           notification: {
-            sound: "default",
-            default_sound: true,
-            default_vibrate_timings: true,
+            channel_id: "emergency_corridor_siren_v3",
+            sound: "emergency_siren",
+            default_sound: false,
+            default_vibrate_timings: false,
             notification_priority: "PRIORITY_MAX",
             visibility: "PUBLIC",
           },
@@ -190,9 +192,10 @@ serve(async (req) => {
             android: {
               priority: "HIGH",
               notification: {
-                sound: "default",
-                default_sound: true,
-                default_vibrate_timings: true,
+                channel_id: "emergency_corridor_siren_v3",
+                sound: "emergency_siren",
+                default_sound: false,
+                default_vibrate_timings: false,
                 notification_priority: "PRIORITY_MAX",
                 visibility: "PUBLIC",
               },
