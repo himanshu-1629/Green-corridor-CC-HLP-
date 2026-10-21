@@ -31,7 +31,12 @@ Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
 
   debugPrint("Handling background push notification: ${message.messageId}");
 
+
   final data = message.data;
+  final String? eventType = data['event_type'];
+  final String? sound = data['sound'];
+  final bool isDriverStart = eventType == 'driver_started' || sound == 'emergency_siren';
+
   final String? routeStr = data['route_points'];
   final String plate = data['vehicle_number'] ?? data['ambulance_code'] ?? data['plate_number'] ?? 'Emergency Unit';
   final String dest = data['destination'] ?? 'Hospital';
@@ -62,55 +67,71 @@ Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
 
   // 2. Check distance to route
   bool isOnRoute = false;
-  String notificationTitle = "🚨 EMERGENCY GREEN CORRIDOR ACTIVE!";
-  String notificationBody = "Ambulance $plate is transporting $patient to $dest. Clear the left lane!";
+  String notificationTitle;
+  String notificationBody;
 
-  if (currentPos != null && routePoints.isNotEmpty) {
-    final distToRoute = _calculateDistanceToRoute(
-      LatLng(currentPos.latitude, currentPos.longitude),
-      routePoints,
-    );
-    if (distToRoute <= 400.0) {
-      isOnRoute = true;
-      notificationTitle = "🚨 EMERGENCY CORRIDOR ON YOUR ROAD!";
-      notificationBody = "Ambulance $plate is approaching towards $dest. Safely pull over to the left lane immediately!";
-    } else if (distToRoute < 5000.0) {
-      final km = (distToRoute / 1000).toStringAsFixed(1);
-      notificationBody = "Ambulance $plate en route to $dest ($km km from your area). Stay alert.";
+  if (isDriverStart) {
+    notificationTitle = "🚨 EMERGENCY GREEN CORRIDOR IN MOTION!";
+    notificationBody = "Ambulance $plate has departed transporting $patient and is en route to $dest! Clear the left lane immediately!";
+
+    if (currentPos != null && routePoints.isNotEmpty) {
+      final distToRoute = _calculateDistanceToRoute(
+        LatLng(currentPos.latitude, currentPos.longitude),
+        routePoints,
+      );
+      if (distToRoute <= 400.0) {
+        isOnRoute = true;
+        notificationTitle = "🚨 EMERGENCY CORRIDOR ON YOUR ROAD!";
+        notificationBody = "Ambulance $plate is approaching towards $dest. Safely pull over to the left lane immediately!";
+      } else if (distToRoute < 5000.0) {
+        final km = (distToRoute / 1000).toStringAsFixed(1);
+        notificationBody = "Ambulance $plate en route to $dest ($km km from your area). Stay alert.";
+      }
     }
+  } else {
+    // Scheduled corridor advisory from hospital
+    notificationTitle = message.notification?.title ?? "🚑 Green Corridor Scheduled";
+    notificationBody = message.notification?.body ?? "Ambulance $plate is scheduled for urgent transfer to $dest. Stand by for siren alerts when convoy departs.";
   }
 
-  // 3. Always display high-priority heads-up notification with custom siren sound
+  // 3. Heads-up notification & siren playback
   if (!kIsWeb) {
-    const androidDetails = AndroidNotificationDetails(
-      'emergency_corridor_siren_v3',
-      '🚨 Emergency Green Corridor Siren',
-      channelDescription: 'Urgent sirens when an emergency medical transport approaches your road.',
-      importance: Importance.max,
-      priority: Priority.high,
-      ticker: 'Green Corridor Alert',
-      fullScreenIntent: true,
-      category: AndroidNotificationCategory.alarm,
-      visibility: NotificationVisibility.public,
-      sound: RawResourceAndroidNotificationSound('emergency_siren'),
-      playSound: true,
-      enableVibration: true,
-    );
+    // Only show manual local notification if FCM didn't already display a notification block
+    if (message.notification == null) {
+      final androidDetails = AndroidNotificationDetails(
+        isDriverStart ? 'emergency_corridor_siren_v3' : 'default',
+        isDriverStart ? '🚨 Emergency Green Corridor Siren' : 'Green Corridor Updates',
+        channelDescription: isDriverStart
+            ? 'Urgent sirens when an emergency medical transport approaches your road.'
+            : 'Advisories and updates for scheduled green corridors.',
+        importance: Importance.max,
+        priority: Priority.high,
+        ticker: 'Green Corridor Alert',
+        fullScreenIntent: isDriverStart,
+        category: isDriverStart ? AndroidNotificationCategory.alarm : AndroidNotificationCategory.status,
+        visibility: NotificationVisibility.public,
+        sound: isDriverStart ? const RawResourceAndroidNotificationSound('emergency_siren') : null,
+        playSound: true,
+        enableVibration: true,
+      );
 
-    const notificationDetails = NotificationDetails(android: androidDetails);
+      final notificationDetails = NotificationDetails(android: androidDetails);
 
-    await _localNotifications.show(
-      DateTime.now().millisecond,
-      notificationTitle,
-      notificationBody,
-      notificationDetails,
-      payload: 'corridor_alert',
-    );
+      await _localNotifications.show(
+        DateTime.now().millisecond,
+        notificationTitle,
+        notificationBody,
+        notificationDetails,
+        payload: 'corridor_alert',
+      );
+    }
 
-    // Also trigger audio player siren directly in the isolate
-    try {
-      CitizenAlertService.triggerProximityAlert(isCritical: isOnRoute);
-    } catch (_) {}
+    // Trigger siren sound ONLY when driver has started convoy!
+    if (isDriverStart) {
+      try {
+        CitizenAlertService.triggerProximityAlert(isCritical: isOnRoute);
+      } catch (_) {}
+    }
   }
 }
 
@@ -188,21 +209,28 @@ class PushNotificationService {
     FirebaseMessaging.onMessage.listen((RemoteMessage message) {
       debugPrint("Foreground message received: ${message.notification?.title}");
 
-      // Trigger siren sound immediately
-      CitizenAlertService.triggerProximityAlert(isCritical: true);
+      final data = message.data;
+      final eventType = data['event_type'];
+      final sound = data['sound'];
+      final isDriverStart = eventType == 'driver_started' || sound == 'emergency_siren';
+
+      // Trigger siren sound immediately ONLY when driver has started convoy!
+      if (isDriverStart) {
+        CitizenAlertService.triggerProximityAlert(isCritical: true);
+      }
 
       if (!kIsWeb && message.notification != null) {
         _localNotifications.show(
           DateTime.now().millisecond,
           message.notification!.title,
           message.notification!.body,
-          const NotificationDetails(
+          NotificationDetails(
             android: AndroidNotificationDetails(
-              'emergency_corridor_siren_v3',
-              '🚨 Emergency Green Corridor Siren',
+              isDriverStart ? 'emergency_corridor_siren_v3' : 'default',
+              isDriverStart ? '🚨 Emergency Green Corridor Siren' : 'Green Corridor Updates',
               importance: Importance.max,
               priority: Priority.high,
-              sound: RawResourceAndroidNotificationSound('emergency_siren'),
+              sound: isDriverStart ? const RawResourceAndroidNotificationSound('emergency_siren') : null,
               playSound: true,
               enableVibration: true,
             ),
@@ -260,6 +288,7 @@ class PushNotificationService {
     String? ambulancePlate,
     String? driverId,
     List<LatLng>? routePoints,
+    String eventType = 'driver_started',
   }) async {
     try {
       final List<List<double>> routeJson = routePoints != null
@@ -276,12 +305,13 @@ class PushNotificationService {
           'ambulance_plate': ambulancePlate ?? 'Emergency Unit',
           'driver_id': driverId,
           'route_points': routeJson,
+          'event_type': eventType,
         },
       );
-      debugPrint("send-corridor-alert response: ${res.data}");
+      debugPrint("send-corridor-alert ($eventType) response: ${res.data}");
       return res.status == 200;
     } catch (e) {
-      debugPrint("Error broadcasting corridor alert via Supabase function: $e");
+      debugPrint("Error broadcasting corridor alert ($eventType): $e");
       return false;
     }
   }

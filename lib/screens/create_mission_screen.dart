@@ -199,7 +199,7 @@ class _CreateMissionScreenState extends State<CreateMissionScreen> {
 
       final missionId = insertedList.isNotEmpty ? insertedList[0]['id']?.toString() ?? '' : '';
 
-      // Broadcast emergency alert via FCM (reaches phones even with app closed)
+      // Broadcast corridor scheduled alert via FCM (notifies driver of assignment and citizens of upcoming convoy)
       PushNotificationService.broadcastMissionAlert(
         missionId: missionId,
         destination: destinationController.text,
@@ -207,6 +207,7 @@ class _CreateMissionScreenState extends State<CreateMissionScreen> {
         ambulancePlate: plate,
         driverId: selectedDriverId,
         routePoints: routePoints,
+        eventType: 'mission_created',
       );
 
       if (!mounted) return;

@@ -593,6 +593,26 @@ class _DriverDashboardState extends State<DriverDashboard> {
             .update({'status': 'In Transit'})
             .eq('id', mission!['id']);
 
+        // BROADCAST EMERGENCY SIREN ALERT TO ALL CITIZENS (DRIVER IN TRANSIT)
+        final ambPlate = ambulanceData?['vehicle_number'] ??
+            ambulanceData?['ambulance_code'] ??
+            ambulanceData?['plate_number'] ??
+            'Emergency Unit';
+        final destName = destinationHospital?['name'] ??
+            mission?['destination'] ??
+            'Hospital';
+        final organName = mission?['patient_name'] ?? 'Emergency Patient';
+
+        PushNotificationService.broadcastMissionAlert(
+          missionId: mission!['id'].toString(),
+          destination: destName,
+          organOrPatient: organName,
+          ambulancePlate: ambPlate,
+          driverId: mission!['driver_id']?.toString(),
+          routePoints: routePoints,
+          eventType: 'driver_started',
+        );
+
         if (mounted) {
           setState(() {
             mission!['status'] = 'In Transit';
@@ -603,7 +623,7 @@ class _DriverDashboardState extends State<DriverDashboard> {
             const SnackBar(
               backgroundColor: AppColors.emerald,
               behavior: SnackBarBehavior.floating,
-              content: Text("Emergency corridor active! Full-screen navigation engaged."),
+              content: Text("Emergency corridor active! Convoy started & siren broadcast sent."),
             ),
           );
         }

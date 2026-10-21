@@ -21,6 +21,7 @@ serve(async (req) => {
       ambulance_plate,
       driver_id,
       route_points,
+      event_type, // 'mission_created' or 'driver_started'
     } = await req.json();
 
     const saRaw = Deno.env.get("FIREBASE_SERVICE_ACCOUNT");
@@ -61,6 +62,7 @@ serve(async (req) => {
     const targetPlate = ambulance_plate || "Emergency Unit";
     const targetDest = destination || "Apex Trauma Center";
     const targetOrgan = organ || patient_name || "Emergency Patient";
+    const isDriverStart = event_type === "driver_started";
 
     const supabase = createClient(
       Deno.env.get("SUPABASE_URL")!,
@@ -77,37 +79,50 @@ serve(async (req) => {
     (deviceRes.data || []).forEach((d: any) => d.token && tokenSet.add(d.token));
     (usersRes.data || []).forEach((u: any) => u.fcm_token && tokenSet.add(u.fcm_token));
 
-    console.log(`Found ${tokenSet.size} active device tokens to alert directly.`);
+    console.log(`Event [${event_type || 'default'}]: Found ${tokenSet.size} active device tokens.`);
 
-    // 3. Send high-priority direct push notification to EVERY device token
-    // Standard Android notification ensures instant heads-up banner even when app is closed!
+    // 3. Configure titles and sounds based on whether corridor is created or driver started
+    const citizenTitle = isDriverStart
+      ? "🚨 EMERGENCY GREEN CORRIDOR IN MOTION!"
+      : "🚑 Green Corridor Scheduled";
+
+    const citizenBody = isDriverStart
+      ? `Ambulance ${targetPlate} has departed and is actively en route to ${targetDest}! Clear the left lane immediately!`
+      : `Ambulance ${targetPlate} is scheduled for urgent transfer to ${targetDest}. Stand by for siren alerts when convoy departs.`;
+
+    const channelId = isDriverStart ? "emergency_corridor_siren_v3" : "default";
+    const soundName = isDriverStart ? "emergency_siren" : "default";
+    const useDefaultSound = !isDriverStart;
+
     const sendPromises: Promise<any>[] = [];
 
+    // Send direct notifications to all registered citizen devices
     for (const token of tokenSet) {
       const directMessage = {
         message: {
           token: token,
           notification: {
-            title: "🚨 EMERGENCY GREEN CORRIDOR ACTIVE",
-            body: `Ambulance ${targetPlate} is approaching towards ${targetDest}. Please clear the left lane immediately!`,
+            title: citizenTitle,
+            body: citizenBody,
           },
           android: {
             priority: "HIGH",
             notification: {
-              channel_id: "emergency_corridor_siren_v3",
-              sound: "emergency_siren",
-              default_sound: false,
-              default_vibrate_timings: false,
+              channel_id: channelId,
+              sound: soundName,
+              default_sound: useDefaultSound,
+              default_vibrate_timings: useDefaultSound,
               notification_priority: "PRIORITY_MAX",
               visibility: "PUBLIC",
             },
           },
           data: {
             click_action: "FLUTTER_NOTIFICATION_CLICK",
-            sound: "emergency_siren",
+            sound: isDriverStart ? "emergency_siren" : "default",
             vehicle_number: targetPlate,
             destination: targetDest,
             mission_id: String(mission_id || ""),
+            event_type: String(event_type || ""),
             route_points: JSON.stringify(route_points || []),
           },
         },
@@ -136,26 +151,27 @@ serve(async (req) => {
       message: {
         topic: "emergency_corridor",
         notification: {
-          title: "🚨 EMERGENCY GREEN CORRIDOR ACTIVE",
-          body: `Ambulance ${targetPlate} en route to ${targetDest}. Please clear the left lane immediately!`,
+          title: citizenTitle,
+          body: citizenBody,
         },
         android: {
           priority: "HIGH",
           notification: {
-            channel_id: "emergency_corridor_siren_v3",
-            sound: "emergency_siren",
-            default_sound: false,
-            default_vibrate_timings: false,
+            channel_id: channelId,
+            sound: soundName,
+            default_sound: useDefaultSound,
+            default_vibrate_timings: useDefaultSound,
             notification_priority: "PRIORITY_MAX",
             visibility: "PUBLIC",
           },
         },
         data: {
           click_action: "FLUTTER_NOTIFICATION_CLICK",
-          sound: "emergency_siren",
+          sound: isDriverStart ? "emergency_siren" : "default",
           vehicle_number: targetPlate,
           destination: targetDest,
           mission_id: String(mission_id || ""),
+          event_type: String(event_type || ""),
           route_points: JSON.stringify(route_points || []),
         },
       },
@@ -172,9 +188,10 @@ serve(async (req) => {
       }).then(r => r.json()).catch(e => ({ error: String(e) }))
     );
 
-    // 5. If driver_id is specified, send targeted driver alert
+    // 5. If driver_id is specified and mission was just created by hospital:
+    // Send targeted dispatch assignment alert to the assigned driver
     let driverResult = null;
-    if (driver_id) {
+    if (driver_id && !isDriverStart) {
       const { data: driverUser } = await supabase
         .from("users")
         .select("fcm_token, name")
@@ -186,16 +203,15 @@ serve(async (req) => {
           message: {
             token: driverUser.fcm_token,
             notification: {
-              title: "🚨 NEW MISSION DISPATCHED",
-              body: `Mission: ${targetOrgan} transfer to ${targetDest}. Open navigation HUD now.`,
+              title: "🚨 NEW MISSION ASSIGNED - DRIVER DISPATCH",
+              body: `Mission: ${targetOrgan} transfer to ${targetDest}. Open navigation HUD to start convoy.`,
             },
             android: {
               priority: "HIGH",
               notification: {
-                channel_id: "emergency_corridor_siren_v3",
-                sound: "emergency_siren",
-                default_sound: false,
-                default_vibrate_timings: false,
+                sound: "default",
+                default_sound: true,
+                default_vibrate_timings: true,
                 notification_priority: "PRIORITY_MAX",
                 visibility: "PUBLIC",
               },
@@ -203,7 +219,8 @@ serve(async (req) => {
             data: {
               click_action: "FLUTTER_NOTIFICATION_CLICK",
               mission_id: String(mission_id || ""),
-              sound: "emergency_siren",
+              sound: "default",
+              event_type: "driver_assigned",
             },
           },
         };
@@ -225,6 +242,7 @@ serve(async (req) => {
     return new Response(
       JSON.stringify({
         success: true,
+        eventType: event_type || "default",
         alertedTokensCount: tokenSet.size,
         directDeliveries: directResults,
         driverNotification: driverResult,
