@@ -7,6 +7,7 @@ import 'package:url_launcher/url_launcher.dart';
 import 'dart:async';
 import 'dart:convert';
 import 'package:google_fonts/google_fonts.dart';
+import '../services/citizen_alert_service.dart';
 import '../services/push_notification_service.dart';
 import '../theme/app_theme.dart';
 import '../widgets/organ_viability_hud.dart';
@@ -1076,6 +1077,61 @@ class _DriverDashboardState extends State<DriverDashboard> {
                             SizedBox(width: 4),
                             Text(
                               "MAPS",
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontSize: 11,
+                                fontWeight: FontWeight.w800,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+
+                  // Siren Audio Blast Button
+                  Tooltip(
+                    message: "Sound Emergency Siren",
+                    child: InkWell(
+                      onTap: () {
+                        CitizenAlertService.testSiren();
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            duration: const Duration(seconds: 2),
+                            behavior: SnackBarBehavior.floating,
+                            backgroundColor: AppColors.primary,
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                            content: const Text(
+                              "🚨 Sounding Emergency Siren...",
+                              style: TextStyle(fontWeight: FontWeight.w700),
+                            ),
+                          ),
+                        );
+                      },
+                      borderRadius: BorderRadius.circular(12),
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                        decoration: BoxDecoration(
+                          gradient: const LinearGradient(
+                            colors: [Color(0xFFE11D48), Color(0xFFBE123C)],
+                          ),
+                          borderRadius: BorderRadius.circular(12),
+                          boxShadow: [
+                            BoxShadow(
+                              color: const Color(0xFFE11D48).withValues(alpha: 0.4),
+                              blurRadius: 8,
+                              offset: const Offset(0, 2),
+                            ),
+                          ],
+                        ),
+                        child: const Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(Icons.campaign_rounded, color: Colors.white, size: 16),
+                            SizedBox(width: 4),
+                            Text(
+                              "SIREN",
                               style: TextStyle(
                                 color: Colors.white,
                                 fontSize: 11,

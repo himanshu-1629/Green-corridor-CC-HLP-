@@ -29,4 +29,16 @@ class CitizenAlertService {
       }
     }
   }
+
+  /// Direct manual trigger to test the siren audio immediately
+  static void testSiren() {
+    try {
+      HapticFeedback.heavyImpact();
+      SystemSound.play(SystemSoundType.alert);
+    } catch (_) {}
+
+    if (kIsWeb) {
+      triggerWebSiren();
+    }
+  }
 }

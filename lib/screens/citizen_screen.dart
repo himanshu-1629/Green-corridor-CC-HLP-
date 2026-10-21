@@ -547,6 +547,45 @@ class _CitizenScreenState extends State<CitizenScreen> with SingleTickerProvider
           ],
         ),
         actions: [
+          // Direct Test Siren Button
+          Container(
+            margin: const EdgeInsets.symmetric(vertical: 8),
+            decoration: BoxDecoration(
+              color: const Color(0xFFFEF2F2),
+              borderRadius: BorderRadius.circular(10),
+              border: Border.all(
+                color: AppColors.primary.withValues(alpha: 0.3),
+              ),
+            ),
+            child: TextButton.icon(
+              style: TextButton.styleFrom(
+                foregroundColor: AppColors.primary,
+                padding: const EdgeInsets.symmetric(horizontal: 10),
+              ),
+              icon: const Icon(Icons.campaign_rounded, size: 18),
+              label: const Text(
+                "Test Siren",
+                style: TextStyle(fontSize: 12, fontWeight: FontWeight.w800),
+              ),
+              onPressed: () {
+                CitizenAlertService.testSiren();
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    duration: const Duration(seconds: 2),
+                    behavior: SnackBarBehavior.floating,
+                    backgroundColor: AppColors.primary,
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                    content: const Text(
+                      "🚨 Playing Dual-Tone Emergency Siren Waveform...",
+                      style: TextStyle(fontWeight: FontWeight.w700),
+                    ),
+                  ),
+                );
+              },
+            ),
+          ),
+          const SizedBox(width: 8),
+
           // Audio Siren Mute Toggle
           Container(
             margin: const EdgeInsets.symmetric(vertical: 8),
@@ -667,6 +706,36 @@ class _CitizenScreenState extends State<CitizenScreen> with SingleTickerProvider
                         color: AppColors.primary,
                         title: "Listen for Emergency Sirens",
                         subtitle: "Green Corridor ambulances emit dual-tone sirens and strobe light signals.",
+                        trailing: ElevatedButton.icon(
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: const Color(0xFFFEF2F2),
+                            foregroundColor: AppColors.primary,
+                            elevation: 0,
+                            side: BorderSide(color: AppColors.primary.withValues(alpha: 0.3)),
+                            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                          ),
+                          onPressed: () {
+                            CitizenAlertService.testSiren();
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                duration: const Duration(seconds: 2),
+                                behavior: SnackBarBehavior.floating,
+                                backgroundColor: AppColors.primary,
+                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                                content: const Text(
+                                  "🚨 Playing Dual-Tone Emergency Siren Waveform...",
+                                  style: TextStyle(fontWeight: FontWeight.w700),
+                                ),
+                              ),
+                            );
+                          },
+                          icon: const Icon(Icons.volume_up_rounded, size: 14),
+                          label: const Text(
+                            "Play Siren",
+                            style: TextStyle(fontSize: 11, fontWeight: FontWeight.w800),
+                          ),
+                        ),
                       ),
                       const SizedBox(height: 10),
                       _guidelineTile(
@@ -1286,6 +1355,7 @@ class _CitizenScreenState extends State<CitizenScreen> with SingleTickerProvider
     required Color color,
     required String title,
     required String subtitle,
+    Widget? trailing,
   }) {
     return Container(
       padding: const EdgeInsets.all(16),
@@ -1321,6 +1391,10 @@ class _CitizenScreenState extends State<CitizenScreen> with SingleTickerProvider
               ],
             ),
           ),
+          if (trailing != null) ...[
+            const SizedBox(width: 10),
+            trailing,
+          ],
         ],
       ),
     );

@@ -4,6 +4,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
+import '../services/citizen_alert_service.dart';
 import '../services/organ_viability_service.dart';
 import '../theme/app_theme.dart';
 import '../widgets/digital_handover_dialog.dart';
@@ -863,14 +864,45 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
             ],
           ),
           if (isMobile) const SizedBox(height: 16),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.end,
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            crossAxisAlignment: WrapCrossAlignment.center,
             children: [
               _buildSignalStateBadge('Signal 14A', 'CLEAR', AppColors.emerald),
-              const SizedBox(width: 8),
               _buildSignalStateBadge('Signal 14B', 'CLEAR', AppColors.emerald),
-              const SizedBox(width: 8),
               _buildSignalStateBadge('Signal 15A', 'SYNCING', AppColors.amber),
+              const SizedBox(width: 4),
+              ElevatedButton.icon(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFFFEF2F2),
+                  foregroundColor: AppColors.primary,
+                  elevation: 0,
+                  side: BorderSide(color: AppColors.primary.withValues(alpha: 0.3)),
+                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                ),
+                onPressed: () {
+                  CitizenAlertService.testSiren();
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      duration: const Duration(seconds: 2),
+                      behavior: SnackBarBehavior.floating,
+                      backgroundColor: AppColors.primary,
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                      content: const Text(
+                        "🚨 Playing Dual-Tone Emergency Siren Waveform...",
+                        style: TextStyle(fontWeight: FontWeight.w700),
+                      ),
+                    ),
+                  );
+                },
+                icon: const Icon(Icons.campaign_rounded, size: 16),
+                label: const Text(
+                  "Test Siren",
+                  style: TextStyle(fontSize: 12, fontWeight: FontWeight.w800),
+                ),
+              ),
             ],
           ),
         ],
