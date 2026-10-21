@@ -5,6 +5,7 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:google_fonts/google_fonts.dart';
 import '../services/organ_viability_service.dart';
+import '../services/push_notification_service.dart';
 import '../theme/app_theme.dart';
 
 class CreateMissionScreen extends StatefulWidget {
@@ -172,7 +173,7 @@ class _CreateMissionScreenState extends State<CreateMissionScreen> {
             .eq('id', selectedAmbulanceId!);
       }
 
-      await Supabase.instance.client.from('missions').insert({
+      final insertedList = await Supabase.instance.client.from('missions').insert({
         'patient_name': selectedOrgan ?? selectedMissionType ?? 'Mission',
         'pickup_location': hospitalName,
         'destination': destinationController.text,
@@ -184,7 +185,29 @@ class _CreateMissionScreenState extends State<CreateMissionScreen> {
         'hospital_id': user?.id,
         'driver_id': selectedDriverId,
         'status': selectedDriverId == null ? 'Pending' : 'Assigned',
-      });
+      }).select();
+
+      // Find ambulance plate
+      String? plate;
+      if (selectedAmbulanceId != null) {
+        final amb = ambulances.firstWhere(
+          (a) => a['id'] == selectedAmbulanceId,
+          orElse: () => {},
+        );
+        plate = amb['vehicle_number'] ?? amb['plate_number'];
+      }
+
+      final missionId = insertedList.isNotEmpty ? insertedList[0]['id']?.toString() ?? '' : '';
+
+      // Broadcast emergency alert via FCM (reaches phones even with app closed)
+      PushNotificationService.broadcastMissionAlert(
+        missionId: missionId,
+        destination: destinationController.text,
+        organOrPatient: selectedOrgan ?? selectedMissionType ?? 'Emergency Patient',
+        ambulancePlate: plate,
+        driverId: selectedDriverId,
+        routePoints: routePoints,
+      );
 
       if (!mounted) return;
 

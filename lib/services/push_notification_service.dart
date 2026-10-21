@@ -7,15 +7,17 @@ import 'package:geolocator/geolocator.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../firebase_options.dart';
+import 'citizen_alert_service.dart';
 
 final FlutterLocalNotificationsPlugin _localNotifications = FlutterLocalNotificationsPlugin();
 
 const AndroidNotificationChannel _emergencyChannel = AndroidNotificationChannel(
-  'emergency_corridor_channel',
+  'emergency_corridor_channel_v2',
   '🚨 Emergency Green Corridor Alerts',
   description: 'Urgent sirens when an emergency medical transport approaches your road.',
   importance: Importance.max,
   playSound: true,
+  sound: RawResourceAndroidNotificationSound('emergency_siren'),
   enableVibration: true,
   enableLights: true,
 );
@@ -33,6 +35,7 @@ Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
   final String? routeStr = data['route_points'];
   final String plate = data['vehicle_number'] ?? data['ambulance_code'] ?? data['plate_number'] ?? 'Emergency Unit';
   final String dest = data['destination'] ?? 'Hospital';
+  final String patient = data['patient_name'] ?? data['organ'] ?? 'Emergency Patient';
 
   List<LatLng> routePoints = [];
   if (routeStr != null) {
@@ -44,40 +47,43 @@ Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
     }
   }
 
-  // 1. Silently acquire current phone GPS location
+  // 1. Silently acquire current phone GPS location if available
   Position? currentPos;
   try {
     currentPos = await Geolocator.getCurrentPosition(
       locationSettings: const LocationSettings(
         accuracy: LocationAccuracy.bestForNavigation,
-        timeLimit: Duration(seconds: 4),
+        timeLimit: Duration(seconds: 3),
       ),
     );
   } catch (e) {
-    debugPrint("Background GPS check error: $e");
+    debugPrint("Background GPS check note: $e");
   }
 
-  // 2. Check if the user is physically on the corridor path
-  bool isInCorridorPath = false;
+  // 2. Check distance to route
+  bool isOnRoute = false;
+  String notificationTitle = "🚨 EMERGENCY GREEN CORRIDOR ACTIVE!";
+  String notificationBody = "Ambulance $plate is transporting $patient to $dest. Clear the left lane!";
+
   if (currentPos != null && routePoints.isNotEmpty) {
     final distToRoute = _calculateDistanceToRoute(
       LatLng(currentPos.latitude, currentPos.longitude),
       routePoints,
     );
-    // User must be within 250m lateral distance of the route
-    if (distToRoute <= 250.0) {
-      isInCorridorPath = true;
+    if (distToRoute <= 400.0) {
+      isOnRoute = true;
+      notificationTitle = "🚨 EMERGENCY CORRIDOR ON YOUR ROAD!";
+      notificationBody = "Ambulance $plate is approaching towards $dest. Safely pull over to the left lane immediately!";
+    } else if (distToRoute < 5000.0) {
+      final km = (distToRoute / 1000).toStringAsFixed(1);
+      notificationBody = "Ambulance $plate en route to $dest ($km km from your area). Stay alert.";
     }
-  } else if (routePoints.isEmpty) {
-    // If no route coordinates provided in payload, default to showing the alert
-    isInCorridorPath = true;
   }
 
-  // 3. If in path, trigger loud heads-up emergency notification!
-  // If NOT in path, drop silently so people far away are not disturbed.
-  if (isInCorridorPath && !kIsWeb) {
+  // 3. Always display high-priority heads-up notification with custom siren sound
+  if (!kIsWeb) {
     const androidDetails = AndroidNotificationDetails(
-      'emergency_corridor_channel',
+      'emergency_corridor_channel_v2',
       '🚨 Emergency Green Corridor Alerts',
       channelDescription: 'Urgent sirens when an emergency medical transport approaches your road.',
       importance: Importance.max,
@@ -86,19 +92,25 @@ Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
       fullScreenIntent: true,
       category: AndroidNotificationCategory.alarm,
       visibility: NotificationVisibility.public,
+      sound: RawResourceAndroidNotificationSound('emergency_siren'),
+      playSound: true,
+      enableVibration: true,
     );
 
     const notificationDetails = NotificationDetails(android: androidDetails);
 
     await _localNotifications.show(
       DateTime.now().millisecond,
-      "🚨 EMERGENCY CORRIDOR ON YOUR ROAD!",
-      "Ambulance $plate is approaching towards $dest. Safely pull over to the left lane immediately!",
+      notificationTitle,
+      notificationBody,
       notificationDetails,
       payload: 'corridor_alert',
     );
-  } else {
-    debugPrint("User is OFF-PATH (${currentPos?.latitude}, ${currentPos?.longitude}). Background push ignored.");
+
+    // Also trigger audio player siren directly in the isolate
+    try {
+      CitizenAlertService.triggerProximityAlert(isCritical: isOnRoute);
+    } catch (_) {}
   }
 }
 
@@ -145,21 +157,40 @@ class PushNotificationService {
         sound: true,
       );
       debugPrint("User notification permission status: ${settings.authorizationStatus}");
+
+      await FirebaseMessaging.instance.setForegroundNotificationPresentationOptions(
+        alert: true,
+        badge: true,
+        sound: true,
+      );
     } catch (e) {
       debugPrint("Notification permission request error: $e");
     }
 
-    // 5. Retrieve and save FCM Token
+    // 5. CRITICAL: Automatically subscribe this device to 'emergency_corridor' topic
+    // This guarantees that notifications reach the phone even if app is closed and user isn't logged in!
+    try {
+      await FirebaseMessaging.instance.subscribeToTopic('emergency_corridor');
+      debugPrint("✅ Subscribed to FCM topic: emergency_corridor");
+    } catch (e) {
+      debugPrint("Notice: could not subscribe to topic: $e");
+    }
+
+    // 6. Retrieve and save FCM Token for targeted driver alerts
     await refreshAndSaveToken();
 
-    // 6. Listen for token refresh
+    // 7. Listen for token refresh
     FirebaseMessaging.instance.onTokenRefresh.listen((newToken) {
       saveTokenToSupabase(newToken);
     });
 
-    // 7. Foreground message listener
+    // 8. Foreground message listener
     FirebaseMessaging.onMessage.listen((RemoteMessage message) {
       debugPrint("Foreground message received: ${message.notification?.title}");
+
+      // Trigger siren sound immediately
+      CitizenAlertService.triggerProximityAlert(isCritical: true);
+
       if (!kIsWeb && message.notification != null) {
         _localNotifications.show(
           DateTime.now().millisecond,
@@ -167,10 +198,13 @@ class PushNotificationService {
           message.notification!.body,
           const NotificationDetails(
             android: AndroidNotificationDetails(
-              'emergency_corridor_channel',
+              'emergency_corridor_channel_v2',
               '🚨 Emergency Green Corridor Alerts',
               importance: Importance.max,
               priority: Priority.high,
+              sound: RawResourceAndroidNotificationSound('emergency_siren'),
+              playSound: true,
+              enableVibration: true,
             ),
           ),
         );
@@ -200,8 +234,41 @@ class PushNotificationService {
       }).eq('id', user.id);
       debugPrint("FCM token successfully registered in Supabase users table.");
     } catch (e) {
-      // Graceful catch if the column 'fcm_token' has not yet been added in Supabase
       debugPrint("Notice: could not update 'fcm_token' in users table: $e");
+    }
+  }
+
+  /// Broadcast emergency corridor alert via Supabase Edge Function
+  static Future<bool> broadcastMissionAlert({
+    required String missionId,
+    required String destination,
+    required String organOrPatient,
+    String? ambulancePlate,
+    String? driverId,
+    List<LatLng>? routePoints,
+  }) async {
+    try {
+      final List<List<double>> routeJson = routePoints != null
+          ? routePoints.map((p) => [p.latitude, p.longitude]).toList()
+          : [];
+
+      final res = await Supabase.instance.client.functions.invoke(
+        'send-corridor-alert',
+        body: {
+          'mission_id': missionId,
+          'patient_name': organOrPatient,
+          'organ': organOrPatient,
+          'destination': destination,
+          'ambulance_plate': ambulancePlate ?? 'Emergency Unit',
+          'driver_id': driverId,
+          'route_points': routeJson,
+        },
+      );
+      debugPrint("send-corridor-alert response: ${res.data}");
+      return res.status == 200;
+    } catch (e) {
+      debugPrint("Error broadcasting corridor alert via Supabase function: $e");
+      return false;
     }
   }
 }
