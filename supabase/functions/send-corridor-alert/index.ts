@@ -62,7 +62,75 @@ serve(async (req) => {
     const targetDest = destination || "Apex Trauma Center";
     const targetOrgan = organ || patient_name || "Emergency Patient";
 
-    // 2. Broadcast High-Priority Corridor Siren Alert to 'emergency_corridor' topic (All Citizens)
+    const supabase = createClient(
+      Deno.env.get("SUPABASE_URL")!,
+      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
+    );
+
+    // 2. Collect ALL direct device tokens from device_tokens & users
+    const [deviceRes, usersRes] = await Promise.all([
+      supabase.from("device_tokens").select("token"),
+      supabase.from("users").select("fcm_token").not("fcm_token", "is", null),
+    ]);
+
+    const tokenSet = new Set<string>();
+    (deviceRes.data || []).forEach((d: any) => d.token && tokenSet.add(d.token));
+    (usersRes.data || []).forEach((u: any) => u.fcm_token && tokenSet.add(u.fcm_token));
+
+    console.log(`Found ${tokenSet.size} active device tokens to alert directly.`);
+
+    // 3. Send high-priority direct push notification to EVERY device token
+    // Standard Android notification ensures instant heads-up banner even when app is closed!
+    const sendPromises: Promise<any>[] = [];
+
+    for (const token of tokenSet) {
+      const directMessage = {
+        message: {
+          token: token,
+          notification: {
+            title: "🚨 EMERGENCY GREEN CORRIDOR ACTIVE",
+            body: `Ambulance ${targetPlate} is approaching towards ${targetDest}. Please clear the left lane immediately!`,
+          },
+          android: {
+            priority: "HIGH",
+            notification: {
+              sound: "default",
+              default_sound: true,
+              default_vibrate_timings: true,
+              notification_priority: "PRIORITY_MAX",
+              visibility: "PUBLIC",
+            },
+          },
+          data: {
+            click_action: "FLUTTER_NOTIFICATION_CLICK",
+            sound: "emergency_siren",
+            vehicle_number: targetPlate,
+            destination: targetDest,
+            mission_id: String(mission_id || ""),
+            route_points: JSON.stringify(route_points || []),
+          },
+        },
+      };
+
+      sendPromises.push(
+        fetch(fcmUrl, {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(directMessage),
+        }).then(async (r) => {
+          const body = await r.json();
+          if (!r.ok) {
+            console.warn(`Failed token ${token.slice(0, 15)}...:`, body);
+          }
+          return { status: r.status, body };
+        }).catch((e) => ({ error: String(e) }))
+      );
+    }
+
+    // 4. Also broadcast to topic 'emergency_corridor' as a distributed backup
     const topicMessage = {
       message: {
         topic: "emergency_corridor",
@@ -73,10 +141,10 @@ serve(async (req) => {
         android: {
           priority: "HIGH",
           notification: {
-            channel_id: "emergency_corridor_channel_v2",
-            sound: "emergency_siren",
-            default_sound: false,
+            sound: "default",
+            default_sound: true,
             default_vibrate_timings: true,
+            notification_priority: "PRIORITY_MAX",
             visibility: "PUBLIC",
           },
         },
@@ -91,24 +159,20 @@ serve(async (req) => {
       },
     };
 
-    const topicRes = await fetch(fcmUrl, {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${accessToken}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(topicMessage),
-    });
-    const topicResult = await topicRes.json();
+    sendPromises.push(
+      fetch(fcmUrl, {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(topicMessage),
+      }).then(r => r.json()).catch(e => ({ error: String(e) }))
+    );
 
-    // 3. If driver_id is specified, also send a targeted push to the driver's device
+    // 5. If driver_id is specified, send targeted driver alert
     let driverResult = null;
     if (driver_id) {
-      const supabase = createClient(
-        Deno.env.get("SUPABASE_URL")!,
-        Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
-      );
-
       const { data: driverUser } = await supabase
         .from("users")
         .select("fcm_token, name")
@@ -126,10 +190,10 @@ serve(async (req) => {
             android: {
               priority: "HIGH",
               notification: {
-                channel_id: "emergency_corridor_channel_v2",
-                sound: "emergency_siren",
-                default_sound: false,
+                sound: "default",
+                default_sound: true,
                 default_vibrate_timings: true,
+                notification_priority: "PRIORITY_MAX",
                 visibility: "PUBLIC",
               },
             },
@@ -153,10 +217,13 @@ serve(async (req) => {
       }
     }
 
+    const directResults = await Promise.all(sendPromises);
+
     return new Response(
       JSON.stringify({
         success: true,
-        topicBroadcast: topicResult,
+        alertedTokensCount: tokenSet.size,
+        directDeliveries: directResults,
         driverNotification: driverResult,
       }),
       {

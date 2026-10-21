@@ -225,16 +225,30 @@ class PushNotificationService {
   }
 
   static Future<void> saveTokenToSupabase(String token) async {
-    final user = Supabase.instance.client.auth.currentUser;
-    if (user == null) return;
-
+    // 1. Always register token in device_tokens table (works for guest citizens and logged-in users alike)
     try {
-      await Supabase.instance.client.from('users').update({
-        'fcm_token': token,
-      }).eq('id', user.id);
-      debugPrint("FCM token successfully registered in Supabase users table.");
+      final user = Supabase.instance.client.auth.currentUser;
+      await Supabase.instance.client.from('device_tokens').upsert({
+        'token': token,
+        'user_id': user?.id,
+        'updated_at': DateTime.now().toIso8601String(),
+      });
+      debugPrint("Device token successfully registered in Supabase device_tokens table.");
     } catch (e) {
-      debugPrint("Notice: could not update 'fcm_token' in users table: $e");
+      debugPrint("Notice: could not upsert to device_tokens: $e");
+    }
+
+    // 2. If user is logged in, also update their record in users table
+    final user = Supabase.instance.client.auth.currentUser;
+    if (user != null) {
+      try {
+        await Supabase.instance.client.from('users').update({
+          'fcm_token': token,
+        }).eq('id', user.id);
+        debugPrint("FCM token successfully registered in Supabase users table.");
+      } catch (e) {
+        debugPrint("Notice: could not update 'fcm_token' in users table: $e");
+      }
     }
   }
 
