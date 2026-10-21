@@ -6,6 +6,8 @@ import 'package:http/http.dart' as http;
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../theme/app_theme.dart';
+import '../widgets/organ_viability_hud.dart';
+import '../widgets/digital_handover_dialog.dart';
 
 class MissionDetailsScreen extends StatefulWidget {
   final Map<String, dynamic>? mission;
@@ -401,9 +403,60 @@ class _MissionDetailsScreenState extends State<MissionDetailsScreen> {
     return "${(diff / 60).round()}m ago";
   }
 
+  void _showDigitalHandoverModal() {
+    final missionToComplete = currentMission ?? widget.mission;
+    if (missionToComplete == null) return;
+
+    showDialog(
+      context: context,
+      builder: (_) => DigitalHandoverDialog(
+        mission: missionToComplete,
+        destinationHospital: destinationHospital,
+        ambulanceData: ambulanceData,
+        driverData: driverData,
+        onConfirmHandover: ({
+          required String surgeonName,
+          required String otRoom,
+          required String notes,
+        }) async {
+          final missionId = missionToComplete['id'];
+          await Supabase.instance.client
+              .from('missions')
+              .update({'status': 'Completed'})
+              .eq('id', missionId);
+
+          trackingTimer?.cancel();
+
+          if (mounted) {
+            setState(() {
+              if (currentMission != null) {
+                currentMission!['status'] = 'Completed';
+              }
+            });
+            await _loadAllMissionData(refreshRoute: false);
+          }
+        },
+      ),
+    );
+  }
+
   Future<void> _completeMission() async {
     if (currentMission == null && widget.mission == null) return;
     final missionToComplete = currentMission ?? widget.mission!;
+
+    final type = (missionToComplete['patient_name'] ?? '').toString().toLowerCase();
+    final isOrgan = type.contains('heart') ||
+        type.contains('liver') ||
+        type.contains('kidney') ||
+        type.contains('lung') ||
+        type.contains('pancrea') ||
+        type.contains('organ');
+
+    // If it's an organ transport, launch the official digital handover protocol directly
+    if (isOrgan) {
+      _showDigitalHandoverModal();
+      return;
+    }
 
     final currentUserId = Supabase.instance.client.auth.currentUser?.id;
     final isIncoming = missionToComplete['destination_hospital_id'] == currentUserId;
@@ -726,6 +779,14 @@ class _MissionDetailsScreenState extends State<MissionDetailsScreen> {
                         ),
                       ],
                     ),
+                  ),
+                  const SizedBox(height: 24),
+
+                  // Real-Time Cold Ischemia Time (CIT) & Graft Viability Telemetry HUD
+                  OrganViabilityHUD(
+                    organType: type,
+                    harvestOrStartTime: DateTime.tryParse(currentMission?['created_at']?.toString() ?? '') ?? DateTime.now(),
+                    onInitiateHandover: (!isCompleted) ? _showDigitalHandoverModal : null,
                   ),
                   const SizedBox(height: 24),
 

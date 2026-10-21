@@ -9,6 +9,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../services/citizen_alert_service.dart';
 import '../theme/app_theme.dart';
+import '../widgets/organ_viability_hud.dart';
 import 'login_screen.dart';
 
 class CitizenScreen extends StatefulWidget {
@@ -1175,7 +1176,7 @@ class _CitizenScreenState extends State<CitizenScreen> with SingleTickerProvider
   }
 
   Widget _buildActiveAmbulanceCard() {
-    final organ = _activeMission?['organ_type'] ?? "Critical Medical Transport";
+    final organ = _activeMission?['patient_name'] ?? _activeMission?['organ_type'] ?? "Critical Medical Transport";
     final destName = _destinationHospital?['name'] ?? _activeMission?['destination'] ?? "Emergency Facility";
     final sourceName = _sourceHospital?['name'] ?? _activeMission?['source'] ?? "Dispatch Hospital";
 
@@ -1196,7 +1197,7 @@ class _CitizenScreenState extends State<CitizenScreen> with SingleTickerProvider
                 ),
                 child: Row(
                   children: [
-                    const Icon(Icons.local_hospital_rounded, size: 14, color: AppColors.primary),
+                    const Icon(Icons.favorite_rounded, size: 14, color: AppColors.primary),
                     const SizedBox(width: 6),
                     Text(
                       organ.toUpperCase(),
@@ -1223,8 +1224,16 @@ class _CitizenScreenState extends State<CitizenScreen> with SingleTickerProvider
           ),
           const SizedBox(height: 6),
           Text(
-            "Vehicle: ${activeAmbulancePlate()} • Medical convoy approaching along your street.",
+            "Vehicle: ${activeAmbulancePlate()} • Medical emergency convoy approaching along your street.",
             style: const TextStyle(fontSize: 13, color: AppColors.slate600),
+          ),
+          const SizedBox(height: 14),
+
+          // Real-time Cold Ischemia Telemetry for Approaching Medical Transport
+          OrganViabilityHUD(
+            organType: organ,
+            harvestOrStartTime: DateTime.tryParse(_activeMission?['created_at']?.toString() ?? '') ?? DateTime.now(),
+            isCompact: true,
           ),
         ],
       ),

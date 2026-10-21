@@ -4,7 +4,10 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
+import '../services/organ_viability_service.dart';
 import '../theme/app_theme.dart';
+import '../widgets/digital_handover_dialog.dart';
+import '../widgets/organ_viability_hud.dart';
 import 'citizen_screen.dart';
 import 'login_screen.dart';
 import 'register_screen.dart';
@@ -63,6 +66,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
   Set<Polyline> _landingMapPolylines = {};
   GoogleMapController? _landingMapController;
   LatLng _landingMapCenter = const LatLng(28.5672, 77.2100);
+  String _selectedShowcaseOrgan = 'Heart';
 
   @override
   void initState() {
@@ -297,6 +301,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                   key: _statsKey,
                   child: _buildTelemetryStatsSection(context),
                 ),
+                _buildOrganViabilityShowcaseSection(context),
                 _buildValuePropositionsSection(context),
                 _buildTestimonialsSection(context),
                 _buildLiveCorridorsMapSection(context),
@@ -1477,6 +1482,161 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
             ),
           ),
         ],
+      ),
+    );
+  }
+
+  // ==========================================
+  // NOVEL: ORGAN VIABILITY & CIT TELEMETRY SHOWCASE
+  // ==========================================
+  Widget _buildOrganViabilityShowcaseSection(BuildContext context) {
+    final bool isMobile = ResponsiveLayout.isMobile(context);
+
+    return Container(
+      color: const Color(0xFFF8FAFC),
+      padding: EdgeInsets.symmetric(
+        horizontal: isMobile ? 20 : 64,
+        vertical: 80,
+      ),
+      child: Center(
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 1040),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+                decoration: BoxDecoration(
+                  color: AppColors.primaryLight,
+                  borderRadius: BorderRadius.circular(20),
+                  border: Border.all(color: AppColors.primary.withValues(alpha: 0.2)),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Icon(Icons.biotech_rounded, size: 14, color: AppColors.primary),
+                    const SizedBox(width: 8),
+                    Text(
+                      'FIRST-IN-CLASS CLINICAL TELEMETRY',
+                      style: GoogleFonts.plusJakartaSans(
+                        fontSize: 11,
+                        fontWeight: FontWeight.w800,
+                        color: AppColors.primary,
+                        letterSpacing: 0.5,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 14),
+              Text(
+                'Live Organ Viability & Cold Ischemia Engine',
+                textAlign: TextAlign.center,
+                style: GoogleFonts.plusJakartaSans(
+                  fontSize: isMobile ? 24 : 36,
+                  fontWeight: FontWeight.w800,
+                  color: AppColors.slate900,
+                  letterSpacing: -0.5,
+                ),
+              ),
+              const SizedBox(height: 12),
+              ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 720),
+                child: Text(
+                  'During organ transplant corridors, human tissue degradation is strictly time-critical. Green Corridor computes real-time cellular viability, container cryogenic temperatures, and Cold Ischemia Time (CIT) countdowns to ensure flawless surgical handovers.',
+                  textAlign: TextAlign.center,
+                  style: GoogleFonts.plusJakartaSans(
+                    fontSize: isMobile ? 13 : 15,
+                    color: AppColors.slate600,
+                    height: 1.6,
+                  ),
+                ),
+              ),
+              const SizedBox(height: 28),
+
+              // Interactive Organ Selectors
+              Wrap(
+                spacing: 10,
+                runSpacing: 10,
+                alignment: WrapAlignment.center,
+                children: ['Heart', 'Lungs', 'Liver', 'Kidney'].map((organ) {
+                  final isSel = _selectedShowcaseOrgan == organ;
+                  return InkWell(
+                    onTap: () => setState(() => _selectedShowcaseOrgan = organ),
+                    borderRadius: BorderRadius.circular(14),
+                    child: AnimatedContainer(
+                      duration: const Duration(milliseconds: 200),
+                      padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 10),
+                      decoration: BoxDecoration(
+                        color: isSel ? AppColors.slate900 : Colors.white,
+                        borderRadius: BorderRadius.circular(14),
+                        border: Border.all(
+                          color: isSel ? AppColors.slate900 : AppColors.slate200,
+                          width: 1.5,
+                        ),
+                        boxShadow: isSel
+                            ? [
+                                BoxShadow(
+                                  color: Colors.black.withValues(alpha: 0.12),
+                                  blurRadius: 12,
+                                  offset: const Offset(0, 4),
+                                )
+                              ]
+                            : [],
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(
+                            OrganViabilityService.getSpec(organ).icon,
+                            size: 16,
+                            color: isSel ? Colors.white : AppColors.slate700,
+                          ),
+                          const SizedBox(width: 8),
+                          Text(
+                            "$organ (${OrganViabilityService.getSpec(organ).maxCitHours.toStringAsFixed(0)}h Max CIT)",
+                            style: TextStyle(
+                              fontSize: 13,
+                              fontWeight: FontWeight.w700,
+                              color: isSel ? Colors.white : AppColors.slate700,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  );
+                }).toList(),
+              ),
+
+              const SizedBox(height: 28),
+
+              // The Live Interactive HUD
+              OrganViabilityHUD(
+                organType: _selectedShowcaseOrgan,
+                harvestOrStartTime: DateTime.now().subtract(const Duration(minutes: 42, seconds: 15)),
+                containerCode: "CRYO-${_selectedShowcaseOrgan.toUpperCase()}-702",
+                onInitiateHandover: () {
+                  showDialog(
+                    context: context,
+                    builder: (_) => DigitalHandoverDialog(
+                      mission: {
+                        'id': 'GC-DEMO-2026',
+                        'patient_name': _selectedShowcaseOrgan,
+                        'created_at': DateTime.now().subtract(const Duration(minutes: 42)).toIso8601String(),
+                      },
+                      destinationHospital: {'name': 'AIIMS Apex Trauma Center'},
+                      ambulanceData: {'vehicle_number': 'GC-AMB-01'},
+                      driverData: {'name': 'Senior Convoy Pilot'},
+                      onConfirmHandover: ({required surgeonName, required otRoom, required notes}) async {
+                        // Handover demonstration
+                      },
+                    ),
+                  );
+                },
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }
