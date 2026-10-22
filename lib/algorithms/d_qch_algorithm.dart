@@ -3,11 +3,11 @@ import 'dart:math' as math;
 /// ============================================================================
 /// CC-HLP: Chance-Constrained Human-in-the-Loop Preemption Algorithm
 /// 
-/// Publication Model for IEEE Transactions on Intelligent Transportation Systems:
-/// 1. Formally derived from Webster / Newell Macroscopic Traffic Flow Conservation.
-/// 2. 5-Stage Conditional Driver Yielding Chain with Poisson Critical Gap Acceptance.
-/// 3. Binomial Stochastic Residual Queue Modeling with (1 - \epsilon) Chance-Constrained Safety.
-/// 4. NEMA TS2 / MUTCD Signal Transition Interlock Constraints.
+/// Publication Model for IEEE Transactions on Intelligent Transportation Systems / ITSC:
+/// 1. Webster / Newell Queue Clearance with Explicit N=0 Boundary Condition.
+/// 2. Time-Aware Yielding Probability with Maneuver Deadline Feasibility.
+/// 3. Heterogeneous Poisson-Binomial Residual Queue Distribution with Exact Quantile.
+/// 4. Boundary-Crossing Preemption Trigger Invariant.
 /// ============================================================================
 
 class CCHLPState {
@@ -41,8 +41,8 @@ class CCHLPDecision {
   final double estimatedTimeOfArrivalSec;
   final double clearanceTimeSec;
   final double transitionTimeSec;
-  final double yieldProbability;
-  final double criticalResidualQueue;
+  final double averageYieldProbability;
+  final int criticalResidualQueue;
   final String statusRationale;
 
   const CCHLPDecision({
@@ -50,7 +50,7 @@ class CCHLPDecision {
     required this.estimatedTimeOfArrivalSec,
     required this.clearanceTimeSec,
     required this.transitionTimeSec,
-    required this.yieldProbability,
+    required this.averageYieldProbability,
     required this.criticalResidualQueue,
     required this.statusRationale,
   });
@@ -64,12 +64,13 @@ class CCHLPAlgorithm {
   static const double kAcousticThresholdDistanceM = 300.0; // \sigma_audio
   static const double kYellowChangeIntervalSec = 3.5; // t_yellow (MUTCD / IRC)
   static const double kAllRedClearanceIntervalSec = 2.0; // t_all_red (MUTCD / IRC)
-  static const double kZScore99Percent = 2.326; // z_{0.99} (99% confidence risk tolerance \epsilon = 0.01)
+  static const double kAverageVehicleLengthM = 7.5; // l_veh
+  static const double kManeuverMedianSec = 5.5; // Median maneuver execution time
 
-  /// 1. Macroscopic Webster/Newell Queue Clearance Time
-  /// T_clear(N) = t_L + (N / q_max)
+  /// 1. Macroscopic Webster/Newell Queue Clearance Time with Boundary Condition
+  /// T_clear(0) = 0, T_clear(N) = t_L + (N / q_max) for N >= 1
   static double computeWebsterClearanceTime({
-    required double queueCount,
+    required int queueCount,
     double saturationFlowRate = 0.5,
     double startupLostTimeSec = 2.0,
   }) {
@@ -77,11 +78,14 @@ class CCHLPAlgorithm {
     return startupLostTimeSec + (queueCount / saturationFlowRate);
   }
 
-  /// 2. Five-Stage Conditional Driver Yielding Probability
-  /// P(yield) = \rho_app * P_net * P_attention * \eta_compliance * P_gap
-  static double computeConditionalYieldProbability({
-    required double appPenetrationRate,
+  /// 2. Time-Aware Yielding Probability for Vehicle i
+  /// p_i = P(yield_behavior) * P(T_maneuver <= \Delta t_deadline(i))
+  static double computeTimeAwareYieldProbability({
+    required int vehicleIndex, // i \in {1, ..., N}
+    required int totalQueue,
     required double distanceToAmbulanceM,
+    required double ambulanceSpeedMs,
+    required double appPenetrationRate,
     required double adjacentLaneFlowVehS,
   }) {
     final rhoApp = appPenetrationRate.clamp(0.0, 1.0);
@@ -96,32 +100,62 @@ class CCHLPAlgorithm {
     // Poisson Gap Feasibility: P(gap >= t_c) = exp(- q_adj * t_c)
     final pGap = math.exp(-adjacentLaneFlowVehS * kCriticalLaneChangeGapSec);
 
-    final pYield = rhoApp * pNet * pAttention * pCompliance * pGap;
-    return pYield.clamp(0.0, 1.0);
+    final pBehavioral = rhoApp * pNet * pAttention * pCompliance * pGap;
+
+    // Deadline feasibility: Time remaining before EV reaches vehicle i
+    final speed = math.max(ambulanceSpeedMs, 5.0); // minimum 5 m/s
+    final distToVehicleI = distanceToAmbulanceM - ((totalQueue - vehicleIndex) * kAverageVehicleLengthM);
+    final deadlineSec = math.max(0.1, distToVehicleI / speed);
+
+    // Feasibility modeled via log-normal CDF approximation (median = 5.5s, sigma = 0.35)
+    final pFeasible = deadlineSec >= kManeuverMedianSec
+        ? 1.0 - (0.5 * math.exp(-0.7 * (deadlineSec - kManeuverMedianSec)))
+        : (0.5 * math.exp(0.7 * (deadlineSec - kManeuverMedianSec)));
+
+    return (pBehavioral * pFeasible).clamp(0.0, 1.0);
   }
 
-  /// 3. Chance-Constrained Critical Residual Queue (1 - \epsilon = 99% Safety Guarantee)
-  /// N_crit = E[N_rem] + z_{0.99} * sqrt(Var(N_rem))
-  static double computeCriticalResidualQueue({
-    required int observedQueueCount,
-    required double yieldProbability,
-    double zScore = kZScore99Percent,
+  /// 3. Exact Discrete Poisson-Binomial Quantile Evaluation via Recursive Convolution
+  /// N_crit = min { n | F_PB(n) >= 1 - \epsilon }
+  static int computeExactPoissonBinomialQuantile({
+    required List<double> yieldingProbabilities,
+    double riskToleranceEpsilon = 0.01, // 99% model confidence
   }) {
-    if (observedQueueCount <= 0) return 0.0;
+    final n = yieldingProbabilities.length;
+    if (n == 0) return 0;
 
-    final n = observedQueueCount.toDouble();
-    final p = yieldProbability.clamp(0.0, 1.0);
+    // Remaining probabilities: q_i = 1 - p_i
+    final q = yieldingProbabilities.map((p) => 1.0 - p).toList();
 
-    // Expected remaining blocking vehicles:
-    final expectedResidual = n * (1.0 - p);
+    // PMF of Poisson-Binomial distribution: pmf[k] is P(N_rem = k)
+    // Initialized for 0 trials: P(N_rem = 0) = 1.0
+    List<double> pmf = [1.0];
 
-    // Binomial variance: Var = n * p * (1 - p)
-    final binomialVariance = n * p * (1.0 - p);
-    final stdDev = math.sqrt(math.max(0.0, binomialVariance));
+    for (int i = 0; i < n; i++) {
+      final qi = q[i];
+      final pi = 1.0 - qi; // p_i
+      final nextPmf = List<double>.filled(pmf.length + 1, 0.0);
 
-    // Chance-constrained upper bound:
-    final criticalQueue = expectedResidual + (zScore * stdDev);
-    return criticalQueue.clamp(0.0, n);
+      // Convolution step: P_i(k) = P_{i-1}(k) * (1 - q_i) + P_{i-1}(k-1) * q_i
+      for (int k = 0; k < pmf.length; k++) {
+        nextPmf[k] += pmf[k] * pi;     // vehicle yields, does not add to remaining queue
+        nextPmf[k + 1] += pmf[k] * qi; // vehicle stays, adds 1 to remaining queue
+      }
+      pmf = nextPmf;
+    }
+
+    // Cumulative Distribution Function (CDF):
+    double cdf = 0.0;
+    final targetConfidence = 1.0 - riskToleranceEpsilon;
+
+    for (int k = 0; k < pmf.length; k++) {
+      cdf += pmf[k];
+      if (cdf >= targetConfidence) {
+        return k;
+      }
+    }
+
+    return n;
   }
 
   /// 4. NEMA TS2 / MUTCD Phase Transition Safety Interlock
@@ -166,15 +200,26 @@ class CCHLPAlgorithm {
       maxAccelerationMs2: state.ambulanceAcceleration,
     );
 
-    final pYield = computeConditionalYieldProbability(
-      appPenetrationRate: state.appPenetrationRate,
-      distanceToAmbulanceM: state.distanceToJunctionM,
-      adjacentLaneFlowVehS: state.adjacentLaneFlowVehS,
-    );
+    // Compute heterogeneous vehicle-specific probabilities:
+    final pList = <double>[];
+    for (int i = 1; i <= state.observedQueueCount; i++) {
+      final pi = computeTimeAwareYieldProbability(
+        vehicleIndex: i,
+        totalQueue: state.observedQueueCount,
+        distanceToAmbulanceM: state.distanceToJunctionM,
+        ambulanceSpeedMs: state.ambulanceSpeedMs,
+        appPenetrationRate: state.appPenetrationRate,
+        adjacentLaneFlowVehS: state.adjacentLaneFlowVehS,
+      );
+      pList.add(pi);
+    }
 
-    final nCrit = computeCriticalResidualQueue(
-      observedQueueCount: state.observedQueueCount,
-      yieldProbability: pYield,
+    final avgP = pList.isEmpty ? 0.0 : pList.reduce((a, b) => a + b) / pList.length;
+
+    // Exact Poisson-Binomial Quantile:
+    final nCrit = computeExactPoissonBinomialQuantile(
+      yieldingProbabilities: pList,
+      riskToleranceEpsilon: 0.01,
     );
 
     final clearanceTimeSec = computeWebsterClearanceTime(
@@ -193,15 +238,15 @@ class CCHLPAlgorithm {
 
     String rationale;
     if (shouldTrigger) {
-      rationale = "CHANCE-CONSTRAINED INVARIANT MET: ETA (${etaSec.toStringAsFixed(1)}s) <= "
+      rationale = "BOUNDARY-CROSSING TRIGGER REACHED: ETA (${etaSec.toStringAsFixed(1)}s) <= "
           "Required Horizon (${totalRequiredClearanceSec.toStringAsFixed(1)}s = "
           "${clearanceTimeSec.toStringAsFixed(1)}s queue clearance + ${transitionTimeSec.toStringAsFixed(1)}s transition). "
-          "Triggering Green Preemption to guarantee 99% stop-free EV transit.";
+          "Actuating Preemption Sequence to guarantee 99% model-based stop-free EV transit.";
     } else {
       rationale = "HOLDING CONFLICTING PHASE: ETA (${etaSec.toStringAsFixed(1)}s) > "
           "Required Horizon (${totalRequiredClearanceSec.toStringAsFixed(1)}s). "
-          "Estimated P(yield)=${(pYield * 100).toStringAsFixed(1)}% compresses critical queue to "
-          "${nCrit.toStringAsFixed(1)}/${state.observedQueueCount} vehs. Preserving cross-street throughput.";
+          "Poisson-Binomial N_crit = $nCrit/${state.observedQueueCount} vehs (avg P_yield = ${(avgP * 100).toStringAsFixed(1)}%). "
+          "Preserving cross-street throughput during decision horizon.";
     }
 
     return CCHLPDecision(
@@ -209,7 +254,7 @@ class CCHLPAlgorithm {
       estimatedTimeOfArrivalSec: etaSec,
       clearanceTimeSec: clearanceTimeSec,
       transitionTimeSec: transitionTimeSec,
-      yieldProbability: pYield,
+      averageYieldProbability: avgP,
       criticalResidualQueue: nCrit,
       statusRationale: rationale,
     );
