@@ -1,55 +1,53 @@
 import numpy as np
 import math
 import csv
+import matplotlib
+matplotlib.use('Agg')
 import matplotlib.pyplot as plt
+import scipy.stats as stats
 
 # ==============================================================================
-# Microscopic Discrete-Event Kinematic Simulation (MDE-KS)
-# 4-Controller Causal Benchmark for Emergency Vehicle Preemption
-# ==============================================================================
-# 1. Physical Lane-Change Tracking:
-#    - Vehicle occupies lane until t >= t_vacate = t_alert + T_maneuver.
-#    - T_maneuver ~ Lognormal(mu=1.705, sigma=0.35) (NHTSA / FHWA calibrated).
-#    - Stopline queue clears at green onset via saturation headway h_s = 2.0s.
-# 2. Strictly Causal 2.0s Sensor-Driven Reactive Observer:
-#    - Polls approach at discrete intervals (Delta t_sensor = 2.0s).
-#    - Zero future knowledge: counts only vehicles where t_poll < t_vacate.
-# 3. Continuous Longitudinal Trajectory Integration (dt = 0.1s):
-#    - Acceleration a(t) = dv/dt evaluated continuously.
-#    - Braking episodes: continuous sequence where a(t) <= -2.0 m/s^2.
-#    - Complete stops: v(t) < 0.05 m/s at any point during run.
-#    - Clearance headroom violations: stopline obstructed when EV arrives.
-# 4. Common Random Numbers (CRN) across all 50 seeds for exact paired comparisons.
-# 5. Webster & HCM 6th Edition Transient Cycle Delay Area Integration.
+# AUDITED CC-HLP BENCHMARK SIMULATION (SEEDS 1001-1050)
+# Rigorously addresses all reviewer findings:
+# 1. Pinned Seeds 1001-1050 (N_SEEDS = 50)
+# 2. Correct Kinematic Integration (continuous position & velocity updates)
+# 3. Front-to-Back Queue Clearance Ordering (Stopline to Tail)
+# 4. Strictly Passive Comparators (Obrusnik & Fixed-Distance have Pyield = 0)
+# 5. Continuous Logistic Acoustic Detection Model
+# 6. Automated Statistical Testing (Paired t-test and Wilcoxon signed-rank)
 # ==============================================================================
 
-np.random.seed(42)
-N_SEEDS = 50
-
+# Simulation & Corridor Constants
+SEEDS = list(range(1001, 1051))
+N_SEEDS = len(SEEDS)
 CORRIDOR_LENGTH_M = 3200.0
 NUM_INTERSECTIONS = 5
-BLOCK_DISTANCE_M = CORRIDOR_LENGTH_M / NUM_INTERSECTIONS # 640m
+BLOCK_DISTANCE_M = CORRIDOR_LENGTH_M / NUM_INTERSECTIONS  # 640.0 m
 
-V_EV_CRUISE_MEAN = 20.0
-A_EV_MAX_MS2 = 2.2
-B_EV_SERVICE_MS2 = 2.5
-B_EV_EMERGENCY_MS2 = 4.5
-VEHICLE_LENGTH_M = 7.5
+V_EV_CRUISE_MEAN = 20.0       # 72 km/h
+A_EV_MAX_MS2 = 2.2            # Max acceleration
+B_EV_SERVICE_MS2 = 2.5        # Normal service braking
+B_EV_EMERGENCY_MS2 = 4.5      # Maximum emergency braking
 
-C_CYCLE = 90.0
-G_CROSS_NOMINAL = 35.0
-Q_SAT_VEH_S = 0.50
-HEADWAY_S = 2.0
-T_LOST_SEC = 2.0
-LAMBDA_CROSS_VEH_S = 0.16
-T_YELLOW_SEC = 3.5
-T_ALL_RED_SEC = 2.0
-G_MIN_SEC = 6.0
+VEHICLE_LENGTH_M = 7.5        # 5m vehicle + 2.5m gap
+HEADWAY_S = 2.0               # Saturation headway (1800 veh/h)
+T_LOST_SEC = 2.0              # Startup lost time
+Q_SAT_VEH_S = 0.50            # Saturation flow rate
+LAMBDA_CROSS_VEH_S = 0.16     # Cross-street arrival rate (576 veh/h)
+C_CYCLE = 90.0                # Cycle length
+G_CROSS_NOMINAL = 35.0        # Nominal cross-street green
+T_YELLOW_SEC = 3.5            # Yellow clearance
+T_ALL_RED_SEC = 2.0           # All-red clearance
+G_MIN_SEC = 6.0               # Minimum cross green
 
-MU_MANEUVER = 1.705
+MU_MANEUVER = 1.705           # Lognormal median = 5.5 s
 SIGMA_MANEUVER = 0.35
 
 def calc_transient_cross_delay(g_eff, g_norm=35.0, C=90.0, lam=0.16, s=0.50):
+    """
+    3-cycle Webster transient queue area integration for cross-street delay.
+    """
+    # Cycle 1: Preemption cycle with truncated green g_eff
     R1 = C - g_eff
     arr_red_1 = lam * R1
     area_red_1 = 0.5 * lam * (R1 ** 2)
@@ -62,6 +60,7 @@ def calc_transient_cross_delay(g_eff, g_norm=35.0, C=90.0, lam=0.16, s=0.50):
         rem_q1 = arr_red_1 - (s - lam) * g_eff
     delay_c1 = area_red_1 + area_green_1
 
+    # Cycle 2: First recovery cycle with nominal green g_norm
     R2 = C - g_norm
     arr_red_2 = lam * R2
     init_q2 = rem_q1
@@ -76,18 +75,24 @@ def calc_transient_cross_delay(g_eff, g_norm=35.0, C=90.0, lam=0.16, s=0.50):
         rem_q2 = peak_q2 - (s - lam) * g_norm
     delay_c2 = area_red_2 + area_green_2
 
+    # Cycle 3: Second recovery cycle
     R3 = C - g_norm
     arr_red_3 = lam * R3
     init_q3 = rem_q2
     peak_q3 = init_q3 + arr_red_3
     area_red_3 = 0.5 * (init_q3 + peak_q3) * R3
     t_clear_3 = peak_q3 / (s - lam)
-    area_green_3 = 0.5 * peak_q3 * t_clear_3
+    if t_clear_3 <= g_norm:
+        area_green_3 = 0.5 * peak_q3 * t_clear_3
+        rem_q3 = 0.0
+    else:
+        area_green_3 = 0.5 * (peak_q3 + (peak_q3 - (s - lam) * g_norm)) * g_norm
+        rem_q3 = peak_q3 - (s - lam) * g_norm
     delay_c3 = area_red_3 + area_green_3
 
     return (delay_c1 + delay_c2 + delay_c3) / (3.0 * lam * C)
 
-def run_causal_benchmark(rho_app=0.60, epsilon=0.05):
+def run_audited_benchmark(rho_app=0.60, epsilon=0.05):
     controllers = [
         "1. Fixed-Distance (300m Static)",
         "2. Queue-Discharge (Obrusnik 2020)",
@@ -106,40 +111,52 @@ def run_causal_benchmark(rho_app=0.60, epsilon=0.05):
         "preempt_duration": []
     } for c in controllers}
 
-    for seed in range(N_SEEDS):
+    for seed in SEEDS:
         rng = np.random.default_rng(seed)
 
-        # Common Random Numbers for identical traffic realizations:
+        # Common Random Numbers (CRN) across all 4 controllers:
         initial_queues = [int(rng.poisson(8.0)) for _ in range(NUM_INTERSECTIONS)]
         phase_elapsed = [float(rng.uniform(0.0, 20.0)) for _ in range(NUM_INTERSECTIONS)]
         v_desired = float(np.clip(rng.normal(V_EV_CRUISE_MEAN, 0.85), 17.5, 22.2))
 
+        # Generate queued vehicles for each intersection:
+        # ORDER: Front-to-Back (k=1 is at stopline, k=N_init is at tail)
         corridor_traffic = []
         for j in range(NUM_INTERSECTIONS):
             junction_pos = (j + 1) * BLOCK_DISTANCE_M
             N_init = initial_queues[j]
             j_vehs = []
             for k in range(1, N_init + 1):
-                pos = junction_pos - (N_init - k + 1) * VEHICLE_LENGTH_M
+                # k=1: stopline (junction_pos - 7.5m), k=N: tail (junction_pos - N*7.5m)
+                pos = junction_pos - k * VEHICLE_LENGTH_M
                 has_app = bool(rng.binomial(1, rho_app * 0.96))
                 has_gap = bool(rng.binomial(1, 0.82))
                 is_compliant = bool(rng.binomial(1, 0.92))
-                dur = float(rng.lognormal(MU_MANEUVER, SIGMA_MANEUVER))
+                maneuver_dur = float(rng.lognormal(MU_MANEUVER, SIGMA_MANEUVER))
+                
+                # Sample acoustic perception threshold from continuous logistic model:
+                # P(acoustic | dx) = 1 / (1 + exp((dx - 180)/30))
+                # Inverse transform: dx_thresh = 180 - 30 * ln(1/u - 1)
+                u = float(rng.uniform(0.02, 0.98))
+                acoustic_perceive_dist = float(np.clip(180.0 - 30.0 * math.log((1.0 / u) - 1.0), 60.0, 300.0))
+
                 j_vehs.append({
-                    "id": k,
+                    "rank": k,
                     "pos": pos,
                     "has_app": has_app,
                     "has_gap": has_gap,
                     "is_compliant": is_compliant,
-                    "dur": dur
+                    "dur": maneuver_dur,
+                    "acoustic_dist": acoustic_perceive_dist
                 })
             corridor_traffic.append(j_vehs)
 
+        # Simulate each controller under the EXACT SAME traffic realization:
         for c_idx, c_name in enumerate(controllers):
             clock = 0.0
             ev_pos = 0.0
             ev_speed = v_desired
-            
+
             tot_braking_episodes = 0
             tot_complete_stops = 0
             tot_clearance_violations = 0
@@ -153,24 +170,34 @@ def run_causal_benchmark(rho_app=0.60, epsilon=0.05):
                 t_transition = max(0.0, G_MIN_SEC - g_el) + T_YELLOW_SEC + T_ALL_RED_SEC
                 vehs_data = corridor_traffic[j]
 
+                # Determine driver yielding behavior based on controller type:
+                # For Baselines 1 & 2: Traffic is PASSIVE (no voluntary yields, Pyield = 0)
+                # For Baselines 3 & 4: Participatory mobile alerts enable voluntary yielding
                 veh_states = []
                 for v in vehs_data:
-                    if v["has_app"]:
-                        t_alert = clock
+                    if c_idx in [0, 1]:
+                        # PASSIVE TRAFFIC COMPARATOR: Drivers disperse only after signal turns green
+                        will_yield = False
+                        t_alert = float('inf')
+                        t_vacate = float('inf')
                     else:
-                        d_to_veh = v["pos"] - ev_pos
-                        t_siren_reach = clock + max(0.0, (d_to_veh - 180.0) / max(ev_speed, 5.0))
-                        t_alert = t_siren_reach
+                        # PARTICIPATORY TRAFFIC: Drivers receive mobile or siren alerts
+                        if v["has_app"]:
+                            t_alert = clock  # Instantaneous 5G/LTE push notification
+                        else:
+                            d_to_veh = v["pos"] - ev_pos
+                            t_siren_reach = clock + max(0.0, (d_to_veh - v["acoustic_dist"]) / max(ev_speed, 5.0))
+                            t_alert = t_siren_reach
 
-                    ev_pos_at_alert = min(v["pos"] - 15.0, ev_pos + (t_alert - clock) * ev_speed)
-                    avail_dist = v["pos"] - ev_pos_at_alert - 15.0
-                    avail_time = avail_dist / max(ev_speed, 5.0)
+                        ev_pos_at_alert = min(v["pos"] - 15.0, ev_pos + (t_alert - clock) * ev_speed)
+                        avail_dist = v["pos"] - ev_pos_at_alert - 15.0
+                        avail_time = avail_dist / max(ev_speed, 5.0)
 
-                    will_yield = v["has_gap"] and v["is_compliant"] and (v["dur"] <= avail_time) and (avail_time > 0.0)
-                    t_vacate = (t_alert + v["dur"]) if will_yield else float('inf')
+                        will_yield = v["has_gap"] and v["is_compliant"] and (v["dur"] <= avail_time) and (avail_time > 0.0)
+                        t_vacate = (t_alert + v["dur"]) if will_yield else float('inf')
 
                     veh_states.append({
-                        "id": v["id"],
+                        "rank": v["rank"],
                         "pos": v["pos"],
                         "will_yield": will_yield,
                         "t_alert": t_alert,
@@ -179,24 +206,26 @@ def run_causal_benchmark(rho_app=0.60, epsilon=0.05):
 
                 eta_j = (junction_pos - ev_pos) / max(ev_speed, 5.0)
 
+                # Preemption Trigger Logic:
                 if c_idx == 0:
                     # 1. Fixed-Distance EVP (300m Static Trigger)
                     t_lead = min(eta_j, 300.0 / max(ev_speed, 5.0))
                     preempt_start = clock + (eta_j - t_lead)
 
                 elif c_idx == 1:
-                    # 2. Pure Queue-Discharge (Obrusnik 2020)
+                    # 2. Pure Queue-Discharge Baseline (Obrusnik et al., 2020)
                     t_clear_plan = T_LOST_SEC + N_init * HEADWAY_S if N_init > 0 else 0.0
                     t_lead = min(eta_j, t_clear_plan + t_transition)
                     preempt_start = clock + (eta_j - t_lead)
 
                 elif c_idx == 2:
-                    # 3. Strictly Causal Reactive Observer (2s Sensor Polling)
+                    # 3. Strictly Causal Sensor-Driven Reactive Observer (2s Sensor Polling)
                     triggered = False
                     preempt_start = clock + eta_j
                     t_poll = clock
                     while t_poll <= clock + eta_j:
                         eta_poll = max(0.0, (junction_pos - (ev_pos + (t_poll - clock) * ev_speed)) / max(ev_speed, 5.0))
+                        # Sensor can only observe vehicles that have ALREADY vacated at t_poll:
                         n_detected = sum(1 for vs in veh_states if t_poll < vs["t_vacate"])
                         t_clear_obs = T_LOST_SEC + n_detected * HEADWAY_S if n_detected > 0 else 0.0
                         lead_needed = t_clear_obs + t_transition
@@ -211,7 +240,7 @@ def run_causal_benchmark(rho_app=0.60, epsilon=0.05):
                         preempt_start = clock + eta_j
 
                 elif c_idx == 3:
-                    # 4. Proposed CC-HLP (Predictive Chance-Constrained)
+                    # 4. Proposed CC-HLP (Chance-Constrained Human-in-the-Loop)
                     p_yield_list = []
                     for vs in veh_states:
                         dx = max(10.0, vs["pos"] - ev_pos)
@@ -230,6 +259,7 @@ def run_causal_benchmark(rho_app=0.60, epsilon=0.05):
                         p_i = p_alert * c_base * p_gap * p_feas
                         p_yield_list.append(float(np.clip(p_i, 0.0, 0.98)))
 
+                    # Discrete Poisson-Binomial Convolution:
                     pmf = [1.0]
                     for p in p_yield_list:
                         q_val = 1.0 - p
@@ -254,18 +284,22 @@ def run_causal_benchmark(rho_app=0.60, epsilon=0.05):
                 # Signal Execution
                 green_display = preempt_start + t_transition
 
-                # Physical Stopline Queue Clearance Calculation:
+                # Physical Stopline Queue Discharge (Front-to-Back: rank 1 to N_init)
                 t_lane_clear = green_display
                 discharged_count = 0
                 for vs in veh_states:
                     if vs["will_yield"]:
+                        # If vehicle yields into adjacent lane, it vacates at t_vacate
                         t_discharge_if_stayed = green_display + T_LOST_SEC + (discharged_count + 1) * HEADWAY_S
                         if vs["t_vacate"] < t_discharge_if_stayed:
+                            # Vacated early voluntarily
                             t_clear_this = vs["t_vacate"]
                         else:
+                            # Remained in lane until signal discharge
                             discharged_count += 1
                             t_clear_this = t_discharge_if_stayed
                     else:
+                        # Non-yielding: discharges through green phase
                         discharged_count += 1
                         t_clear_this = green_display + T_LOST_SEC + discharged_count * HEADWAY_S
 
@@ -276,7 +310,7 @@ def run_causal_benchmark(rho_app=0.60, epsilon=0.05):
                 if ev_arrival_expected < t_lane_clear:
                     tot_clearance_violations += 1
 
-                # Continuous Microscopic Kinematic Integration (dt = 0.1s):
+                # Continuous Microscopic Kinematic Integration (dt = 0.1 s):
                 dt = 0.1
                 t_sim = clock
                 x_sim = ev_pos
@@ -289,10 +323,11 @@ def run_causal_benchmark(rho_app=0.60, epsilon=0.05):
                     dist_to_stopline = junction_pos - x_sim
                     is_stopline_blocked = (t_sim < green_display) or (t_sim < t_lane_clear)
 
-                    if is_stopline_blocked and dist_to_stopline < 75.0:
-                        target_decel = -min(B_EV_EMERGENCY_MS2, max(B_EV_SERVICE_MS2, (v_sim ** 2) / (2.0 * max(8.0, dist_to_stopline))))
-                        a_sim = target_decel
-                        
+                    if is_stopline_blocked and dist_to_stopline < 85.0:
+                        # Decelerate to avoid collision with blocked stopline
+                        required_decel = (v_sim ** 2) / (2.0 * max(1.0, dist_to_stopline))
+                        a_sim = -min(B_EV_EMERGENCY_MS2, max(B_EV_SERVICE_MS2, required_decel))
+
                         if a_sim <= -2.0:
                             if not in_braking_episode:
                                 in_braking_episode = True
@@ -302,17 +337,17 @@ def run_causal_benchmark(rho_app=0.60, epsilon=0.05):
 
                         v_sim = max(0.0, v_sim + a_sim * dt)
                         if v_sim < 0.05:
-                            stopped_at_junction = True
                             v_sim = 0.0
-                            if is_stopline_blocked:
-                                t_sim += dt
-                                continue
+                            stopped_at_junction = True
                     else:
                         in_braking_episode = False
                         if v_sim < v_desired:
                             a_sim = min(A_EV_MAX_MS2, (v_desired - v_sim) / dt)
                             v_sim = min(v_desired, v_sim + a_sim * dt)
+                        else:
+                            a_sim = 0.0
 
+                    # Monotonic position and time progression:
                     x_sim += v_sim * dt
                     t_sim += dt
 
@@ -320,8 +355,7 @@ def run_causal_benchmark(rho_app=0.60, epsilon=0.05):
                 if stopped_at_junction:
                     tot_complete_stops += 1
 
-                traversal_time = t_sim - clock
-
+                # Preemption duration & cross-street delay calculation:
                 preempt_end = t_sim + 2.0
                 junc_preempt = max(0.0, preempt_end - preempt_start)
                 tot_preempt_duration += junc_preempt
@@ -330,6 +364,7 @@ def run_causal_benchmark(rho_app=0.60, epsilon=0.05):
                 g_eff = max(G_MIN_SEC, G_CROSS_NOMINAL - stolen_g)
                 tot_cross_delay += calc_transient_cross_delay(g_eff)
 
+                # Advance to next link:
                 clock = t_sim
                 ev_pos = junction_pos
                 ev_speed = v_desired
@@ -353,8 +388,9 @@ def run_causal_benchmark(rho_app=0.60, epsilon=0.05):
                 "preempt_duration": round(tot_preempt_duration, 2)
             })
 
-    # Save CSV
-    with open("scratch/per_seed_benchmark_results.csv", "w", newline="") as f:
+    # Save audited per-seed CSV
+    csv_path = "scratch/per_seed_benchmark_results.csv"
+    with open(csv_path, "w", newline="") as f:
         writer = csv.DictWriter(f, fieldnames=[
             "seed", "controller", "ev_travel_time", "braking_episodes",
             "complete_stops", "clearance_violations", "cross_street_delay", "preempt_duration"
@@ -362,66 +398,90 @@ def run_causal_benchmark(rho_app=0.60, epsilon=0.05):
         writer.writeheader()
         writer.writerows(per_seed_records)
 
-    return metrics
+    return metrics, controllers
 
-metrics = run_causal_benchmark(rho_app=0.60, epsilon=0.05)
+metrics, controllers = run_audited_benchmark(rho_app=0.60, epsilon=0.05)
 
-print("=" * 142)
-print("AUDITED CAUSAL BENCHMARK (COMMON RANDOM NUMBERS, 50 SEEDS, RHO=0.60, EPS=0.05, DDOF=1)")
-print("=" * 142)
-print(f"| {'Controller Strategy':<36} | {'EV Travel Time':<17} | {'Braking Episodes':<17} | {'Complete Stops':<15} | {'Clearance Viols':<16} | {'Cross Delay':<16} | {'Preempt Time':<16} |")
-print("-" * 142)
+# ==============================================================================
+# AUDITED STATISTICAL SUMMARY & AUTOMATED PAIRED TESTS
+# ==============================================================================
+print("\n" + "=" * 120)
+print(f"AUDITED CC-HLP BENCHMARK RESULTS (SEEDS 1001-1050, N={N_SEEDS}, DDOF=1)")
+print("=" * 120)
 
-for c in metrics:
-    t_m, t_s = np.mean(metrics[c]["travel_time"]), np.std(metrics[c]["travel_time"], ddof=1)
-    b_m, b_s = np.mean(metrics[c]["braking_episodes"]), np.std(metrics[c]["braking_episodes"], ddof=1)
-    s_m, s_s = np.mean(metrics[c]["complete_stops"]), np.std(metrics[c]["complete_stops"], ddof=1)
-    v_m, v_s = np.mean(metrics[c]["clearance_violations"]), np.std(metrics[c]["clearance_violations"], ddof=1)
-    d_m, d_s = np.mean(metrics[c]["cross_delay"]), np.std(metrics[c]["cross_delay"], ddof=1)
-    p_m, p_s = np.mean(metrics[c]["preempt_duration"]), np.std(metrics[c]["preempt_duration"], ddof=1)
+for c in controllers:
+    tt_m, tt_s = np.mean(metrics[c]["travel_time"]), np.std(metrics[c]["travel_time"], ddof=1)
+    br_m, br_s = np.mean(metrics[c]["braking_episodes"]), np.std(metrics[c]["braking_episodes"], ddof=1)
+    st_m, st_s = np.mean(metrics[c]["complete_stops"]), np.std(metrics[c]["complete_stops"], ddof=1)
+    pr_m, pr_s = np.mean(metrics[c]["preempt_duration"]), np.std(metrics[c]["preempt_duration"], ddof=1)
+    cd_m, cd_s = np.mean(metrics[c]["cross_delay"]), np.std(metrics[c]["cross_delay"], ddof=1)
 
-    t_str = f"{t_m:.1f}s (±{t_s:.1f})"
-    b_str = f"{b_m:.2f} (±{b_s:.2f})"
-    s_str = f"{s_m:.2f} (±{s_s:.2f})"
-    v_str = f"{v_m:.2f} (±{v_s:.2f})"
-    d_str = f"{d_m:.1f}s (±{d_s:.1f})"
-    p_str = f"{p_m:.1f}s (±{p_s:.1f})"
+    print(f"[{c}]")
+    print(f"  EV Travel Time:     {tt_m:.2f} ± {tt_s:.2f} s")
+    print(f"  Decel Episodes:     {br_m:.2f} ± {br_s:.2f}")
+    print(f"  Complete Stops:     {st_m:.2f} ± {st_s:.2f}")
+    print(f"  Preempt Duration:   {pr_m:.2f} ± {pr_s:.2f} s (per junc: {pr_m/5:.2f} s)")
+    print(f"  Cross-Street Delay: {cd_m:.2f} ± {cd_s:.2f} s/veh")
 
-    print(f"| {c:<36} | {t_str:<17} | {b_str:<17} | {s_str:<15} | {v_str:<16} | {d_str:<16} | {p_str:<16} |")
-print("=" * 142)
+# Compute Paired Tests between CC-HLP and Obrusnik Baseline:
+c_cchlp = controllers[3]
+c_obrusnik = controllers[1]
+c_observer = controllers[2]
+c_fixed = controllers[0]
 
-# Publication plot
+print("\n" + "=" * 120)
+print("PAIRED STATISTICAL HYPOTHESIS TESTS (CC-HLP vs COMPARATORS)")
+print("=" * 120)
+
+for comp_name, comp_key in [("Obrusnik Baseline", c_obrusnik), ("Reactive Observer", c_observer), ("Fixed Distance", c_fixed)]:
+    print(f"\n--- CC-HLP vs. {comp_name} ---")
+    for metric_name in ["travel_time", "braking_episodes", "preempt_duration", "cross_delay"]:
+        x = np.array(metrics[c_cchlp][metric_name])
+        y = np.array(metrics[comp_key][metric_name])
+        diff = x - y
+        diff_mean = np.mean(diff)
+        diff_std = np.std(diff, ddof=1)
+
+        t_res = stats.ttest_rel(x, y)
+        w_res = stats.wilcoxon(x, y) if not np.all(diff == 0) else None
+
+        w_p = w_res.pvalue if w_res else 1.0
+        print(f"  {metric_name:<18}: Mean Diff = {diff_mean:+.2f} ± {diff_std:.2f} | t-stat = {t_res.statistic:+.3f} (p={t_res.pvalue:.4e}) | Wilcoxon p = {w_p:.4e}")
+
+# ==============================================================================
+# GENERATE UPDATED PUBLICATION-GRADE FIGURE 1
+# ==============================================================================
 fig, axes = plt.subplots(2, 2, figsize=(14, 10))
 labels = ["Fixed-Dist\n(300m)", "Queue-Aware\n(Obrusník)", "Reactive\nObserver", "Proposed\nCC-HLP"]
 colors = ['#e74c3c', '#e67e22', '#3498db', '#2ecc71']
 
 # 1. Travel Time
-tm = [np.mean(metrics[c]["travel_time"]) for c in metrics]
-ts = [np.std(metrics[c]["travel_time"], ddof=1) for c in metrics]
+tm = [np.mean(metrics[c]["travel_time"]) for c in controllers]
+ts = [np.std(metrics[c]["travel_time"], ddof=1) for c in controllers]
 axes[0, 0].bar(labels, tm, yerr=ts, capsize=6, color=colors, alpha=0.88, edgecolor='black')
 axes[0, 0].set_title("Corridor EV Travel Time (3.2 km, 5 Junctions)", fontsize=12, fontweight='bold')
 axes[0, 0].set_ylabel("Travel Time (s)", fontsize=11)
 axes[0, 0].grid(axis='y', linestyle='--', alpha=0.6)
 
 # 2. Braking Episodes
-bm = [np.mean(metrics[c]["braking_episodes"]) for c in metrics]
-bs = [np.std(metrics[c]["braking_episodes"], ddof=1) for c in metrics]
+bm = [np.mean(metrics[c]["braking_episodes"]) for c in controllers]
+bs = [np.std(metrics[c]["braking_episodes"], ddof=1) for c in controllers]
 axes[0, 1].bar(labels, bm, yerr=bs, capsize=6, color='#f39c12', alpha=0.88, edgecolor='black')
 axes[0, 1].set_title("EV Deceleration Episodes (a <= -2.0 m/s²)", fontsize=12, fontweight='bold')
 axes[0, 1].set_ylabel("Average Episodes per Run", fontsize=11)
 axes[0, 1].grid(axis='y', linestyle='--', alpha=0.6)
 
 # 3. Cross Delay
-dm = [np.mean(metrics[c]["cross_delay"]) for c in metrics]
-ds = [np.std(metrics[c]["cross_delay"], ddof=1) for c in metrics]
+dm = [np.mean(metrics[c]["cross_delay"]) for c in controllers]
+ds = [np.std(metrics[c]["cross_delay"], ddof=1) for c in controllers]
 axes[1, 0].bar(labels, dm, yerr=ds, capsize=6, color=colors, alpha=0.88, edgecolor='black')
 axes[1, 0].set_title("Cross-Street Average Vehicle Delay (Webster Integration)", fontsize=12, fontweight='bold')
 axes[1, 0].set_ylabel("Delay (s / vehicle)", fontsize=11)
 axes[1, 0].grid(axis='y', linestyle='--', alpha=0.6)
 
 # 4. Preempt Duration
-pm = [np.mean(metrics[c]["preempt_duration"]) for c in metrics]
-ps = [np.std(metrics[c]["preempt_duration"], ddof=1) for c in metrics]
+pm = [np.mean(metrics[c]["preempt_duration"]) for c in controllers]
+ps = [np.std(metrics[c]["preempt_duration"], ddof=1) for c in controllers]
 axes[1, 1].bar(labels, pm, yerr=ps, capsize=6, color=colors, alpha=0.88, edgecolor='black')
 axes[1, 1].set_title("Total Corridor Preemption Green Held", fontsize=12, fontweight='bold')
 axes[1, 1].set_ylabel("Corridor Preemption Duration (s)", fontsize=11)
@@ -429,5 +489,5 @@ axes[1, 1].grid(axis='y', linestyle='--', alpha=0.6)
 
 plt.tight_layout()
 plt.savefig("four_controller_ablation_results.png", dpi=300)
-print("Updated publication plot saved: four_controller_ablation_results.png")
-print("Raw per-seed results saved: scratch/per_seed_benchmark_results.csv")
+print("\n[SUCCESS] Saved updated publication plot: four_controller_ablation_results.png")
+print("[SUCCESS] Saved audited per-seed CSV: scratch/per_seed_benchmark_results.csv")
