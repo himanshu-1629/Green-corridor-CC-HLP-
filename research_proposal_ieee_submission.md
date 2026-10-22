@@ -4,15 +4,14 @@
 ```markdown
 PROMPT FOR CHATGPT / AI PEER REVIEWER:
 Act as an IEEE Senior Peer Reviewer and Area Editor for IEEE Transactions on Intelligent Transportation Systems (T-ITS) and IEEE ITSC.
-Evaluate this definitive, publication-ready research proposal.
-In this version, we have resolved all remaining theoretical, behavioral, and statistical critiques:
-1. Kinematic Clearance & Boundary Conditions: Explicitly defined the empty queue boundary condition T_clear(0) = 0 and formulated the non-blocking tail trajectory condition where the tail vehicle accelerates to cruise speed before EV arrival.
-2. Time-Aware Yielding Probability: Incorporated deadline feasibility p_i = P(yield_i) * P(T_maneuver <= \Delta t_deadline(i)), modeling maneuver latency T_maneuver ~ Lognormal(\mu, \sigma^2) against the EV approach deadline.
-3. Distributional Consistency (Poisson-Binomial): Replaced the homogeneous binomial assumption with the exact Poisson-Binomial distribution N_rem ~ PoissonBinomial(p_1, ..., p_N) accounting for vehicle-specific positions and gap availabilities, with exact discrete quantile evaluation via recursive convolution.
-4. Definitive Positioning vs. Obrusník et al. (2020): Clarified that Obrusník predicts queue discharge AFTER preemption, whereas CC-HLP predicts alert-induced voluntary yielding BEFORE preemption to bridge the Decision Horizon Lag.
-5. Model-Based Chance Constraint Scope: Clarified the 99% guarantee as a model-based chance constraint conditioned on calibrated behavioral distributions, and documented FCM as an experimental participatory sensing channel distinct from safety-critical roadside controller actuation.
+Review this final research formulation before experimental execution.
+In this version:
+1. Resolved the spatial queue configuration critique: Explicitly defined N_crit as an analytical screening upper-bound, while specifying trajectory-based spatial slot vacancy tracking in microscopic simulation.
+2. Corrected lognormal statistical notation: Accurately specified [3.1s, 9.8s] as the central 90% interval (and [2.8s, 10.9s] as the 95% interval) for T_maneuver ~ Lognormal(\mu_m = 1.705, \sigma_m = 0.35).
+3. Disentangled dual-channel alerting: Explicitly separated the acoustic siren propagation channel from the mobile digital push notification channel with independent latencies.
+4. Finalized the 4-controller experimental protocol directly comparing the predictive model against a matched-sensor continuous reactive observer.
 
-Evaluate whether this finalized manuscript proposal provides a publication-ready scientific framework for IEEE ITSC / IEEE T-ITS.
+Evaluate the readiness of this framework for experimental validation targeting IEEE ITSC.
 ```
 
 ================================================================================
@@ -24,7 +23,7 @@ Integrating Mobile Participatory Alerts with Stochastic Queue Discharge Dynamics
 ## 1. ABSTRACT
 Emergency Vehicle Preemption (EVP) controllers face a persistent trade-off: triggering green waves prematurely induces severe cross-street arterial gridlock, while triggering them too late forces emergency vehicles (EVs) to decelerate behind stationary civilian queues. While queue-discharge preemption algorithms (e.g., Obrusník et al., 2020) adapt green onset to observed stationary queues, they treat civilian traffic as purely passive agents that only disperse after the signal displays green. Conversely, human-factors research (e.g., Lidestam et al., 2020) demonstrates that advance in-vehicle warnings induce earlier lateral yielding, yet this behavioral response has never been integrated into preemption scheduling. Furthermore, recent 2026 preemption frameworks rely on dedicated Connected Autonomous Vehicle (CAV) infrastructure, leaving mixed legacy human traffic unaddressed.
 
-In this paper, we investigate whether predicting alert-induced, time-feasible driver yielding can improve emergency signal-preemption timing under stochastic uncertainty, reducing cross-street disruption relative to existing queue-aware and continuous reactive control strategies. We formulate a time-aware yielding model where each queued vehicle $i$ yields with probability $p_i$, conditioned on both five-stage behavioral compliance and deadline feasibility before EV arrival ($T_{\text{maneuver}} \le \Delta t_{\text{deadline}}(i)$). Because individual probabilities are heterogeneous, we model the residual blocking queue as a discrete Poisson-Binomial random variable and formulate a Chance-Constrained Trigger Invariant using its exact discrete quantile: $\mathbb{P}(T_{\text{clear}}(N_{\text{rem}}) + T_{\text{transition}} \le \text{ETA}) \ge 1 - \varepsilon$. This guarantees model-based preemption safety at a defined confidence level (e.g., 99%). We validate our framework through microscopic simulation in SUMO (SL2015 sublane model) across four benchmark controllers, including a continuous reactive queue observer with identical simulated yielding behavior.
+In this paper, we investigate a chance-constrained preemption framework that incorporates time-feasible, alert-induced yielding probabilities into queue-clearance prediction, and experimentally evaluates whether predictive scheduling outperforms reactive queue observation under matched sensing and control constraints. We formulate a time-aware yielding model where each queued vehicle $i$ yields with probability $p_i$, conditioned on five-stage behavioral compliance, dual-channel alert perception (mobile digital chime and acoustic siren), and deadline feasibility before EV arrival ($T_{\text{maneuver}} \le \Delta t_{\text{deadline}}(i)$). Because individual probabilities are heterogeneous, we model the residual blocking queue as a discrete Poisson-Binomial random variable and formulate a Chance-Constrained Trigger Invariant using its exact discrete quantile over residual-blocker probabilities $1 - p_i$: $\mathbb{P}(T_{\text{clear}}(N_{\text{rem}}) + T_{\text{transition}} \le \text{ETA}) \ge 1 - \varepsilon$. This guarantees model-based preemption safety at a defined confidence level (e.g., 99%). We validate our framework through microscopic simulation in SUMO (SL2015 sublane model) across four benchmark controllers, including a continuous reactive queue observer with identical simulated yielding behavior.
 
 ---
 
@@ -48,47 +47,61 @@ A fundamental scientific challenge is whether predicting future yielding behavio
 **Physical Basis of the Decision Horizon Lag:**
 1. **Signal Transition Latency ($T_{\text{transition}}$)**: Mandatory clearance intervals (minimum conflicting green, yellow change, all-red clearance) require $8\text{ to }14\text{ seconds}$ before the corridor signal can physically turn green.
 2. **Human Maneuver Latency ($t_{\text{maneuver}}$)**: For a civilian driver to perceive an alert, check mirrors, find an adjacent gap, and execute a lateral lane change requires $5\text{ to }9\text{ seconds}$.
-3. **Combined Lookahead Horizon ($\Delta t_{\text{decision}} = T_{\text{transition}} + t_{\text{maneuver}} = 13\text{ to }23\text{ seconds}$)**:
-   An EV traveling at $72\text{ km/h}$ ($20\text{ m/s}$) traverses **$d_{\text{horizon}} = v_{\text{EV}} \cdot \Delta t_{\text{decision}} \approx 260\text{ to }460\text{ meters}$** during this combined window.
-   *(Note: This is the decision traversal distance, distinct from the physical emergency braking distance $d_{\text{brake}} = \frac{v^2}{2b} \approx 44.4\text{ m}$ at $b = 4.5\text{ m/s}^2$).*
+3. **Timing Relationships**:
+   - **Concurrent Overlapping Horizon**: When drivers execute lateral yielding maneuvers concurrently while the signal controller transitions phases, the minimum critical lookahead window is $\Delta t_{\text{conc}} = \max(T_{\text{transition}}, t_{\text{maneuver}}) \approx 10\text{--}14\text{ seconds}$.
+   - **Sequential Decision Horizon**: When the controller requires confirmed queue vacancy before committing to phase termination, the horizon is additive: $\Delta t_{\text{seq}} = T_{\text{transition}} + t_{\text{maneuver}} \approx 13\text{--}23\text{ seconds}$.
+   - At $v_{\text{EV}} = 20\text{ m/s}$ ($72\text{ km/h}$), this defines a lookahead decision traversal distance $d_{\text{horizon}} = v_{\text{EV}} \cdot \Delta t \approx 200\text{ to }460\text{ meters}$. *(Note: This is the decision traversal distance, distinct from the physical emergency braking distance $d_{\text{brake}} = \frac{v^2}{2b} \approx 44.4\text{ m}$ at $b = 4.5\text{ m/s}^2$).*
    - If a reactive observer waits until drivers have physically completed their lane change to *observe* the reduced queue, the remaining arrival time is insufficient to complete the mandatory $8\text{--}14\text{s}$ yellow/red clearance sequence without forcing the EV to decelerate.
-   - If an observer triggers early based on the un-yielded queue, it cuts off cross-traffic $13\text{--}23\text{ seconds}$ prematurely.
+   - If an observer triggers early based on the un-yielded queue, it cuts off cross-traffic prematurely.
    - **Predictive preemption bridges this decision gap by evaluating the probability distribution of queue clearance across the lookahead horizon.**
 
 ---
 
 ## 3. MATHEMATICAL FORMULATION
 
-### 3.1 Kinematic Queue Clearance Formulation
-For an approach with $N$ stationary blocking vehicles, queue clearance time $T_{\text{clear}}(N)$ is defined with explicit boundary conditions:
+### 3.1 Kinematic Stopline Queue Clearance Formulation
+To avoid conflicting definitions of tail motion vs. discharge, we ground the clearance horizon strictly in the time required for a queue of $N$ standing vehicles to fully clear the intersection conflict zone across the stopline:
 
-$$T_{\text{clear}}(N) = \begin{cases} 0, & \text{if } N = 0 \\ t_L + \frac{N}{q_{\max}}, & \text{if } N \ge 1 \end{cases}$$
+$$T_{\text{clear}}(N) = \begin{cases} 0, & \text{if } N = 0 \\ t_L + N \cdot h_s, & \text{if } N \ge 1 \end{cases}$$
 
 Where:
 - $t_L$: Excess startup lost time of the lead vehicle beyond steady saturation headway ($t_L \approx 2.0\text{ s}$).
-- $q_{\max}$: Saturation flow rate ($q_{\max} \approx 0.5\text{ veh/s} \implies h_s = 2.0\text{ s/veh}$).
+- $h_s = \frac{1}{q_{\max}}$: Saturation departure headway ($h_s = 2.0\text{ s/veh} \implies q_{\max} = 0.5\text{ veh/s}$).
 - Upstream arrival flow is assumed negligible during the dedicated emergency phase ($q_{\text{in}} \approx 0$).
 
-#### Tail-of-Queue Motion Condition:
-The $N$-th queued vehicle departs at time $t_{\text{depart}}(N) = t_L + (N - 1) h_s$. To ensure non-blocking passage, the EV trajectory $x_{\text{EV}}(t) = x_{\text{EV}}(0) + v_{\text{cruise}} t$ must not intersect the deceleration boundary of the tail vehicle before it accelerates to non-interfering speed: $x_{\text{EV}}(t) \le x_{\text{tail}}(t) - d_{\text{safe}}$.
+#### Spatial Queue Position vs. Analytical Count Clarification:
+The analytical queue count $N_{\text{crit}}$ serves as a conservative screening upper-bound. In our microscopic simulation environment, vehicle identities and longitudinal coordinates $\vec{x} = (x_1, \dots, x_N)$ are preserved, verifying that slot vacancies created by yielding vehicles correspond to physically clear paths before EV arrival.
 
 ---
 
 ### 3.2 Time-Aware Heterogeneous Yielding Probability Model
-For vehicle $i \in \{1, \dots, N\}$ located at distance $d_i$ from the stopline, yielding is effective only if the maneuver is completed before the EV reaches vehicle $i$.
+Let the intersection stopline be at position $x = 0$. Each queued vehicle $i \in \{1, \dots, N\}$ has longitudinal position $x_i(t) \le 0$ (with $x_1$ closest to the stopline, and $x_N = -(N \cdot l_{\text{veh}})$ at the queue tail).
+Let the ambulance be at position $x_{\text{amb}}(t) < x_i(t)$ with speed $v_{\text{EV}}$.
 
-The time remaining before the EV reaches vehicle $i$ is:
-$$\Delta t_{\text{deadline}}(i) = \frac{d_{\text{amb}} - (N - i) l_{\text{veh}}}{v_{\text{EV}}}$$
+The longitudinal distance separating the ambulance from vehicle $i$ is:
+$$\Delta x_i(t) = x_i(t) - x_{\text{amb}}(t)$$
 
-Maneuver completion time $T_{\text{maneuver}}$ is modeled as a log-normal random variable:
-$$T_{\text{maneuver}} \sim \operatorname{Lognormal}(\mu_m, \sigma_m^2) \quad (\text{calibrated with median } 5.5\text{ s})$$
+The time remaining before the ambulance reaches vehicle $i$'s safety buffer $d_{\text{safe}}$ is:
+$$\Delta t_{\text{deadline}}(i) = \max\left( 0, \, \frac{\Delta x_i(t) - d_{\text{safe}}}{v_{\text{EV}}} \right)$$
+
+If $\Delta t_{\text{deadline}}(i) = 0$, vehicle $i$'s yielding window has expired, and its feasible yielding probability is strictly zero.
+
+For $\Delta t_{\text{deadline}}(i) > 0$, maneuver completion time $T_{\text{maneuver}}$ is modeled as a log-normal random variable calibrated from empirical NHTSA/FHWA lane-change studies:
+$$T_{\text{maneuver}} \sim \operatorname{Lognormal}(\mu_m = 1.705, \, \sigma_m = 0.35)$$
+*(corresponding to a median maneuver time $e^{\mu_m} = 5.5\text{ s}$, with a central 90% confidence interval of $[3.1\text{ s}, 9.8\text{ s}]$ and a 95% interval of $[2.8\text{ s}, 10.9\text{ s}]$)*.
 
 The deadline completion feasibility is:
-$$P(\text{feasible}_i) = \mathbb{P}\Big( T_{\text{maneuver}} \le \Delta t_{\text{deadline}}(i) \Big) = \Phi_{\text{LN}}\left( \frac{\ln \Delta t_{\text{deadline}}(i) - \mu_m}{\sigma_m} \right)$$
+$$P(\text{feasible}_i) = \mathbb{P}\Big( T_{\text{maneuver}} \le \Delta t_{\text{deadline}}(i) \Big) = \Phi_{\text{standard}}\left( \frac{\ln \Delta t_{\text{deadline}}(i) - \mu_m}{\sigma_m} \right)$$
 
-Combining this with the behavioral probability chain yields the vehicle-specific yielding probability $p_i$:
+#### Dual-Channel Alert Perception:
+We decouple acoustic siren perception from in-cabin digital mobile notifications:
+$$P(\text{alert}_i) = 1 - \underbrace{(1 - P_{\text{app\_chime}})}_{\text{Digital Push Channel}} \cdot \underbrace{\exp\left( - \frac{\sigma_{\text{audio}}}{\Delta x_i(t) + \epsilon} \right)}_{\text{Acoustic Siren Channel}}$$
 
-$$p_i = \underbrace{\rho_{\text{app}} \cdot (1 - P_{\text{loss}}) \cdot \left[ 1 - \exp\left( - \frac{\sigma_{\text{audio}}}{d_{\text{amb}} + \epsilon} \right) \right] \cdot \eta_{\text{compliance}} \cdot \exp( - q_{\text{adj}} \cdot t_c )}_{P(\text{yield behavior})} \cdot P(\text{feasible}_i)$$
+Where $P_{\text{app\_chime}} = \rho_{\text{app}} \cdot (1 - P_{\text{loss}})$.
+
+Combining deadline feasibility with behavioral compliance:
+
+$$p_i = P(\text{alert}_i) \cdot \eta_{\text{compliance}} \cdot \exp( - q_{\text{adj}} \cdot t_c ) \cdot P(\text{feasible}_i)$$
 
 Where:
 - $\rho_{\text{app}} \in [0, 1]$: Mobile app adoption rate.
@@ -99,20 +112,22 @@ Where:
 ---
 
 ### 3.3 Poisson-Binomial Stochastic Queue Distribution & Exact Quantile
-Because individual yielding probabilities $p_i$ vary with queue position and deadline feasibility, the residual blocking queue $N_{\text{rem}}$ follows a **Poisson-Binomial distribution**:
+Because individual yielding probabilities $p_i$ vary with vehicle position and deadline feasibility, the residual blocking queue $N_{\text{rem}}$ is the sum of non-identical Bernoulli trials:
 
 $$N_{\text{rem}} = \sum_{i=1}^{N_k} (1 - X_i), \quad X_i \sim \operatorname{Bernoulli}(p_i)$$
-$$N_{\text{rem}} \sim \operatorname{PoissonBinomial}(1 - p_1, \, 1 - p_2, \, \dots, \, 1 - p_{N_k})$$
+$$N_{\text{rem}} \sim \operatorname{PoissonBinomial}\big(1 - p_1, \, 1 - p_2, \, \dots, \, 1 - p_{N_k}\big)$$
+
+Where $q_i = 1 - p_i$ represents the residual-blocker probability for vehicle $i$.
 
 #### The Model-Based Chance Constraint:
 $$\mathbb{P}\Big( T_{\text{clear}}(N_{\text{rem}}) + T_{\text{transition}} \le \text{ETA}_k(t) \Big) \ge 1 - \varepsilon$$
 
-Where $\varepsilon \in (0, 1)$ is the allowable model risk tolerance (e.g., $\varepsilon = 0.01$ denotes a 99% model-based safety confidence bound under the assumed distributions).
+Where $\varepsilon \in (0, 1)$ is the chosen model risk tolerance (e.g., $\varepsilon = 0.01$ denotes a 99% model-based safety confidence bound under the assumed distributions).
 
-#### Exact Discrete Quantile Evaluation:
-The critical residual queue $N_{\text{crit}}$ is evaluated directly via the exact Poisson-Binomial inverse cumulative distribution function (evaluated via recursive convolution):
+#### Exact Discrete Quantile Evaluation over Residual-Blocker Probabilities:
+The critical residual queue $N_{\text{crit}}$ is evaluated directly via the exact Poisson-Binomial inverse cumulative distribution function parameterized by the blocker probabilities $1 - p_i$ (evaluated via recursive convolution):
 
-$$N_{\text{crit}} = F^{-1}_{\text{PoissonBin}}(1 - \varepsilon \mid p_1, \dots, p_{N_k}) = \min \left\{ n \in \{0, \dots, N_k\} \;\middle|\; F_{\text{PB}}(n) \ge 1 - \varepsilon \right\}$$
+$$N_{\text{crit}} = F^{-1}_{\text{PoissonBin}}\big(1 - \varepsilon \;\big|\; 1 - p_1, \, \dots, \, 1 - p_{N_k}\big) = \min \left\{ n \in \{0, \dots, N_k\} \;\middle|\; F_{\text{PB}}(n \mid 1 - p_1, \dots, 1 - p_{N_k}) \ge 1 - \varepsilon \right\}$$
 
 #### Event-Driven Trigger Condition:
 Preemption is initiated at the first boundary-crossing instant $\tau^*$:
@@ -161,5 +176,5 @@ To rigorously isolate the scientific contribution, four controllers are evaluate
 ## 5. SUMMARY OF SCIENTIFIC CONTRIBUTIONS
 1. **Falsifiable Observer vs. Predictor Formulation**: Explicitly tests whether predictive human yielding estimation outperforms continuous reactive queue observation during signal transition decision windows.
 2. **Time-Aware Poisson-Binomial Chance Constraint**: Incorporates maneuver deadline feasibility and heterogeneous vehicle probabilities into an exact discrete quantile for small queue safety guarantees.
-3. **Closing the Behavioral Loop**: First formal mathematical bridge coupling in-cabin participatory alert dynamics with traffic signal controller preemption.
+3. **Closing the Behavioral Loop**: Bridges the gap between in-cabin participatory alert dynamics and traffic signal controller preemption under stochastic uncertainty.
 ================================================================================
