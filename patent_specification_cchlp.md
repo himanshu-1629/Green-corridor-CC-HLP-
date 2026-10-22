@@ -130,44 +130,65 @@ Preemption is triggered at the earliest instant where $\text{ETA}(t) \le T_{\tex
 
 ### What is claimed is:
 
-**1. A method for dynamic emergency vehicle preemption at a signalized intersection, the method comprising:**
-- receiving, at an edge traffic controller, real-time telemetry comprising a position and speed of an approaching emergency vehicle;
+---
+
+### CLAIM GROUP A: CLOSED-LOOP PREEMPTION SYSTEM (APPARATUS / CPS CLAIMS)
+
+**1. A cyber-physical system for closed-loop emergency vehicle preemption at a signalized intersection, the system comprising:**
+- a vehicle-state telemetry interface configured to receive real-time kinematic coordinates comprising a position and speed of an approaching emergency vehicle;
+- at least one queue sensor configured to detect an initial stationary queue count $N$ occupying an approach lane of the intersection;
+- an advisory-message interface communicatively coupled to a cloud network to broadcast opportunistic advisory notifications to mobile client devices located within a dynamic lookahead geofence upstream of the intersection;
+- a traffic-signal controller interface operatively coupled to a roadside traffic signal cabinet;
+- an edge controller processor coupled to the telemetry interface, the queue sensor, the advisory-message interface, and the traffic-signal controller interface, the processor configured to:
+  - determine an individualized yielding probability $p_i$ for each vehicle $i \in \{1, \dots, N\}$ conditioned on maneuver deadline feasibility and advisory notification delivery;
+  - compute a discrete probability distribution of a residual blocking queue $N_{\text{rem}}$ based on blocker probabilities $q_i = 1 - p_i$;
+  - determine an exact discrete risk-constrained quantile $N_{\text{crit}}$ of the residual blocking queue satisfying $\mathbb{P}(N_{\text{rem}} \le N_{\text{crit}}) \ge 1 - \varepsilon$, wherein $\varepsilon \in (0, 1)$ is a predetermined risk tolerance;
+  - schedule a preemption initiation instant based on a clearance duration $T_{\text{clear}}(N_{\text{crit}})$ and a mandatory signal transition duration $T_{\text{transition}}$; and
+  - transmit an actionable preemption command via the traffic-signal controller interface to actuate a green signal phase; and
+- a hardware Malfunction Management Unit (MMU) coupled to the traffic signal cabinet to physically enforce conflicting clearance intervals independently of software commands.
+
+**2. The system of claim 1, wherein the roadside edge controller processor evaluates a Pareto-optimal trade-off between cross-street civilian delay and emergency vehicle progression braking by calibrating the risk tolerance parameter $\varepsilon \in [0.01, 0.10]$.**
+
+**3. The system of claim 1, wherein the preemption command reduces aggregate preemption green duration by at least 2.0 seconds per intersection compared to a passive queue-discharge baseline, while maintaining zero complete stops for the emergency vehicle.**
+
+---
+
+### CLAIM GROUP B: TIME-AWARE RESIDUAL-QUEUE PREEMPTION METHOD
+
+**4. A method for dynamic emergency vehicle preemption at a signalized intersection, the method comprising:**
+- receiving real-time telemetry comprising a position and speed of an approaching emergency vehicle;
 - detecting, via at least one roadside sensor, an initial stationary queue count $N$ in an approach lane of the intersection;
-- obtaining, for each vehicle $i \in \{1, \dots, N\}$ in the approach lane, an individualized yielding probability $p_i$ based on a spatial distance to the emergency vehicle and a maneuver deadline feasibility;
-- computing a discrete probability distribution of a residual blocking queue $N_{\text{rem}}$ based on blocker probabilities $q_i = 1 - p_i$;
-- calculating, using a predetermined risk tolerance parameter $\varepsilon$, an exact discrete quantile $N_{\text{crit}}$ of the residual blocking queue satisfying $\mathbb{P}(N_{\text{rem}} \le N_{\text{crit}}) \ge 1 - \varepsilon$;
-- calculating a dynamic preemption lead time $T_{\text{lead}} = T_{\text{clear}}(N_{\text{crit}}) + T_{\text{transition}}$, wherein $T_{\text{clear}}(N_{\text{crit}})$ is a stopline queue clearance duration for $N_{\text{crit}}$ vehicles, and $T_{\text{transition}}$ is a mandatory signal transition duration; and
+- obtaining, for each vehicle $i \in \{1, \dots, N\}$ in the approach lane, an individualized yielding probability $p_i$ conditioned on alert perception, lateral gap availability, and a vehicle-specific maneuver deadline $\Delta t_{\text{deadline}}(i) = \frac{\Delta x_i - d_{\text{safe}}}{v_{\text{EV}}}$, wherein $\Delta x_i$ is a longitudinal separation to the emergency vehicle, $d_{\text{safe}}$ is a spatial safety buffer, and $v_{\text{EV}}$ is the emergency vehicle speed;
+- computing a discrete Poisson-Binomial distribution of a residual blocking queue $N_{\text{rem}}$ based on blocker probabilities $q_i = 1 - p_i$;
+- calculating, using a predetermined risk tolerance parameter $\varepsilon$, an exact discrete quantile $N_{\text{crit}}$ of the residual blocking queue satisfying $\mathbb{P}(N_{\text{rem}} \le N_{\text{crit}}) \ge 1 - \varepsilon$ via recursive discrete convolution;
+- calculating a dynamic preemption lead time $T_{\text{lead}} = T_{\text{clear}}(N_{\text{crit}}) + T_{\text{transition}}$, wherein $T_{\text{clear}}(N_{\text{crit}})$ is a stopline queue clearance duration for $N_{\text{crit}}$ vehicles enforcing an explicit zero boundary condition $T_{\text{clear}}(0) = 0$, and $T_{\text{transition}}$ is a mandatory signal transition duration; and
 - actuating a preemption phase transition at the intersection when an estimated time of arrival ($\text{ETA}$) of the emergency vehicle satisfies $\text{ETA} \le T_{\text{lead}}$.
 
-**2. The method of claim 1, wherein the individualized yielding probability $p_i$ is determined by:**
-- evaluating an alert perception probability $P(\text{alert}_i)$ combining a digital mobile notification channel and an acoustic siren channel;
-- evaluating a maneuver deadline $\Delta t_{\text{deadline}}(i) = \frac{\Delta x_i - d_{\text{safe}}}{v_{\text{EV}}}$, wherein $\Delta x_i$ is a longitudinal separation between vehicle $i$ and the emergency vehicle, $d_{\text{safe}}$ is a predetermined safety buffer, and $v_{\text{EV}}$ is the speed of the emergency vehicle; and
-- setting a deadline completion feasibility $P(\text{feasible}_i)$ to strictly zero if $\Delta t_{\text{deadline}}(i) \le 0$, and evaluating $P(\text{feasible}_i)$ via a lognormal cumulative distribution function if $\Delta t_{\text{deadline}}(i) > 0$.
+**5. The method of claim 4, wherein obtaining the individualized yielding probability $p_i$ comprises:**
+- setting a deadline completion feasibility $P(\text{feasible}_i)$ to strictly zero if $\Delta t_{\text{deadline}}(i) \le 0$; and
+- evaluating $P(\text{feasible}_i)$ via a lognormal cumulative distribution function $\Phi_{\text{standard}}\left( \frac{\ln \Delta t_{\text{deadline}}(i) - \mu_m}{\sigma_m} \right)$ if $\Delta t_{\text{deadline}}(i) > 0$, wherein $\mu_m = 1.705$ and $\sigma_m = 0.35$.
 
-**3. The method of claim 2, wherein the digital mobile notification channel comprises:**
-- establishing a dynamic geofence upstream of the intersection having a lookahead distance $d_{\text{horizon}} = v_{\text{EV}} \cdot (T_{\text{transition}} + t_{\text{maneuver}})$, wherein $t_{\text{maneuver}}$ is an expected vehicle lane-change duration; and
-- transmitting an advisory notification to mobile client devices located within the dynamic geofence.
+**6. The method of claim 4, wherein the alert perception combines a digital mobile push notification channel and an acoustic siren channel:**
+$$P(\text{alert}_i) = 1 - (1 - P_{\text{mobile}}) \cdot (1 - P_{\text{acoustic}}(\Delta x_i))$$
+wherein $P_{\text{acoustic}}(\Delta x_i) = \frac{1}{1 + \exp\left( \frac{\Delta x_i - d_{\text{mid}}}{\sigma_{\text{audio}}} \right)}$ with $d_{\text{mid}} = 180\text{ m}$ and $\sigma_{\text{audio}} = 30\text{ m}$.
 
-**4. The method of claim 1, wherein the discrete probability distribution of the residual blocking queue $N_{\text{rem}}$ is a Poisson-Binomial distribution, and wherein the exact discrete quantile $N_{\text{crit}}$ is evaluated via recursive discrete convolution of the blocker probabilities $1 - p_1, \dots, 1 - p_N$.**
+**7. The method of claim 4, wherein the dynamic lookahead geofence has an upstream distance $d_{\text{horizon}} = v_{\text{EV}} \cdot (T_{\text{transition}} + t_{\text{maneuver}})$, wherein $t_{\text{maneuver}}$ is an expected vehicle lane-change maneuver duration.**
 
-**5. The method of claim 1, wherein the stopline queue clearance duration $T_{\text{clear}}(N_{\text{crit}})$ enforces an explicit zero boundary condition:**
-$$T_{\text{clear}}(N) = \begin{cases} 0, & \text{if } N = 0 \\ t_L + N \cdot h_s, & \text{if } N \ge 1 \end{cases}$$
-wherein $t_L$ is a startup lost time, and $h_s$ is a saturation departure headway.
+---
 
-**6. The method of claim 1, wherein upon detecting a loss or latency spike exceeding a threshold in mobile communications, the edge traffic controller sets the yielding probability $p_i \to 0$ for distant queued vehicles, expanding $N_{\text{crit}} \to N$, thereby automatically degrading to a passive queue-discharge preemption mode.**
+### CLAIM GROUP C: CONSERVATIVE FAIL-SAFE FALLBACK OPERATION
 
-**7. A cyber-physical system for dynamic emergency vehicle preemption, comprising:**
-- a cloud computing server configured to track real-time emergency vehicle coordinates, define a dynamic lookahead geofence, and broadcast advisory notifications to mobile client devices;
-- a roadside edge controller communicatively coupled to the cloud computing server and interfaced with a traffic signal cabinet, the roadside edge controller comprising a processor and a memory storing executable instructions to:
-  - determine an initial standing queue count $N$ in an approach lane;
-  - compute individualized yielding probabilities $p_1, \dots, p_N$ conditioned on mobile alert delivery and deadline feasibility;
-  - calculate an exact discrete Poisson-Binomial quantile $N_{\text{crit}}$ bounding residual blocker probability at a confidence level $1 - \varepsilon$;
-  - schedule a preemption initiation instant based on $T_{\text{clear}}(N_{\text{crit}}) + T_{\text{transition}}$; and
-  - output a preemption command to the traffic signal cabinet; and
-- a hardware Malfunction Management Unit (MMU) coupled to the traffic signal cabinet to enforce conflicting clearance intervals independently of software commands.
+**8. An apparatus for fail-safe traffic signal preemption control under communication uncertainty, comprising a processor and a memory storing instructions that, when executed by the processor, cause the processor to:**
+- monitor an operational status and network latency of an advisory-message interface communicating with client mobile devices;
+- determine an initial stationary queue count $N$ in an approach lane;
+- operate in a first predictive preemption mode when the advisory-message interface is operational, wherein preemption timing is calculated based on a risk-bounded quantile $N_{\text{crit}} < N$ derived from alert-induced yielding probabilities;
+- transition to a second conservative fallback mode upon detecting that advisory communications have become stale, delayed beyond a predetermined latency threshold, or unavailable;
+- set the yielding probability $p_i \to 0$ for distant queued vehicles in the second conservative fallback mode, thereby setting the critical clearance queue $N_{\text{crit}} = N$; and
+- schedule preemption green initiation using the full conservative queue clearance time $T_{\text{clear}}(N) = t_L + N \cdot h_s$, thereby ensuring complete queue dissipation without relying on unconfirmed voluntary driver yielding.
 
-**8. The system of claim 7, wherein the roadside edge controller evaluates a Pareto-optimal trade-off between cross-street civilian delay and emergency vehicle deceleration episodes by adjusting the risk tolerance parameter $\varepsilon \in [0.01, 0.10]$.**
+**9. The apparatus of claim 8, wherein the predetermined latency threshold is 800 milliseconds.**
 
-**9. The system of claim 7, wherein the preemption command reduces aggregate preemption green duration by at least 2.0 seconds per intersection compared to a passive queue-discharge baseline, while maintaining zero complete stops for the emergency vehicle.**
+**10. The apparatus of claim 8, wherein the second conservative fallback mode maintains active acoustic siren perception modeling while zeroing digital mobile alert probability, setting $P(\text{alert}_i) = P_{\text{acoustic}}(\Delta x_i)$.**
 
-**10. A non-transitory computer-readable medium storing instructions that, when executed by a processor of an edge traffic controller, cause the processor to perform the method of claim 1.**
+**11. A non-transitory computer-readable medium storing instructions that, when executed by a processor of an edge traffic controller, cause the processor to perform the method of claim 4.**
+
