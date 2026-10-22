@@ -9,8 +9,8 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../services/citizen_alert_service.dart';
 import '../theme/app_theme.dart';
-import '../widgets/organ_viability_hud.dart';
 import 'login_screen.dart';
+
 
 class CitizenScreen extends StatefulWidget {
   const CitizenScreen({super.key});
@@ -1296,14 +1296,7 @@ class _CitizenScreenState extends State<CitizenScreen> with SingleTickerProvider
             "Vehicle: ${activeAmbulancePlate()} • Medical emergency convoy approaching along your street.",
             style: const TextStyle(fontSize: 13, color: AppColors.slate600),
           ),
-          const SizedBox(height: 14),
 
-          // Real-time Cold Ischemia Telemetry for Approaching Medical Transport
-          OrganViabilityHUD(
-            organType: organ,
-            harvestOrStartTime: DateTime.tryParse(_activeMission?['created_at']?.toString() ?? '') ?? DateTime.now(),
-            isCompact: true,
-          ),
         ],
       ),
     );

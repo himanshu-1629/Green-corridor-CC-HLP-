@@ -10,7 +10,6 @@ import 'package:google_fonts/google_fonts.dart';
 import '../services/citizen_alert_service.dart';
 import '../services/push_notification_service.dart';
 import '../theme/app_theme.dart';
-import '../widgets/organ_viability_hud.dart';
 import 'login_screen.dart';
 
 class DriverDashboard extends StatefulWidget {
@@ -1687,16 +1686,6 @@ class _DriverDashboardState extends State<DriverDashboard> {
                     ),
                   ),
                   const SizedBox(height: 18),
-
-                  // Real-time Cold Ischemia Telemetry for Organ Transit
-                  if (!isReturnJourney && mission != null) ...[
-                    OrganViabilityHUD(
-                      organType: mission!['patient_name'],
-                      harvestOrStartTime: DateTime.tryParse(mission!['created_at']?.toString() ?? '') ?? DateTime.now(),
-                      isCompact: true,
-                    ),
-                    const SizedBox(height: 18),
-                  ],
 
                   // Route Stops Card
                   Container(

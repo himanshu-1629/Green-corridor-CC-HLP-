@@ -15,11 +15,7 @@
 ---
 
 ## 📌 1. Executive Summary & Societal Problem
-
-In emergency medicine, donated human organs have a hyper-sensitive **ischemic tolerance window**:
-* **Heart & Lungs**: Must be transplanted within **4 hours**.
-* **Liver**: Must be transplanted within **6–8 hours**.
-* **Kidneys**: Up to **24–36 hours**.
+In emergency medical transfers and organ transit, rapid traffic clearance and real-time coordination directly determine patient outcomes and life-saving success.
 
 ### The Problem in India Today:
 1. **Manual Traffic Police Bandobast**: Creating a municipal "Green Corridor" currently demands hundreds of phone calls, physical police deployment along every junction, and manual road barricades.

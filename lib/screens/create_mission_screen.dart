@@ -4,7 +4,6 @@ import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:google_fonts/google_fonts.dart';
-import '../services/organ_viability_service.dart';
 import '../services/push_notification_service.dart';
 import '../theme/app_theme.dart';
 
@@ -485,48 +484,6 @@ class _CreateMissionScreenState extends State<CreateMissionScreen> {
                   );
                 }).toList(),
               ),
-              if (selectedOrgan != null) ...[
-                const SizedBox(height: 12),
-                Container(
-                  padding: const EdgeInsets.all(14),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFF0F172A),
-                    borderRadius: BorderRadius.circular(14),
-                    border: Border.all(color: AppColors.emerald.withValues(alpha: 0.35)),
-                  ),
-                  child: Row(
-                    children: [
-                      const Icon(Icons.timelapse_rounded, color: AppColors.emerald, size: 20),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              "COLD ISCHEMIA TIME (CIT) TARGET: ${selectedOrgan!.toUpperCase()}",
-                              style: const TextStyle(
-                                color: Colors.white,
-                                fontSize: 11,
-                                fontWeight: FontWeight.w800,
-                                letterSpacing: 0.5,
-                              ),
-                            ),
-                            const SizedBox(height: 2),
-                            Text(
-                              "Max Safe CIT: ${OrganViabilityService.getSpec(selectedOrgan).maxCitHours.toStringAsFixed(1)} Hours • ${OrganViabilityService.getSpec(selectedOrgan).preservationMethod} • Target Temp: ${OrganViabilityService.getSpec(selectedOrgan).minOptimalTemp}-${OrganViabilityService.getSpec(selectedOrgan).maxOptimalTemp}°C",
-                              style: const TextStyle(
-                                color: Color(0xFF94A3B8),
-                                fontSize: 11,
-                                height: 1.3,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
               const SizedBox(height: 24),
             ],
 
