@@ -585,11 +585,18 @@ class _DriverDashboardState extends State<DriverDashboard> {
   Future<void> _handleMissionAction() async {
     if (mission == null) return;
 
+    final currentStatus = (mission!['status'] ?? '').toString();
+    final isReadyToStart = currentStatus != 'In Transit' && currentStatus != 'Completed';
+
     try {
-      if (mission!['status'] == 'Assigned') {
+      if (isReadyToStart) {
+        final user = Supabase.instance.client.auth.currentUser;
         await Supabase.instance.client
             .from('missions')
-            .update({'status': 'In Transit'})
+            .update({
+              'status': 'In Transit',
+              if (user != null) 'driver_id': user.id,
+            })
             .eq('id', mission!['id']);
 
         // BROADCAST EMERGENCY SIREN ALERT TO ALL CITIZENS (DRIVER IN TRANSIT)
@@ -607,7 +614,7 @@ class _DriverDashboardState extends State<DriverDashboard> {
           destination: destName,
           organOrPatient: organName,
           ambulancePlate: ambPlate,
-          driverId: mission!['driver_id']?.toString(),
+          driverId: mission!['driver_id']?.toString() ?? user?.id,
           routePoints: routePoints,
           eventType: 'driver_started',
         );
@@ -628,7 +635,7 @@ class _DriverDashboardState extends State<DriverDashboard> {
         }
 
         await startLiveTracking();
-      } else if (mission!['status'] == 'In Transit') {
+      } else if (currentStatus == 'In Transit') {
         await _confirmAndCompleteMission();
       }
     } catch (e) {
@@ -2202,7 +2209,7 @@ class _DriverDashboardState extends State<DriverDashboard> {
                             ),
                             const SizedBox(width: 10),
                             Text(
-                              status == 'Assigned'
+                              status != 'In Transit' && status != 'Completed'
                                   ? "START MISSION (FULL-SCREEN 3D COCKPIT)"
                                   : isTransit
                                       ? "CONFIRM ARRIVAL & COMPLETE MISSION"

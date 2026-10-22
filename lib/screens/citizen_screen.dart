@@ -8,6 +8,7 @@ import 'package:http/http.dart' as http;
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../services/citizen_alert_service.dart';
+import '../services/push_notification_service.dart';
 import '../theme/app_theme.dart';
 import 'login_screen.dart';
 
@@ -46,6 +47,8 @@ class _CitizenScreenState extends State<CitizenScreen> with SingleTickerProvider
   bool _isMuted = false;
   late AnimationController _pulseController;
   late Animation<double> _pulseAnimation;
+  StreamSubscription? _inAppNotificationSubscription;
+  RealtimeChannel? _realtimeMissionChannel;
 
   /// User is considered "in between the path" if:
   /// 1. An active ambulance mission is in transit.
@@ -101,8 +104,70 @@ class _CitizenScreenState extends State<CitizenScreen> with SingleTickerProvider
     _pulseController.dispose();
     _positionSubscription?.cancel();
     _corridorPollTimer?.cancel();
+    _inAppNotificationSubscription?.cancel();
+    _realtimeMissionChannel?.unsubscribe();
     _mapController?.dispose();
     super.dispose();
+  }
+
+  void _showDriverStartedInAppNotification(Map<String, dynamic> data) {
+    if (!mounted) return;
+
+    final plate = data['vehicle_number'] ?? activeAmbulancePlate();
+    final dest = data['destination'] ?? _destinationHospital?['name'] ?? 'Emergency Facility';
+    final patient = data['patient_name'] ?? data['organ'] ?? 'Emergency Patient';
+
+    // Play proximity siren audio
+    CitizenAlertService.triggerProximityAlert(isCritical: true);
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        duration: const Duration(seconds: 10),
+        behavior: SnackBarBehavior.floating,
+        backgroundColor: const Color(0xFFDC2626), // Emergency Red
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+        content: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(8),
+              decoration: const BoxDecoration(
+                color: Colors.white,
+                shape: BoxShape.circle,
+              ),
+              child: const Icon(Icons.emergency_rounded, color: Color(0xFFDC2626), size: 24),
+            ),
+            const SizedBox(width: 14),
+            Expanded(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text(
+                    "🚨 DRIVER STARTED JOURNEY!",
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.w900,
+                      fontSize: 14,
+                      letterSpacing: 0.3,
+                    ),
+                  ),
+                  const SizedBox(height: 3),
+                  Text(
+                    "Ambulance $plate has departed and is actively en route to $dest ($patient). Clear the left lane!",
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.w500,
+                      fontSize: 12,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
   }
 
   Future<void> _initCitizenGpsAndTracking() async {
@@ -162,6 +227,39 @@ class _CitizenScreenState extends State<CitizenScreen> with SingleTickerProvider
     _corridorPollTimer = Timer.periodic(const Duration(seconds: 3), (_) {
       _pollActiveCorridors();
     });
+
+    // Realtime in-app push notification stream listener
+    _inAppNotificationSubscription = PushNotificationService.onInAppNotification.listen((event) {
+      if (!mounted) return;
+      if (event['event_type'] == 'driver_started') {
+        _pollActiveCorridors();
+        _showDriverStartedInAppNotification(event['data'] ?? {});
+      }
+    });
+
+    // Supabase Realtime channel for instant mission state updates
+    try {
+      _realtimeMissionChannel = Supabase.instance.client
+          .channel('public:missions:citizen_live')
+          .onPostgresChanges(
+            event: PostgresChangeEvent.all,
+            schema: 'public',
+            table: 'missions',
+            callback: (payload) {
+              debugPrint("Realtime missions table change: ${payload.eventType}");
+              final newRec = payload.newRecord;
+              if (newRec['status'] == 'In Transit') {
+                _pollActiveCorridors();
+                _showDriverStartedInAppNotification(newRec);
+              } else if (newRec['status'] == 'Completed') {
+                _pollActiveCorridors();
+              }
+            },
+          )
+          .subscribe();
+    } catch (e) {
+      debugPrint("Realtime mission subscribe error: $e");
+    }
   }
 
   Future<void> _pollActiveCorridors() async {
@@ -220,21 +318,23 @@ class _CitizenScreenState extends State<CitizenScreen> with SingleTickerProvider
         }
       }
 
-      if (closestMission == null || closestAmbulance == null) {
-        if (mounted && _activeMission != null) {
-          setState(() {
-            _activeMission = null;
-            _activeAmbulance = null;
-            _distanceToAmbulance = null;
-            _distanceToRoute = null;
-          });
+      // Robust fallback: if no ambulance coordinates matched distance, use first active mission
+      if (closestMission == null && activeMissions.isNotEmpty) {
+        closestMission = activeMissions.first;
+        if (closestMission['ambulance_id'] != null) {
+          closestAmbulance = await Supabase.instance.client
+              .from('ambulances')
+              .select()
+              .eq('id', closestMission['ambulance_id'])
+              .maybeSingle();
         }
-        return;
       }
 
-      final ambLat = (closestAmbulance['latitude'] as num).toDouble();
-      final ambLng = (closestAmbulance['longitude'] as num).toDouble();
-      final ambSpeed = closestAmbulance['speed'] != null ? (closestAmbulance['speed'] as num).toDouble() : null;
+      if (closestMission == null) return;
+
+      double? ambLat = (closestAmbulance?['latitude'] as num?)?.toDouble();
+      double? ambLng = (closestAmbulance?['longitude'] as num?)?.toDouble();
+      final ambSpeed = closestAmbulance?['speed'] != null ? (closestAmbulance!['speed'] as num).toDouble() : null;
 
       // Fetch hospital details if changed
       if (_sourceHospital == null || _sourceHospital!['id'] != closestMission['hospital_id']) {
@@ -255,6 +355,18 @@ class _CitizenScreenState extends State<CitizenScreen> with SingleTickerProvider
               .eq('id', closestMission['destination_hospital_id'])
               .maybeSingle();
         } catch (_) {}
+      }
+
+      // Fallback coordinates from source hospital if ambulance telemetry ping hasn't arrived yet
+      ambLat ??= (_sourceHospital?['latitude'] as num?)?.toDouble() ?? 12.8437;
+      ambLng ??= (_sourceHospital?['longitude'] as num?)?.toDouble() ?? 80.1518;
+
+      // Check if mission just transitioned into In Transit for this citizen session
+      final wasInTransit = _activeMission != null && _activeMission!['status'] == 'In Transit';
+      final isNowInTransit = closestMission['status'] == 'In Transit';
+
+      if (!wasInTransit && isNowInTransit) {
+        _showDriverStartedInAppNotification(closestMission);
       }
 
       // Fetch polyline route if empty or mission changed
@@ -392,7 +504,7 @@ class _CitizenScreenState extends State<CitizenScreen> with SingleTickerProvider
   }
 
   void _focusOnAmbulance() {
-    if (!isUserInCorridorPath || _ambulanceLat == null || _ambulanceLng == null || _mapController == null) return;
+    if (_ambulanceLat == null || _ambulanceLng == null || _mapController == null) return;
     _mapController!.animateCamera(
       CameraUpdate.newCameraPosition(
         CameraPosition(
@@ -423,7 +535,7 @@ class _CitizenScreenState extends State<CitizenScreen> with SingleTickerProvider
     if (_citizenLat != null && _citizenLng != null) {
       points.add(LatLng(_citizenLat!, _citizenLng!));
     }
-    if (isUserInCorridorPath && _ambulanceLat != null && _ambulanceLng != null) {
+    if (_ambulanceLat != null && _ambulanceLng != null) {
       points.add(LatLng(_ambulanceLat!, _ambulanceLng!));
     }
 
@@ -674,8 +786,10 @@ class _CitizenScreenState extends State<CitizenScreen> with SingleTickerProvider
                         _buildWarningAlertBanner()
                       else if (inPath)
                         _buildInPathApproachingBanner()
+                      else if (isCorridorActive)
+                        _buildActiveCorridorTransitBanner()
                       else
-                        _buildClearStatusBanner(isCorridorActive),
+                        _buildClearStatusBanner(false),
 
                       const SizedBox(height: 20),
 
@@ -685,9 +799,9 @@ class _CitizenScreenState extends State<CitizenScreen> with SingleTickerProvider
                       const SizedBox(height: 20),
 
                       // 3. ACTIVE AMBULANCE TELEMETRY CARD
-                      if (inPath) _buildActiveAmbulanceCard(),
+                      if (inPath || isCorridorActive) _buildActiveAmbulanceCard(),
 
-                      if (inPath) const SizedBox(height: 24),
+                      if (inPath || isCorridorActive) const SizedBox(height: 24),
 
                       // 4. CITIZEN FAST-TRACK CLEARANCE PROTOCOLS
                       Text(
@@ -957,6 +1071,87 @@ class _CitizenScreenState extends State<CitizenScreen> with SingleTickerProvider
     );
   }
 
+  Widget _buildActiveCorridorTransitBanner() {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(22),
+      decoration: BoxDecoration(
+        gradient: const LinearGradient(
+          colors: [Color(0xFFD97706), Color(0xFFB45309)],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        borderRadius: BorderRadius.circular(22),
+        boxShadow: [
+          BoxShadow(
+            color: const Color(0xFFD97706).withValues(alpha: 0.35),
+            blurRadius: 18,
+            offset: const Offset(0, 6),
+          ),
+        ],
+      ),
+      child: Row(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: Colors.white.withValues(alpha: 0.2),
+              shape: BoxShape.circle,
+            ),
+            child: const Icon(Icons.airport_shuttle_rounded, color: Colors.white, size: 28),
+          ),
+          const SizedBox(width: 16),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(6),
+                      ),
+                      child: const Text(
+                        "CONVOY IN TRANSIT",
+                        style: TextStyle(
+                          color: Color(0xFFB45309),
+                          fontSize: 10,
+                          fontWeight: FontWeight.w900,
+                          letterSpacing: 0.5,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    Text(
+                      "DRIVER STARTED MISSION",
+                      style: GoogleFonts.plusJakartaSans(
+                        color: Colors.white,
+                        fontSize: 13,
+                        fontWeight: FontWeight.w900,
+                        letterSpacing: 0.3,
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 6),
+                Text(
+                  "Ambulance ${activeAmbulancePlate()} has departed from ${_sourceHospital?['name'] ?? 'Hospital'} and is en route to ${_destinationHospital?['name'] ?? 'Destination'}.${_distanceToAmbulance != null ? ' (${(_distanceToAmbulance! / 1000).toStringAsFixed(1)} km away)' : ''} Keep roads clear.",
+                  style: GoogleFonts.plusJakartaSans(
+                    color: Colors.white.withValues(alpha: 0.95),
+                    fontSize: 13,
+                    height: 1.35,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   Widget _buildClearStatusBanner(bool isCorridorActive) {
     return Container(
       width: double.infinity,
@@ -1026,9 +1221,8 @@ class _CitizenScreenState extends State<CitizenScreen> with SingleTickerProvider
       );
     }
 
-    // 2. Approaching Ambulance Marker (Red Hue)
-    // CRITICAL: USER ONLY SEES THE AMBULANCE GPS WHEN IN BETWEEN THE CORRIDOR PATH!
-    if (inPath && _ambulanceLat != null && _ambulanceLng != null) {
+    // 2. Approaching Ambulance Marker (Red if in path, Orange if active corridor elsewhere)
+    if (_ambulanceLat != null && _ambulanceLng != null) {
       markers.add(
         Marker(
           markerId: const MarkerId('live_ambulance'),
@@ -1036,17 +1230,18 @@ class _CitizenScreenState extends State<CitizenScreen> with SingleTickerProvider
           infoWindow: InfoWindow(
             title: "Ambulance ${activeAmbulancePlate()}",
             snippet: _distanceToAmbulance != null
-                ? "${_distanceToAmbulance!.toStringAsFixed(0)}m away on your route"
+                ? "${_distanceToAmbulance!.toStringAsFixed(0)}m away • In Transit"
                 : "In Transit",
           ),
-          icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueRed),
+          icon: BitmapDescriptor.defaultMarkerWithHue(
+            inPath ? BitmapDescriptor.hueRed : BitmapDescriptor.hueOrange,
+          ),
         ),
       );
     }
 
-    // 3. Destination Hospital Marker (Green Hue) - only shown when in path
-    if (inPath &&
-        _destinationHospital != null &&
+    // 3. Destination Hospital Marker (Green Hue)
+    if (_destinationHospital != null &&
         _destinationHospital!['latitude'] != null &&
         _destinationHospital!['longitude'] != null) {
       final dLat = (_destinationHospital!['latitude'] as num).toDouble();
@@ -1159,11 +1354,11 @@ class _CitizenScreenState extends State<CitizenScreen> with SingleTickerProvider
                   zoomControlsEnabled: false,
                   markers: markers,
                   polylines: {
-                    if (inPath && _routePoints.isNotEmpty)
+                    if (_routePoints.isNotEmpty)
                       Polyline(
                         polylineId: const PolylineId('citizen_corridor_route'),
                         points: _routePoints,
-                        color: AppColors.info, // Electric Blue
+                        color: inPath ? AppColors.primary : AppColors.info,
                         width: 6,
                       ),
                   },
@@ -1175,15 +1370,15 @@ class _CitizenScreenState extends State<CitizenScreen> with SingleTickerProvider
                   right: 12,
                   child: Column(
                     children: [
-                      // Focus on Ambulance (only available when in path)
-                      if (inPath)
+                      // Focus on Ambulance (available when ambulance is active)
+                      if (_ambulanceLat != null && _ambulanceLng != null)
                         _mapActionButton(
                           icon: Icons.airport_shuttle_rounded,
                           tooltip: "Focus on Ambulance",
-                          color: AppColors.primary,
+                          color: inPath ? AppColors.primary : const Color(0xFFD97706),
                           onPressed: _focusOnAmbulance,
                         ),
-                      if (inPath) const SizedBox(height: 8),
+                      if (_ambulanceLat != null && _ambulanceLng != null) const SizedBox(height: 8),
 
                       // Recenter on Citizen
                       _mapActionButton(
@@ -1194,8 +1389,8 @@ class _CitizenScreenState extends State<CitizenScreen> with SingleTickerProvider
                       ),
                       const SizedBox(height: 8),
 
-                      // Fit Both in View (only available when in path)
-                      if (inPath)
+                      // Fit Both in View (available when ambulance is active)
+                      if (_ambulanceLat != null && _ambulanceLng != null)
                         _mapActionButton(
                           icon: Icons.crop_free_rounded,
                           tooltip: "Fit Entire Corridor",

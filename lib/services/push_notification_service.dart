@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
@@ -136,6 +137,12 @@ Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
 }
 
 class PushNotificationService {
+  static final StreamController<Map<String, dynamic>> _inAppNotificationController =
+      StreamController<Map<String, dynamic>>.broadcast();
+
+  static Stream<Map<String, dynamic>> get onInAppNotification =>
+      _inAppNotificationController.stream;
+
   static Future<void> initialize() async {
     // 1. Initialize Firebase Core
     try {
@@ -219,11 +226,26 @@ class PushNotificationService {
         CitizenAlertService.triggerProximityAlert(isCritical: true);
       }
 
-      if (!kIsWeb && message.notification != null) {
+      final title = message.notification?.title ??
+          (isDriverStart ? "🚨 EMERGENCY GREEN CORRIDOR IN MOTION!" : "🚑 Green Corridor Scheduled");
+      final body = message.notification?.body ??
+          (isDriverStart
+              ? "Ambulance ${data['vehicle_number'] ?? 'Emergency Unit'} has departed and is actively en route! Clear the road."
+              : "Ambulance is scheduled for urgent medical transit.");
+
+      // Broadcast to in-app stream for active screens to show banners/popups
+      _inAppNotificationController.add({
+        'title': title,
+        'body': body,
+        'event_type': eventType ?? (isDriverStart ? 'driver_started' : 'mission_created'),
+        'data': data,
+      });
+
+      if (!kIsWeb) {
         _localNotifications.show(
           DateTime.now().millisecond,
-          message.notification!.title,
-          message.notification!.body,
+          title,
+          body,
           NotificationDetails(
             android: AndroidNotificationDetails(
               isDriverStart ? 'emergency_corridor_siren_v3' : 'default',
