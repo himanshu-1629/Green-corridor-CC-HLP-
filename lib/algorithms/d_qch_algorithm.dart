@@ -91,8 +91,17 @@ class CCHLPAlgorithm {
     final rhoApp = appPenetrationRate.clamp(0.0, 1.0);
     final pNet = kNetworkDeliverySuccessRate;
 
-    // Attention / Auditory Perception Decay Kernel: 1 - exp(- \sigma / (d + \epsilon))
-    final pAttention = 1.0 - math.exp(-kAcousticThresholdDistanceM / (distanceToAmbulanceM + 1.0));
+    // Individualized longitudinal distance separating ambulance from vehicle i:
+    final distToVehicleI = distanceToAmbulanceM - ((totalQueue - vehicleIndex) * kAverageVehicleLengthM);
+    const safeBufferM = 15.0; // d_safe
+
+    // If ambulance is already past vehicle i or within safe buffer, window has expired:
+    if (distToVehicleI <= safeBufferM) {
+      return 0.0;
+    }
+
+    // Individualized Attention / Auditory Perception Decay Kernel:
+    final pAttention = 1.0 - math.exp(-kAcousticThresholdDistanceM / (distToVehicleI + 1.0));
 
     // Willingness to comply:
     final pCompliance = kDriverComplianceWillingness;
@@ -102,12 +111,11 @@ class CCHLPAlgorithm {
 
     final pBehavioral = rhoApp * pNet * pAttention * pCompliance * pGap;
 
-    // Deadline feasibility: Time remaining before EV reaches vehicle i
+    // Deadline feasibility: Time remaining before EV reaches vehicle i's safe buffer
     final speed = math.max(ambulanceSpeedMs, 5.0); // minimum 5 m/s
-    final distToVehicleI = distanceToAmbulanceM - ((totalQueue - vehicleIndex) * kAverageVehicleLengthM);
-    final deadlineSec = math.max(0.1, distToVehicleI / speed);
+    final deadlineSec = (distToVehicleI - safeBufferM) / speed;
 
-    // Feasibility modeled via log-normal CDF approximation (median = 5.5s, sigma = 0.35)
+    // Feasibility modeled via log-normal CDF approximation (\mu_m = 1.705, \sigma_m = 0.35, median = 5.5s)
     final pFeasible = deadlineSec >= kManeuverMedianSec
         ? 1.0 - (0.5 * math.exp(-0.7 * (deadlineSec - kManeuverMedianSec)))
         : (0.5 * math.exp(0.7 * (deadlineSec - kManeuverMedianSec)));
