@@ -3,7 +3,10 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Animated Top Dock — Sable</title>
+  <title>Animated Top Dock — Violet Dusk & Frosted Ivory</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@600;700;800&family=Space+Mono:wght@700&display=swap" rel="stylesheet">
   <style>
     @font-face {
       font-family: "ThreeUI Fragment Mono";
@@ -11,6 +14,16 @@
       font-weight: 400;
       font-display: swap;
       src: url("./fonts/fragment-mono.woff2") format("woff2");
+    }
+
+    :root {
+      --deep-violet: #2A1635;
+      --muted-berry: #502D55;
+      --warm-peach: #E89D7E;
+      --soft-ivory: #FAF7F2;
+      --peach-glow: rgba(232, 157, 126, 0.35);
+      --glass-surface: rgba(255, 255, 255, 0.65);
+      --glass-border: rgba(255, 255, 255, 0.90);
     }
 
     * {
@@ -43,21 +56,25 @@
       overflow: visible;
     }
 
+    /* Elongated Frosted Glass Capsule */
     .animated-top-dock__nav {
       position: relative;
       z-index: 10;
       display: flex;
       align-items: flex-start;
-      gap: 3px;
-      height: 38px;
-      padding: 4px;
+      gap: 5px;
+      height: 44px;
+      padding: 4px 6px;
       overflow: visible;
-      border: 1px solid #292929;
-      border-radius: 11px;
-      background: rgba(14, 14, 14, 0.86);
-      box-shadow: 0 12px 34px rgba(0, 0, 0, 0.48), inset 0 1px rgba(255, 255, 255, 0.035);
-      backdrop-filter: blur(18px) saturate(75%);
-      -webkit-backdrop-filter: blur(18px) saturate(75%);
+      border: 1.2px solid rgba(255, 255, 255, 0.95);
+      border-radius: 40px;
+      background: rgba(255, 255, 255, 0.60);
+      box-shadow:
+        0 10px 28px rgba(42, 22, 53, 0.08),
+        0 1px 3px rgba(42, 22, 53, 0.04),
+        inset 0 1px 1px rgba(255, 255, 255, 0.95);
+      backdrop-filter: blur(20px) saturate(135%);
+      -webkit-backdrop-filter: blur(20px) saturate(135%);
       isolation: isolate;
     }
 
@@ -68,60 +85,73 @@
       flex: none;
       align-items: center;
       justify-content: center;
-      height: 28px;
+      height: 34px;
       min-width: 0;
-      padding: 0;
-      border: 1px solid transparent;
-      border-radius: 7px;
+      padding: 0 12px;
+      border: 1px solid rgba(255, 255, 255, 0.80);
+      border-radius: 25px;
       outline: none;
-      color: #858580;
-      background: rgba(21, 21, 20, 0.9);
-      font: 400 10px/1 "ThreeUI Fragment Mono", ui-monospace, monospace;
-      letter-spacing: 0.1em;
+      color: #3B1E48;
+      background: rgba(255, 255, 255, 0.55);
+      font: 700 11px/1 'Plus Jakarta Sans', 'ThreeUI Fragment Mono', ui-monospace, sans-serif;
+      letter-spacing: 0.07em;
       white-space: nowrap;
-      backdrop-filter: blur(14px) saturate(70%);
-      -webkit-backdrop-filter: blur(14px) saturate(70%);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
       transform-origin: 50% 0;
-      transition: color 0.15s, border-color 0.18s, background 0.18s, box-shadow 0.18s;
+      transition: color 0.16s, border-color 0.18s, background 0.18s, box-shadow 0.18s;
       will-change: width, height, transform;
       cursor: pointer;
       user-select: none;
       -webkit-user-select: none;
+      box-shadow: 0 2px 5px rgba(42, 22, 53, 0.03);
     }
 
+    /* Spring Hover State (Warm Peach specular rim & glow) */
     .animated-top-dock__item[data-dock-near="true"],
     .animated-top-dock__item:focus-visible {
       z-index: 7;
-      color: #ecece8;
-      border-color: #41413e;
-      background: rgba(27, 27, 26, 0.94);
-      box-shadow: 0 7px 16px rgba(0, 0, 0, 0.26);
+      color: #2A1635;
+      border-color: rgba(232, 157, 126, 0.95);
+      background: rgba(255, 255, 255, 0.95);
+      box-shadow:
+        0 6px 18px rgba(232, 157, 126, 0.28),
+        0 2px 6px rgba(42, 22, 53, 0.07);
     }
 
+    /* Brand Logo inside Dock */
     .animated-top-dock__logo {
-      width: 28px;
-      height: 28px;
+      width: 34px;
+      height: 34px;
+      padding: 0;
       overflow: hidden;
-      background: #e8e8e3;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #2A1635 0%, #4D265C 100%);
+      border: 1.2px solid rgba(232, 157, 126, 0.75);
+      box-shadow: 0 4px 10px rgba(42, 22, 53, 0.20);
     }
 
     .animated-top-dock__logo svg {
       display: block;
-      width: 100%;
-      height: 100%;
+      width: 17px;
+      height: 17px;
     }
 
+    /* Elongated Tabs for Proper Proportions */
     .animated-top-dock__link {
-      gap: 6px;
-      width: 94px;
-      padding: 0 9px;
+      gap: 7px;
+      width: 114px;
+      padding: 0 12px;
     }
 
+    /* Active Tab (Deep Violet & Warm Peach & Soft Ivory) */
     .animated-top-dock__link[aria-pressed="true"] {
-      color: #111;
-      border-color: #e8e8e3;
-      background: #e8e8e3;
-      box-shadow: 0 7px 18px rgba(0, 0, 0, 0.28);
+      color: #FAF7F2;
+      border-color: #E89D7E;
+      background: linear-gradient(135deg, #2A1635 0%, #3D1C4C 100%);
+      box-shadow:
+        0 6px 18px rgba(42, 22, 53, 0.32),
+        0 0 0 1px rgba(232, 157, 126, 0.4);
     }
 
     .animated-top-dock__icon {
@@ -129,10 +159,10 @@
       flex: none;
       align-items: center;
       justify-content: center;
-      width: 13px;
-      height: 13px;
-      opacity: 0.62;
-      transition: opacity 0.16s;
+      width: 14px;
+      height: 14px;
+      opacity: 0.72;
+      transition: opacity 0.16s, color 0.16s;
     }
 
     .animated-top-dock__icon svg {
@@ -141,7 +171,7 @@
       height: 100%;
       fill: none;
       stroke: currentColor;
-      stroke-width: 1.2;
+      stroke-width: 1.3;
       stroke-linecap: round;
       stroke-linejoin: round;
     }
@@ -149,29 +179,36 @@
     .animated-top-dock__item[data-dock-near="true"] .animated-top-dock__icon,
     .animated-top-dock__item:focus-visible .animated-top-dock__icon {
       opacity: 1;
+      color: #E89D7E;
+    }
+
+    .animated-top-dock__link[aria-pressed="true"] .animated-top-dock__icon {
+      opacity: 1;
+      color: #E89D7E;
     }
 
     @media (max-width: 600px) {
       .animated-top-dock__nav {
         gap: 2px;
-        height: 36px;
+        height: 38px;
+        padding: 3px;
       }
 
       .animated-top-dock__item {
-        height: 26px !important;
+        height: 30px !important;
         transform: none !important;
       }
 
       .animated-top-dock__logo {
-        width: 26px !important;
-        height: 26px !important;
+        width: 30px !important;
+        height: 30px !important;
       }
 
       .animated-top-dock__link {
         width: auto !important;
-        padding: 0 7px;
-        font-size: 8px;
-        letter-spacing: 0.07em;
+        padding: 0 8px;
+        font-size: 9px;
+        letter-spacing: 0.05em;
       }
 
       .animated-top-dock__icon {
@@ -193,10 +230,8 @@
       <!-- Author brand logo -->
       <button class="animated-top-dock__item animated-top-dock__logo" data-dock-item type="button" aria-label="Home" data-id="home">
         <svg viewBox="0 0 24 24" aria-hidden="true">
-          <rect width="24" height="24" rx="4.5" fill="#E8E8E3" />
-          <path d="M6 6h8.6L18 9.35v8.15H9.15L6 14.35V6Z" fill="#111" />
-          <path d="M9 9h5.15L15 9.85V15H9.85L9 14.15V9Z" fill="#E8E8E3" />
-          <path d="M12 9v6M9 12h6" stroke="#111" stroke-width=".7" />
+          <path d="M12 2L4 7v6c0 5.25 3.4 10.15 8 11.35 4.6-1.2 8-6.1 8-11.35V7l-8-5z" fill="none" stroke="#E89D7E" stroke-width="1.6"/>
+          <path d="M12 7v10M7 12h10" stroke="#FAF7F2" stroke-width="1.8" stroke-linecap="round"/>
         </svg>
       </button>
 

@@ -12,8 +12,8 @@ class AnimatedTopDockWidget extends StatefulWidget {
   const AnimatedTopDockWidget({
     super.key,
     this.onItemSelected,
-    this.width = 620,
-    this.height = 76,
+    this.width = 710,
+    this.height = 56,
   });
 
   @override

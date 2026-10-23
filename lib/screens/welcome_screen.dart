@@ -11,7 +11,6 @@ import '../theme/app_theme.dart';
 import '../theme/design_tuning_controller.dart';
 import '../widgets/interactive_world_globe.dart';
 import '../widgets/workflow_step_consoles.dart';
-import '../widgets/glass_ai_button.dart';
 import '../widgets/glass_button.dart';
 import '../widgets/animated_top_dock.dart';
 import 'citizen_screen.dart';
@@ -771,8 +770,8 @@ class _WelcomeScreenState extends State<WelcomeScreen>
                     Expanded(
                       child: Center(
                         child: AnimatedTopDockWidget(
-                          width: 580,
-                          height: 54,
+                          width: 710,
+                          height: 56,
                           onItemSelected: (id) {
                             switch (id) {
                               case 'home':
@@ -1000,22 +999,6 @@ class _WelcomeScreenState extends State<WelcomeScreen>
                   ),
                 ),
                 const SizedBox(height: 28),
-
-                // ThreeUI Glass AI Button Spotlight (Three.js r170 + GLSL)
-                Center(
-                  child: GlassAiButtonWidget(
-                    width: isMobile ? 310 : 400,
-                    height: isMobile ? 96 : 124,
-                    onPressed: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(builder: (_) => const HospitalDashboard()),
-                      );
-                    },
-                  ),
-                ),
-
-                const SizedBox(height: 24),
 
                 // Dual Centered Pill CTAs
                 Row(
