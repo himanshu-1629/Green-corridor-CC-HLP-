@@ -578,39 +578,24 @@ class _CitizenScreenState extends State<CitizenScreen> with SingleTickerProvider
     final defaultCenter = LatLng(_citizenLat ?? 12.8406, _citizenLng ?? 80.1534);
 
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: AppColors.cream,
       appBar: AppBar(
         titleSpacing: 20,
-        backgroundColor: Colors.white,
-        foregroundColor: AppColors.slate900,
+        backgroundColor: AppColors.navy,
+        foregroundColor: AppColors.cream,
         elevation: 0,
         bottom: PreferredSize(
-          preferredSize: const Size.fromHeight(1),
-          child: Container(color: AppColors.slate200, height: 1),
+          preferredSize: const Size.fromHeight(2),
+          child: Container(color: AppColors.sky, height: 2),
         ),
         title: Row(
           children: [
             Container(
-              padding: const EdgeInsets.all(7),
-              decoration: BoxDecoration(
-                color: isNearCritical
-                    ? AppColors.primary
-                    : isNearWarning
-                        ? AppColors.amber
-                        : inPath
-                            ? AppColors.info
-                            : AppColors.emerald,
-                borderRadius: BorderRadius.circular(10),
-              ),
-              child: Icon(
-                isNearCritical
-                    ? Icons.emergency_rounded
-                    : isNearWarning
-                        ? Icons.warning_amber_rounded
-                        : inPath
-                            ? Icons.alt_route_rounded
-                            : Icons.satellite_alt_rounded,
-                color: Colors.white,
+              padding: const EdgeInsets.all(8),
+              decoration: AppDecorations.iconMedallion(size: 38),
+              child: const Icon(
+                Icons.satellite_alt_rounded,
+                color: AppColors.sky,
                 size: 20,
               ),
             ),
@@ -618,12 +603,13 @@ class _CitizenScreenState extends State<CitizenScreen> with SingleTickerProvider
             Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
+                const Text(
                   "Citizen Corridor Radar",
-                  style: GoogleFonts.plusJakartaSans(
+                  style: TextStyle(
+                    fontFamily: AppTypography.fontHeading,
                     fontSize: 16,
                     fontWeight: FontWeight.w800,
-                    color: AppColors.slate900,
+                    color: AppColors.cream,
                     letterSpacing: -0.3,
                   ),
                 ),
@@ -632,10 +618,8 @@ class _CitizenScreenState extends State<CitizenScreen> with SingleTickerProvider
                     Container(
                       width: 7,
                       height: 7,
-                      decoration: BoxDecoration(
-                        color: inPath
-                            ? AppColors.primary
-                            : (_hasGpsFix ? AppColors.emerald : AppColors.amber),
+                      decoration: const BoxDecoration(
+                        color: AppColors.sky,
                         shape: BoxShape.circle,
                       ),
                     ),
@@ -644,11 +628,10 @@ class _CitizenScreenState extends State<CitizenScreen> with SingleTickerProvider
                       inPath
                           ? "In Active Corridor Path"
                           : (_hasGpsFix ? "Live GPS Connected" : "Acquiring GPS..."),
-                      style: GoogleFonts.plusJakartaSans(
+                      style: const TextStyle(
+                        fontFamily: AppTypography.fontBody,
                         fontSize: 11,
-                        color: inPath
-                            ? AppColors.primary
-                            : (_hasGpsFix ? AppColors.emeraldDark : AppColors.slate500),
+                        color: AppColors.sky,
                         fontWeight: FontWeight.w700,
                       ),
                     ),
@@ -940,7 +923,7 @@ class _CitizenScreenState extends State<CitizenScreen> with SingleTickerProvider
               width: double.infinity,
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
               decoration: BoxDecoration(
-                color: Colors.black.withValues(alpha: 0.22),
+                color: AppColors.navyDark.withValues(alpha: 0.22),
                 borderRadius: BorderRadius.circular(14),
               ),
               child: Row(
@@ -1412,7 +1395,7 @@ class _CitizenScreenState extends State<CitizenScreen> with SingleTickerProvider
                       borderRadius: BorderRadius.circular(10),
                       boxShadow: [
                         BoxShadow(
-                          color: Colors.black.withValues(alpha: 0.08),
+                          color: AppColors.navy.withValues(alpha: 0.08),
                           blurRadius: 8,
                         ),
                       ],
@@ -1509,7 +1492,7 @@ class _CitizenScreenState extends State<CitizenScreen> with SingleTickerProvider
         shape: BoxShape.circle,
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.15),
+            color: AppColors.navy.withValues(alpha: 0.15),
             blurRadius: 8,
             offset: const Offset(0, 2),
           ),

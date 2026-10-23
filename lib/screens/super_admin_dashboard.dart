@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../theme/app_theme.dart';
 import 'login_screen.dart';
@@ -62,45 +61,44 @@ class _SuperAdminDashboardState extends State<SuperAdminDashboard> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: AppColors.cream,
       appBar: AppBar(
         titleSpacing: 20,
-        backgroundColor: Colors.white,
-        foregroundColor: AppColors.slate900,
+        backgroundColor: AppColors.navy,
+        foregroundColor: AppColors.cream,
         elevation: 0,
         bottom: PreferredSize(
-          preferredSize: const Size.fromHeight(1),
-          child: Container(color: AppColors.slate200, height: 1),
+          preferredSize: const Size.fromHeight(2),
+          child: Container(color: AppColors.sky, height: 2),
         ),
         title: Row(
           children: [
             Container(
-              padding: const EdgeInsets.all(7),
-              decoration: BoxDecoration(
-                color: AppColors.slate900,
-                borderRadius: BorderRadius.circular(10),
-              ),
-              child: const Icon(Icons.security_rounded, color: Colors.white, size: 20),
+              padding: const EdgeInsets.all(8),
+              decoration: AppDecorations.iconMedallion(size: 38),
+              child: const Icon(Icons.security_rounded, color: AppColors.sky, size: 20),
             ),
             const SizedBox(width: 12),
-            Column(
+            const Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
                   "Super Admin Command",
-                  style: GoogleFonts.plusJakartaSans(
+                  style: TextStyle(
+                    fontFamily: AppTypography.fontHeading,
                     fontSize: 16,
                     fontWeight: FontWeight.w800,
-                    color: AppColors.slate900,
+                    color: AppColors.cream,
                     letterSpacing: -0.3,
                   ),
                 ),
                 Text(
                   "National Emergency Preemption Grid Overseer",
-                  style: GoogleFonts.plusJakartaSans(
+                  style: TextStyle(
+                    fontFamily: AppTypography.fontBody,
                     fontSize: 11,
                     fontWeight: FontWeight.w600,
-                    color: AppColors.slate500,
+                    color: AppColors.sky,
                   ),
                 ),
               ],
@@ -110,12 +108,12 @@ class _SuperAdminDashboardState extends State<SuperAdminDashboard> {
         actions: [
           IconButton(
             tooltip: "Refresh Stats",
-            icon: const Icon(Icons.refresh_rounded, color: AppColors.slate700),
+            icon: const Icon(Icons.refresh_rounded, color: AppColors.sky),
             onPressed: loadSystemStats,
           ),
           IconButton(
             tooltip: "Sign Out",
-            icon: const Icon(Icons.logout_rounded, color: AppColors.slate700),
+            icon: const Icon(Icons.logout_rounded, color: AppColors.cream),
             onPressed: () async {
               await Supabase.instance.client.auth.signOut();
               if (!context.mounted) return;
@@ -130,10 +128,14 @@ class _SuperAdminDashboardState extends State<SuperAdminDashboard> {
         ],
       ),
       body: isLoading
-          ? const Center(child: CircularProgressIndicator())
+          ? const Center(
+              child: CircularProgressIndicator(
+                valueColor: AlwaysStoppedAnimation(AppColors.navy),
+              ),
+            )
           : RefreshIndicator(
               onRefresh: loadSystemStats,
-              color: AppColors.primary,
+              color: AppColors.navy,
               child: Align(
                 alignment: Alignment.topCenter,
                 child: ConstrainedBox(
@@ -142,145 +144,146 @@ class _SuperAdminDashboardState extends State<SuperAdminDashboard> {
                     physics: const AlwaysScrollableScrollPhysics(),
                     padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
                     child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    // Banner
-                    Container(
-                      width: double.infinity,
-                      padding: const EdgeInsets.all(24),
-                      decoration: BoxDecoration(
-                        gradient: AppGradients.dark,
-                        borderRadius: BorderRadius.circular(22),
-                        boxShadow: [
-                          BoxShadow(
-                            color: AppColors.slate900.withValues(alpha: 0.15),
-                            blurRadius: 20,
-                            offset: const Offset(0, 8),
-                          ),
-                        ],
-                      ),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              const Text(
-                                "Green Corridor Network",
-                                style: TextStyle(
-                                  color: Colors.white,
-                                  fontSize: 22,
-                                  fontWeight: FontWeight.w800,
-                                ),
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        // Executive 3D Banner
+                        Container(
+                          width: double.infinity,
+                          padding: const EdgeInsets.all(28),
+                          decoration: BoxDecoration(
+                            color: AppColors.navy,
+                            borderRadius: BorderRadius.circular(24),
+                            border: Border.all(color: AppColors.sky, width: 1.5),
+                            boxShadow: [
+                              BoxShadow(
+                                color: AppColors.navyDark.withValues(alpha: 0.35),
+                                blurRadius: 22,
+                                offset: const Offset(0, 10),
                               ),
-                              Container(
-                                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                                decoration: BoxDecoration(
-                                  color: AppColors.emerald.withValues(alpha: 0.2),
-                                  borderRadius: BorderRadius.circular(16),
-                                ),
-                                child: const Text(
-                                  "ALL SYSTEMS ACTIVE",
-                                  style: TextStyle(
-                                    color: AppColors.emerald,
-                                    fontSize: 11,
-                                    fontWeight: FontWeight.w800,
-                                    letterSpacing: 0.5,
+                            ],
+                          ),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Row(
+                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                children: [
+                                  const Text(
+                                    "Green Corridor National Network",
+                                    style: TextStyle(
+                                      fontFamily: AppTypography.fontHeading,
+                                      color: AppColors.cream,
+                                      fontSize: 22,
+                                      fontWeight: FontWeight.w900,
+                                    ),
                                   ),
+                                  Container(
+                                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
+                                    decoration: BoxDecoration(
+                                      color: AppColors.navyDark,
+                                      borderRadius: BorderRadius.circular(16),
+                                      border: Border.all(color: AppColors.sky, width: 1.2),
+                                    ),
+                                    child: const Text(
+                                      "ALL NODES ACTIVE",
+                                      style: TextStyle(
+                                        fontFamily: AppTypography.fontBody,
+                                        color: AppColors.sky,
+                                        fontSize: 11,
+                                        fontWeight: FontWeight.w800,
+                                        letterSpacing: 0.8,
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              const SizedBox(height: 8),
+                              const Text(
+                                "Real-time cross-facility emergency medical logistics telematics & corridor telemetry",
+                                style: TextStyle(
+                                  fontFamily: AppTypography.fontBody,
+                                  color: AppColors.sky,
+                                  fontSize: 13,
                                 ),
                               ),
                             ],
                           ),
-                          const SizedBox(height: 6),
-                          const Text(
-                            "Real-time cross-facility emergency medical logistics telematics",
-                            style: TextStyle(color: Colors.white70, fontSize: 13),
-                          ),
-                        ],
-                      ),
-                    ),
-                    const SizedBox(height: 24),
+                        ),
+                        const SizedBox(height: 24),
 
-                    // Metrics Grid
-                    Row(
-                      children: [
-                        Expanded(
-                          child: _metricCard(
-                            icon: Icons.local_hospital_rounded,
-                            title: "Hospitals",
-                            value: "$hospitalsCount",
-                            color: AppColors.primary,
-                            bgColor: AppColors.primaryLight,
+                        // Metrics Grid with 3D Sculpted Tiles
+                        Row(
+                          children: [
+                            Expanded(
+                              child: _metricCard(
+                                icon: Icons.local_hospital_rounded,
+                                title: "Hospitals",
+                                value: "$hospitalsCount",
+                              ),
+                            ),
+                            const SizedBox(width: 14),
+                            Expanded(
+                              child: _metricCard(
+                                icon: Icons.airport_shuttle_rounded,
+                                title: "Ambulances",
+                                value: "$ambulancesCount",
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 14),
+                        Row(
+                          children: [
+                            Expanded(
+                              child: _metricCard(
+                                icon: Icons.person_pin_rounded,
+                                title: "Drivers",
+                                value: "$driversCount",
+                              ),
+                            ),
+                            const SizedBox(width: 14),
+                            Expanded(
+                              child: _metricCard(
+                                icon: Icons.assignment_turned_in_rounded,
+                                title: "All Missions",
+                                value: "$missionsCount",
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 32),
+
+                        // Quick Management Hub
+                        const Text(
+                          "Super Admin Command Hub",
+                          style: TextStyle(
+                            fontFamily: AppTypography.fontHeading,
+                            fontSize: 18,
+                            fontWeight: FontWeight.w800,
+                            color: AppColors.navy,
                           ),
                         ),
-                        const SizedBox(width: 14),
-                        Expanded(
-                          child: _metricCard(
-                            icon: Icons.airport_shuttle_rounded,
-                            title: "Ambulances",
-                            value: "$ambulancesCount",
-                            color: AppColors.emerald,
-                            bgColor: AppColors.emeraldLight,
-                          ),
+                        const SizedBox(height: 14),
+
+                        _adminActionTile(
+                          icon: Icons.domain_rounded,
+                          title: "Registered Medical Facilities",
+                          subtitle: "Audit hospital profiles, API access, and registered codes",
+                          badge: "$hospitalsCount Active",
+                        ),
+                        const SizedBox(height: 12),
+                        _adminActionTile(
+                          icon: Icons.route_rounded,
+                          title: "Network Emergency Telemetry",
+                          subtitle: "Review live corridor transits, GPS accuracy, and arrival ETAs",
+                          badge: "$missionsCount Total",
                         ),
                       ],
                     ),
-                    const SizedBox(height: 14),
-                    Row(
-                      children: [
-                        Expanded(
-                          child: _metricCard(
-                            icon: Icons.person_pin_rounded,
-                            title: "Drivers",
-                            value: "$driversCount",
-                            color: AppColors.info,
-                            bgColor: AppColors.infoLight,
-                          ),
-                        ),
-                        const SizedBox(width: 14),
-                        Expanded(
-                          child: _metricCard(
-                            icon: Icons.assignment_turned_in_rounded,
-                            title: "All Missions",
-                            value: "$missionsCount",
-                            color: AppColors.warning,
-                            bgColor: AppColors.warningLight,
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 32),
-
-                    // Quick Management Hub
-                    const Text(
-                      "Super Admin Hub",
-                      style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.w800,
-                        color: AppColors.slate900,
-                      ),
-                    ),
-                    const SizedBox(height: 14),
-
-                    _adminActionTile(
-                      icon: Icons.domain_rounded,
-                      title: "Registered Medical Facilities",
-                      subtitle: "Audit hospital profiles, API access, and registered codes",
-                      badge: "$hospitalsCount Active",
-                    ),
-                    const SizedBox(height: 12),
-                    _adminActionTile(
-                      icon: Icons.route_rounded,
-                      title: "Network Emergency Telemetry",
-                      subtitle: "Review live corridor transits, GPS accuracy, and arrival ETAs",
-                      badge: "$missionsCount Total",
-                    ),
-                  ],
+                  ),
                 ),
               ),
             ),
-          ),
-        ),
     );
   }
 
@@ -288,36 +291,40 @@ class _SuperAdminDashboardState extends State<SuperAdminDashboard> {
     required IconData icon,
     required String title,
     required String value,
-    required Color color,
-    required Color bgColor,
   }) {
     return Container(
-      padding: const EdgeInsets.all(20),
-      decoration: AppDecorations.card(radius: 20),
+      padding: const EdgeInsets.all(22),
+      decoration: AppDecorations.tile3D(elevation: 3),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Container(
             padding: const EdgeInsets.all(10),
-            decoration: BoxDecoration(color: bgColor, borderRadius: BorderRadius.circular(12)),
-            child: Icon(icon, color: color, size: 22),
+            decoration: BoxDecoration(
+              color: AppColors.navy,
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: AppColors.sky, width: 1.0),
+            ),
+            child: Icon(icon, color: AppColors.sky, size: 22),
           ),
           const SizedBox(height: 16),
           Text(
             value,
             style: const TextStyle(
+              fontFamily: AppTypography.fontHeading,
               fontSize: 28,
-              fontWeight: FontWeight.w800,
-              color: AppColors.slate900,
+              fontWeight: FontWeight.w900,
+              color: AppColors.navy,
               letterSpacing: -0.5,
             ),
           ),
           const SizedBox(height: 2),
           Text(
             title,
-            style: const TextStyle(
+            style: TextStyle(
+              fontFamily: AppTypography.fontBody,
               fontSize: 13,
-              color: AppColors.slate500,
+              color: AppColors.navyMuted,
               fontWeight: FontWeight.w600,
             ),
           ),
@@ -334,16 +341,28 @@ class _SuperAdminDashboardState extends State<SuperAdminDashboard> {
   }) {
     return Container(
       padding: const EdgeInsets.all(18),
-      decoration: AppDecorations.card(radius: 18),
+      decoration: BoxDecoration(
+        color: AppColors.creamLight,
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(color: AppColors.sky.withValues(alpha: 0.5), width: 1.2),
+        boxShadow: [
+          BoxShadow(
+            color: AppColors.navy.withValues(alpha: 0.05),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
       child: Row(
         children: [
           Container(
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
-              color: AppColors.slate100,
+              color: AppColors.navy,
               borderRadius: BorderRadius.circular(14),
+              border: Border.all(color: AppColors.sky, width: 1.0),
             ),
-            child: Icon(icon, color: AppColors.slate800, size: 22),
+            child: Icon(icon, color: AppColors.sky, size: 22),
           ),
           const SizedBox(width: 16),
           Expanded(
@@ -355,22 +374,25 @@ class _SuperAdminDashboardState extends State<SuperAdminDashboard> {
                     Text(
                       title,
                       style: const TextStyle(
+                        fontFamily: AppTypography.fontHeading,
                         fontSize: 15,
                         fontWeight: FontWeight.w700,
-                        color: AppColors.slate900,
+                        color: AppColors.navy,
                       ),
                     ),
                     const SizedBox(width: 8),
                     Container(
                       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                       decoration: BoxDecoration(
-                        color: AppColors.primaryLight,
+                        color: AppColors.navy,
                         borderRadius: BorderRadius.circular(10),
+                        border: Border.all(color: AppColors.sky, width: 1.0),
                       ),
                       child: Text(
                         badge,
                         style: const TextStyle(
-                          color: AppColors.primary,
+                          fontFamily: AppTypography.fontBody,
+                          color: AppColors.cream,
                           fontSize: 11,
                           fontWeight: FontWeight.w700,
                         ),
@@ -381,12 +403,16 @@ class _SuperAdminDashboardState extends State<SuperAdminDashboard> {
                 const SizedBox(height: 3),
                 Text(
                   subtitle,
-                  style: const TextStyle(fontSize: 13, color: AppColors.slate500),
+                  style: TextStyle(
+                    fontFamily: AppTypography.fontBody,
+                    fontSize: 13,
+                    color: AppColors.navyMuted,
+                  ),
                 ),
               ],
             ),
           ),
-          const Icon(Icons.chevron_right_rounded, color: AppColors.slate400),
+          const Icon(Icons.chevron_right_rounded, color: AppColors.navy),
         ],
       ),
     );

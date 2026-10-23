@@ -1,48 +1,175 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBoUfYgAJxQsyKqf8TrCm50s5pqFLZtjBQ"></script>
-  <!--
-    If you are serving your web app in a path other than the root, change the
-    href value below to reflect the base path you are serving from.
-
-    The path provided below has to start and end with a slash "/" in order for
-    it to work correctly.
-
-    For more details:
-    * https://developer.mozilla.org/en-US/docs/Web/HTML/Element/base
-
-    This is a placeholder for base href that will be replaced by the value of
-    the `--base-href` argument provided to `flutter build`.
-  -->
+  <!-- Non-blocking asynchronous Google Maps Script with error fallback -->
+  <script async defer src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBoUfYgAJxQsyKqf8TrCm50s5pqFLZtjBQ"></script>
   <base href="$FLUTTER_BASE_HREF">
 
   <meta charset="UTF-8">
   <meta content="IE=Edge" http-equiv="X-UA-Compatible">
-  <meta name="description" content="A new Flutter project.">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="description" content="Green Corridor — Precision Emergency Medical Logistics and Transit Coordination Platform">
+  <meta name="theme-color" content="#FFFEDF">
 
   <!-- iOS meta tags & icons -->
   <meta name="mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="black">
-  <meta name="apple-mobile-web-app-title" content="green_corridor">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="Green Corridor">
   <link rel="apple-touch-icon" href="icons/Icon-192.png">
 
   <!-- Favicon -->
   <link rel="icon" type="image/png" href="favicon.png"/>
 
-  <title>green_corridor</title>
+  <title>Green Corridor — Emergency Medical Logistics</title>
   <link rel="manifest" href="manifest.json">
+
+  <!-- Core Two-Font System: Open Sauce Sans (Headings) & Peace Sans (Body/Labels) -->
+  <style>
+    @font-face {
+      font-family: 'OpenSauceSans';
+      src: url('fonts/OpenSauceSans-Regular.ttf') format('truetype');
+      font-weight: 400;
+      font-style: normal;
+    }
+    @font-face {
+      font-family: 'OpenSauceSans';
+      src: url('fonts/OpenSauceSans-Medium.ttf') format('truetype');
+      font-weight: 500;
+      font-style: normal;
+    }
+    @font-face {
+      font-family: 'OpenSauceSans';
+      src: url('fonts/OpenSauceSans-SemiBold.ttf') format('truetype');
+      font-weight: 600;
+      font-style: normal;
+    }
+    @font-face {
+      font-family: 'OpenSauceSans';
+      src: url('fonts/OpenSauceSans-Bold.ttf') format('truetype');
+      font-weight: 700;
+      font-style: normal;
+    }
+    @font-face {
+      font-family: 'OpenSauceSans';
+      src: url('fonts/OpenSauceSans-ExtraBold.ttf') format('truetype');
+      font-weight: 800;
+      font-style: normal;
+    }
+    @font-face {
+      font-family: 'OpenSauceSans';
+      src: url('fonts/OpenSauceSans-Black.ttf') format('truetype');
+      font-weight: 900;
+      font-style: normal;
+    }
+    @font-face {
+      font-family: 'PeaceSans';
+      src: url('fonts/PeaceSans-Regular.otf') format('opentype');
+      font-weight: 400;
+      font-style: normal;
+    }
+
+    /* Zero Black Guarantee: Pale Cream base canvas #FFFEDF */
+    html, body {
+      margin: 0;
+      padding: 0;
+      width: 100%;
+      height: 100%;
+      background-color: #FFFEDF;
+      font-family: 'PeaceSans', system-ui, -apple-system, sans-serif;
+      overflow: hidden;
+    }
+
+    /* Executive Brand Pre-Loader: Visible while Flutter bootstrap and CanvasKit download */
+    #gc-preloader {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      background: radial-gradient(circle at 50% 40%, #FFFDF5 0%, #FFFEDF 100%);
+      z-index: 99999;
+      transition: opacity 0.5s ease-out;
+    }
+
+    .gc-loader-ring {
+      width: 64px;
+      height: 64px;
+      border: 4px solid #86CAF3;
+      border-top-color: #0F357C;
+      border-radius: 50%;
+      animation: gc-spin 1s cubic-bezier(0.55, 0.15, 0.45, 0.85) infinite;
+      box-shadow: 0 0 24px rgba(134, 202, 243, 0.4);
+    }
+
+    .gc-brand-title {
+      margin-top: 24px;
+      font-family: 'OpenSauceSans', sans-serif;
+      font-weight: 900;
+      font-size: 20px;
+      letter-spacing: 1.5px;
+      color: #0F357C;
+      text-transform: uppercase;
+    }
+
+    .gc-brand-sub {
+      margin-top: 8px;
+      font-size: 13px;
+      font-weight: 500;
+      letter-spacing: 0.4px;
+      color: #334A6F;
+    }
+
+    .gc-pulse-badge {
+      margin-top: 18px;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 14px;
+      background: rgba(134, 202, 243, 0.35);
+      border: 1px solid #86CAF3;
+      border-radius: 20px;
+      font-size: 11px;
+      font-weight: 700;
+      color: #0F357C;
+      letter-spacing: 0.8px;
+    }
+
+    .gc-pulse-dot {
+      width: 8px;
+      height: 8px;
+      background: #0F357C;
+      border-radius: 50%;
+      animation: gc-pulse 1.4s ease-in-out infinite;
+    }
+
+    @keyframes gc-spin {
+      to { transform: rotate(360deg); }
+    }
+
+    @keyframes gc-pulse {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.4; transform: scale(0.8); }
+    }
+  </style>
 </head>
 <body>
-  <!--
-    You can customize the "flutter_bootstrap.js" script.
-    This is useful to provide a custom configuration to the Flutter loader
-    or to give the user feedback during the initialization process.
+  <!-- Brand Pre-Loader prevents blank white screens -->
+  <div id="gc-preloader">
+    <div class="gc-loader-ring"></div>
+    <div class="gc-brand-title">GREEN CORRIDOR</div>
+    <div class="gc-brand-sub">Emergency Medical Logistics Platform</div>
+    <div class="gc-pulse-badge">
+      <span class="gc-pulse-dot"></span>
+      CONNECTING LIVES • ACROSS EVERY MILE
+    </div>
+  </div>
 
-    For more details:
-    * https://docs.flutter.dev/platform-integration/web/initialization
-  -->
   <script>
+    // Audio synthesizer for siren simulation
     window.playEmergencySiren = function() {
       try {
         const AudioCtx = window.AudioContext || window.webkitAudioContext;
@@ -61,7 +188,6 @@
         const now = ctx.currentTime;
         gain.gain.setValueAtTime(0.35, now);
         
-        // Two-tone Indian / European emergency siren waveform (750 Hz to 1200 Hz sweep)
         osc.frequency.setValueAtTime(750, now);
         osc.frequency.linearRampToValueAtTime(1200, now + 0.35);
         osc.frequency.linearRampToValueAtTime(750, now + 0.7);
@@ -85,11 +211,19 @@
         subOsc.start(now);
         osc.stop(now + 1.6);
         subOsc.stop(now + 1.6);
-        console.log("🚨 Emergency siren audio waveform triggered successfully.");
       } catch (e) {
-        console.warn('Emergency siren audio context error:', e);
+        console.warn('Emergency siren audio context notice:', e);
       }
     };
+
+    // Remove pre-loader when Flutter first mounts
+    window.addEventListener('flutter-first-frame', function() {
+      const preloader = document.getElementById('gc-preloader');
+      if (preloader) {
+        preloader.style.opacity = '0';
+        setTimeout(() => preloader.remove(), 500);
+      }
+    });
   </script>
   <script src="flutter_bootstrap.js" async></script>
 </body>

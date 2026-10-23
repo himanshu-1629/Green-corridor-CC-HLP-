@@ -747,7 +747,7 @@ class _MissionDetailsScreenState extends State<MissionDetailsScreen> {
                       border: Border.all(color: AppColors.slate200),
                       boxShadow: [
                         BoxShadow(
-                          color: Colors.black.withValues(alpha: 0.06),
+                          color: AppColors.navy.withValues(alpha: 0.08),
                           blurRadius: 18,
                           offset: const Offset(0, 8),
                         ),
@@ -840,7 +840,7 @@ class _MissionDetailsScreenState extends State<MissionDetailsScreen> {
                               ),
                               boxShadow: [
                                 BoxShadow(
-                                  color: Colors.black.withValues(alpha: 0.25),
+                                  color: AppColors.navyDark.withValues(alpha: 0.25),
                                   blurRadius: 10,
                                   offset: const Offset(0, 4),
                                 ),
@@ -915,7 +915,7 @@ class _MissionDetailsScreenState extends State<MissionDetailsScreen> {
                               ),
                               boxShadow: [
                                 BoxShadow(
-                                  color: Colors.black.withValues(alpha: 0.25),
+                                  color: AppColors.navyDark.withValues(alpha: 0.25),
                                   blurRadius: 10,
                                   offset: const Offset(0, 4),
                                 ),

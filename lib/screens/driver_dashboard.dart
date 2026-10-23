@@ -980,16 +980,15 @@ class _DriverDashboardState extends State<DriverDashboard> {
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
               decoration: BoxDecoration(
-                color: AppColors.slate900.withValues(alpha: 0.94),
+                color: AppColors.navy.withValues(alpha: 0.94),
                 borderRadius: BorderRadius.circular(18),
                 border: Border.all(
-                  color: isReturnJourney
-                      ? AppColors.info.withValues(alpha: 0.5)
-                      : AppColors.emerald.withValues(alpha: 0.5),
+                  color: AppColors.sky,
+                  width: 1.5,
                 ),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.45),
+                    color: AppColors.navyDark.withValues(alpha: 0.45),
                     blurRadius: 16,
                     offset: const Offset(0, 6),
                   ),
@@ -1001,12 +1000,12 @@ class _DriverDashboardState extends State<DriverDashboard> {
                   Container(
                     padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
                     decoration: BoxDecoration(
-                      color: Colors.black.withValues(alpha: 0.4),
+                      color: AppColors.navyDark.withValues(alpha: 0.6),
                       borderRadius: BorderRadius.circular(12),
                       border: Border.all(
                         color: (currentSpeed != null && currentSpeed! > 0)
-                            ? AppColors.emerald.withValues(alpha: 0.6)
-                            : AppColors.slate600,
+                            ? AppColors.sky
+                            : AppColors.navyLight,
                       ),
                     ),
                     child: Row(
@@ -1352,7 +1351,7 @@ class _DriverDashboardState extends State<DriverDashboard> {
         border: Border.all(color: AppColors.slate700),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.35),
+            color: AppColors.navyDark.withValues(alpha: 0.35),
             blurRadius: 16,
             offset: const Offset(0, 6),
           ),
@@ -1433,21 +1432,21 @@ class _DriverDashboardState extends State<DriverDashboard> {
     // Full-screen 3D cockpit navigation mode
     if (isFullScreenNav && (isTransit || isReturnNavigating)) {
       return Scaffold(
-        backgroundColor: Colors.black,
+        backgroundColor: AppColors.navyDark,
         body: _buildFullScreenNavView(),
       );
     }
 
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: AppColors.cream,
       appBar: AppBar(
         titleSpacing: 20,
-        backgroundColor: Colors.white,
-        foregroundColor: AppColors.slate900,
+        backgroundColor: AppColors.navy,
+        foregroundColor: AppColors.cream,
         elevation: 0,
         bottom: PreferredSize(
-          preferredSize: const Size.fromHeight(1),
-          child: Container(color: AppColors.slate200, height: 1),
+          preferredSize: const Size.fromHeight(2),
+          child: Container(color: AppColors.sky, height: 2),
         ),
         title: Row(
           children: [
@@ -1473,19 +1472,21 @@ class _DriverDashboardState extends State<DriverDashboard> {
               children: [
                 Text(
                   isReturnJourney ? "Return Navigation" : "Driver Transit Cockpit",
-                  style: GoogleFonts.plusJakartaSans(
+                  style: const TextStyle(
+                    fontFamily: AppTypography.fontHeading,
                     fontSize: 16,
                     fontWeight: FontWeight.w800,
-                    color: AppColors.slate900,
+                    color: AppColors.cream,
                     letterSpacing: -0.3,
                   ),
                 ),
-                Text(
+                const Text(
                   "Green Corridor Active Guidance",
-                  style: GoogleFonts.plusJakartaSans(
+                  style: TextStyle(
+                    fontFamily: AppTypography.fontBody,
                     fontSize: 11,
                     fontWeight: FontWeight.w600,
-                    color: AppColors.slate500,
+                    color: AppColors.sky,
                   ),
                 ),
               ],

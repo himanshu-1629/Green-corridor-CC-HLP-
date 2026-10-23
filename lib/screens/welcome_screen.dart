@@ -1,4 +1,5 @@
 import 'dart:math' as math;
+import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
@@ -6,9 +7,12 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 
 import 'package:url_launcher/url_launcher.dart';
 
-import '../services/citizen_alert_service.dart';
 import '../theme/app_theme.dart';
+import '../theme/design_tuning_controller.dart';
+import '../widgets/interactive_world_globe.dart';
+import '../widgets/workflow_step_consoles.dart';
 import 'citizen_screen.dart';
+import 'hospital_dashboard.dart';
 import 'login_screen.dart';
 import 'register_screen.dart';
 
@@ -52,11 +56,16 @@ class WelcomeScreen extends StatefulWidget {
   State<WelcomeScreen> createState() => _WelcomeScreenState();
 }
 
-class _WelcomeScreenState extends State<WelcomeScreen> {
+class _WelcomeScreenState extends State<WelcomeScreen>
+    with TickerProviderStateMixin {
   final ScrollController _scrollController = ScrollController();
+  final GlobalKey _worldGlobeKey = GlobalKey();
   final GlobalKey _howItWorksKey = GlobalKey();
   final GlobalKey _portalsKey = GlobalKey();
   final GlobalKey _statsKey = GlobalKey();
+
+  late final AnimationController _scrollBounceController;
+  int _selectedEcosystemTab = 0;
 
   int _totalCorridorsCreated = 0;
   int _activeCorridorsCount = 0;
@@ -70,6 +79,10 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
   @override
   void initState() {
     super.initState();
+    _scrollBounceController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 1400),
+    )..repeat(reverse: true);
     _checkExistingSession();
     _loadLandingMapAndStats();
   }
@@ -247,7 +260,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
               borderRadius: BorderRadius.circular(24),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.15),
+                  color: AppColors.navy.withValues(alpha: 0.12),
                   blurRadius: 30,
                   offset: const Offset(0, 10),
                 ),
@@ -501,287 +514,332 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
 
   @override
   void dispose() {
+    _scrollBounceController.dispose();
     _scrollController.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: AppColors.background,
-      body: Stack(
-        children: [
-          // Ambient soft background glows
-          Positioned(
-            top: -120,
-            right: -80,
-            child: Container(
-              width: 500,
-              height: 500,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                gradient: RadialGradient(
-                  colors: [
-                    AppColors.emerald.withValues(alpha: 0.08),
-                    AppColors.emerald.withValues(alpha: 0.0),
-                  ],
+    return ListenableBuilder(
+      listenable: DesignTuningController.instance,
+      builder: (context, _) {
+        return Scaffold(
+          backgroundColor: AppColors.cream,
+          body: Stack(
+            children: [
+              // Multi-depth ambient glow orbs in soft Sky Blue and Pale Cream across scroll height
+              Positioned(
+                top: -100,
+                right: -80,
+                child: Container(
+                  width: 580,
+                  height: 580,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    gradient: RadialGradient(
+                      colors: [
+                        AppColors.sky.withValues(alpha: 0.22),
+                        Colors.transparent,
+                      ],
+                    ),
+                  ),
                 ),
               ),
-            ),
-          ),
-          Positioned(
-            top: 400,
-            left: -100,
-            child: Container(
-              width: 450,
-              height: 450,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                gradient: RadialGradient(
-                  colors: [
-                    AppColors.primary.withValues(alpha: 0.05),
-                    AppColors.primary.withValues(alpha: 0.0),
-                  ],
+              Positioned(
+                top: 750,
+                left: -120,
+                child: Container(
+                  width: 620,
+                  height: 620,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    gradient: RadialGradient(
+                      colors: [
+                        AppColors.skyLight.withValues(alpha: 0.35),
+                        Colors.transparent,
+                      ],
+                    ),
+                  ),
                 ),
               ),
-            ),
-          ),
+              Positioned(
+                top: 1700,
+                right: -100,
+                child: Container(
+                  width: 550,
+                  height: 550,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    gradient: RadialGradient(
+                      colors: [
+                        AppColors.sky.withValues(alpha: 0.18),
+                        Colors.transparent,
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+              Positioned(
+                top: 2600,
+                left: -80,
+                child: Container(
+                  width: 520,
+                  height: 520,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    gradient: RadialGradient(
+                      colors: [
+                        AppColors.creamDark.withValues(alpha: 0.35),
+                        Colors.transparent,
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+              Positioned(
+                top: 3500,
+                right: -60,
+                child: Container(
+                  width: 500,
+                  height: 500,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    gradient: RadialGradient(
+                      colors: [
+                        AppColors.skyLight.withValues(alpha: 0.30),
+                        Colors.transparent,
+                      ],
+                    ),
+                  ),
+                ),
+              ),
 
-          // Main scrollable content
-          SingleChildScrollView(
-            controller: _scrollController,
-            child: Column(
-              children: [
-                _buildTopNavigation(context),
-                _buildHeroSection(context),
-                _buildLiveSimulationBanner(context),
-                KeyedSubtree(
-                  key: _portalsKey,
-                  child: _buildRolePortalsSection(context),
+              // Main scrollable content
+              SingleChildScrollView(
+                controller: _scrollController,
+                child: Column(
+                  children: [
+                    _buildHeroSection(context),
+                    KeyedSubtree(
+                      key: _howItWorksKey,
+                      child: _buildHowItWorksSection(context),
+                    ),
+                    KeyedSubtree(
+                      key: _worldGlobeKey,
+                      child: _buildGlobalWorldGlobeSection(context),
+                    ),
+                    KeyedSubtree(
+                      key: _portalsKey,
+                      child: _buildRolePortalsSection(context),
+                    ),
+                    KeyedSubtree(
+                      key: _statsKey,
+                      child: _buildTelemetryStatsSection(context),
+                    ),
+                    _buildValuePropositionsSection(context),
+                    _buildTestimonialsSection(context),
+                    _buildLiveCorridorsMapSection(context),
+                    _buildFooterSection(context),
+                  ],
                 ),
-                KeyedSubtree(
-                  key: _howItWorksKey,
-                  child: _buildHowItWorksSection(context),
-                ),
-                KeyedSubtree(
-                  key: _statsKey,
-                  child: _buildTelemetryStatsSection(context),
-                ),
-                _buildValuePropositionsSection(context),
-                _buildTestimonialsSection(context),
-                _buildLiveCorridorsMapSection(context),
-                _buildFooterSection(context),
-              ],
-            ),
+              ),
+            ],
           ),
-        ],
-      ),
+        );
+      },
     );
   }
 
   // ==========================================
   // TOP NAVIGATION BAR
   // ==========================================
+  // ==========================================
+  // TOP NAVIGATION BAR (HAVEN FROSTED GLASS PILL)
+  // ==========================================
   Widget _buildTopNavigation(BuildContext context) {
     final bool isMobile = ResponsiveLayout.isMobile(context);
+    final tuning = DesignTuningController.instance;
 
     return Container(
+      width: double.infinity,
       padding: EdgeInsets.symmetric(
-        horizontal: isMobile ? 18 : 48,
-        vertical: 16,
+        horizontal: isMobile ? 12 : 24,
+        vertical: ((tuning.layoutNavHeight - 44) / 2).clamp(6.0, 28.0),
       ),
-      decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.92),
-        border: Border(
-          bottom: BorderSide(
-            color: AppColors.slate200.withValues(alpha: 0.8),
-            width: 1,
-          ),
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: AppColors.slate900.withValues(alpha: 0.02),
-            blurRadius: 16,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
-      child: SafeArea(
-        bottom: false,
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            // Brand Logo & Title
-            InkWell(
-              onTap: () {
-                _scrollController.animateTo(
-                  0,
-                  duration: const Duration(milliseconds: 500),
-                  curve: Curves.easeOut,
-                );
-              },
-              borderRadius: BorderRadius.circular(12),
-              child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 4),
-                child: Row(
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.all(9),
-                      decoration: BoxDecoration(
-                        color: AppColors.emeraldLight,
-                        borderRadius: BorderRadius.circular(12),
-                        border: Border.all(
-                          color: AppColors.emerald.withValues(alpha: 0.3),
-                          width: 1.2,
-                        ),
-                      ),
-                      child: const Icon(
-                        Icons.emergency_share_rounded,
-                        color: AppColors.emeraldDark,
-                        size: 22,
+      child: Center(
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(50),
+          child: BackdropFilter(
+            filter: ui.ImageFilter.blur(sigmaX: tuning.glassBlur, sigmaY: tuning.glassBlur),
+            child: Container(
+              constraints: BoxConstraints(maxWidth: tuning.layoutContentWidth),
+              padding: EdgeInsets.symmetric(
+                horizontal: isMobile ? 14 : 24,
+                vertical: 8,
+              ),
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: [
+                    Colors.white.withValues(alpha: (tuning.glassSurfaceOpacity * 1.5).clamp(0.12, 0.65)),
+                    AppColors.cream.withValues(alpha: (tuning.glassSurfaceOpacity * 0.7).clamp(0.06, 0.35)),
+                  ],
+                ),
+                borderRadius: BorderRadius.circular(50),
+                border: Border.all(
+                  color: Colors.white.withValues(alpha: tuning.glassBorderOpacity),
+                  width: 1.4 * tuning.tileHighlightIntensity,
+                ),
+                boxShadow: [
+                  BoxShadow(
+                    color: AppColors.navy.withValues(alpha: tuning.glassShadowOpacity * 1.5),
+                    blurRadius: tuning.glassShadowBlur,
+                    offset: Offset(0, tuning.tileShadowOffset),
+                  ),
+                  BoxShadow(
+                    color: Colors.white.withValues(alpha: (tuning.glassBorderOpacity * 0.85).clamp(0.2, 0.85)),
+                    blurRadius: 1,
+                    offset: const Offset(0, 1),
+                    spreadRadius: 0,
+                  ),
+                ],
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  // Brand Logo & Title (Navy & Pale Cream)
+                  InkWell(
+                    onTap: () {
+                      _scrollController.animateTo(
+                        0,
+                        duration: const Duration(milliseconds: 500),
+                        curve: Curves.easeOut,
+                      );
+                    },
+                    borderRadius: BorderRadius.circular(50),
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
+                      child: Row(
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.all(7),
+                            decoration: BoxDecoration(
+                              color: Colors.white.withValues(alpha: 0.55),
+                              shape: BoxShape.circle,
+                              border: Border.all(
+                                color: Colors.white.withValues(alpha: 0.8),
+                                width: 1.2,
+                              ),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: AppColors.navy.withValues(alpha: 0.08),
+                                  blurRadius: 8,
+                                  offset: const Offset(0, 2),
+                                ),
+                              ],
+                            ),
+                            child: const Icon(
+                              Icons.emergency_share_rounded,
+                              color: AppColors.navy,
+                              size: 18,
+                            ),
+                          ),
+                          const SizedBox(width: 9),
+                          Row(
+                            children: [
+                              Text(
+                                'Green Corridor',
+                                style: GoogleFonts.plusJakartaSans(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w900,
+                                  color: AppColors.navy,
+                                  letterSpacing: -0.2,
+                                ),
+                              ),
+                              const SizedBox(width: 5),
+                              Container(
+                                width: 6,
+                                height: 6,
+                                decoration: const BoxDecoration(
+                                  color: AppColors.sky,
+                                  shape: BoxShape.circle,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
                       ),
                     ),
-                    const SizedBox(width: 12),
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      mainAxisSize: MainAxisSize.min,
+                  ),
+
+                  // Desktop Links (Navy & Sky Blue)
+                  if (!isMobile)
+                    Row(
                       children: [
-                        Row(
-                          children: [
-                            Text(
-                              'GREEN CORRIDOR',
-                              style: GoogleFonts.plusJakartaSans(
-                                fontSize: 17,
-                                fontWeight: FontWeight.w900,
-                                color: AppColors.slate900,
-                                letterSpacing: 0.2,
-                              ),
+                        _navButton('Protocol', () => _scrollToSection(_howItWorksKey)),
+                        _navButton('Global 3D Globe', () => _scrollToSection(_worldGlobeKey)),
+                        _navButton('Trauma Portals', () => _scrollToSection(_portalsKey)),
+                        _navButton('Telemetry', () => _scrollToSection(_statsKey)),
+                        _navButton('Citizen Radar', () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(builder: (_) => const CitizenScreen()),
+                          );
+                        }),
+                      ],
+                    ),
+
+                  // Right Action: Navy Blue Button with Pale Cream text
+                  Row(
+                    children: [
+                      ElevatedButton(
+                        onPressed: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(builder: (_) => const HospitalDashboard()),
+                          );
+                        },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: AppColors.navy,
+                          foregroundColor: AppColors.cream,
+                          elevation: 6,
+                          shadowColor: AppColors.navy.withValues(alpha: 0.40),
+                          padding: EdgeInsets.symmetric(
+                            horizontal: isMobile ? 14 : 22,
+                            vertical: 12,
+                          ),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(50),
+                            side: BorderSide(
+                              color: AppColors.sky.withValues(alpha: 0.65),
+                              width: 1.2,
                             ),
+                          ),
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            const Icon(Icons.security_rounded, size: 14, color: AppColors.sky),
                             const SizedBox(width: 6),
-                            Container(
-                              width: 8,
-                              height: 8,
-                              decoration: const BoxDecoration(
-                                color: AppColors.emerald,
-                                shape: BoxShape.circle,
+                            Text(
+                              isMobile ? 'Hospital ER' : 'Hospital Portal',
+                              style: GoogleFonts.plusJakartaSans(
+                                fontWeight: FontWeight.w800,
+                                fontSize: 13,
+                                color: AppColors.cream,
                               ),
                             ),
                           ],
                         ),
-                        Text(
-                          'EMERGENCY TRANSIT GRID',
-                          style: GoogleFonts.plusJakartaSans(
-                            fontSize: 10,
-                            fontWeight: FontWeight.w700,
-                            color: AppColors.slate500,
-                            letterSpacing: 1.1,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-              ),
-            ),
-
-            // Desktop Links
-            if (!isMobile)
-              Row(
-                children: [
-                  _navButton('Protocol', () => _scrollToSection(_howItWorksKey)),
-                  _navButton('Ecosystem', () => _scrollToSection(_portalsKey)),
-                  _navButton('Performance', () => _scrollToSection(_statsKey)),
-                  _navButton('Citizen Radar', () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (_) => const CitizenScreen()),
-                    );
-                  }),
-                ],
-              ),
-
-            // Action Buttons
-            Row(
-              children: [
-                TextButton(
-                  onPressed: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (_) => const LoginScreen()),
-                    );
-                  },
-                  style: TextButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 14),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                  ),
-                  child: Text(
-                    'Sign In',
-                    style: GoogleFonts.plusJakartaSans(
-                      color: AppColors.slate800,
-                      fontWeight: FontWeight.w700,
-                      fontSize: 14,
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 8),
-                OutlinedButton.icon(
-                  onPressed: () => _showDownloadModal(context),
-                  style: OutlinedButton.styleFrom(
-                    side: const BorderSide(color: AppColors.emerald),
-                    foregroundColor: AppColors.emeraldDark,
-                    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                  ),
-                  icon: const Icon(Icons.android_rounded, size: 18),
-                  label: Text(
-                    isMobile ? 'APK' : 'Download App',
-                    style: GoogleFonts.plusJakartaSans(
-                      fontWeight: FontWeight.w700,
-                      fontSize: 13,
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 8),
-                ElevatedButton(
-                  onPressed: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (_) => const RegisterScreen()),
-                    );
-                  },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: AppColors.primary,
-                    foregroundColor: Colors.white,
-                    elevation: 0,
-                    padding: EdgeInsets.symmetric(
-                      horizontal: isMobile ? 14 : 20,
-                      vertical: 14,
-                    ),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    shadowColor: AppColors.primary.withValues(alpha: 0.35),
-                  ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Text(
-                        isMobile ? 'Console' : 'Dispatch Console',
-                        style: GoogleFonts.plusJakartaSans(
-                          fontWeight: FontWeight.w700,
-                          fontSize: 14,
-                        ),
                       ),
-                      const SizedBox(width: 6),
-                      const Icon(Icons.arrow_forward_rounded, size: 16),
                     ],
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
-          ],
+          ),
         ),
       ),
     );
@@ -789,646 +847,1183 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
 
   Widget _navButton(String title, VoidCallback onTap) {
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 6),
-      child: TextButton(
-        onPressed: onTap,
-        style: TextButton.styleFrom(
-          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(10),
-          ),
-        ),
-        child: Text(
-          title,
-          style: GoogleFonts.plusJakartaSans(
-            color: AppColors.slate700,
-            fontWeight: FontWeight.w600,
-            fontSize: 14,
-          ),
-        ),
-      ),
-    );
-  }
-
-  // ==========================================
-  // HERO SECTION
-  // ==========================================
-  Widget _buildHeroSection(BuildContext context) {
-    return ResponsiveLayout(
-      desktop: _buildDesktopHero(context),
-      mobile: _buildMobileHero(context),
-    );
-  }
-
-  Widget _buildDesktopHero(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 48, vertical: 64),
-      constraints: const BoxConstraints(maxWidth: 1320),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: [
-          // Left Text Column
-          Expanded(
-            flex: 12,
-            child: _buildHeroLeftContent(context, isMobile: false),
-          ),
-          const SizedBox(width: 48),
-          // Right Interactive Simulation Hero
-          const Expanded(
-            flex: 13,
-            child: GreenCorridorSimulationHero(),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildMobileHero(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 32),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: [
-          _buildHeroLeftContent(context, isMobile: true),
-          const SizedBox(height: 36),
-          const GreenCorridorSimulationHero(),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildHeroLeftContent(BuildContext context, {required bool isMobile}) {
-    return Column(
-      crossAxisAlignment:
-          isMobile ? CrossAxisAlignment.center : CrossAxisAlignment.start,
-      children: [
-        // Live Tactical Badge
-        Container(
-          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+      padding: const EdgeInsets.symmetric(horizontal: 3),
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(30),
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 13, vertical: 7),
           decoration: BoxDecoration(
-            color: AppColors.primaryLight,
+            color: Colors.white.withValues(alpha: 0.22),
             borderRadius: BorderRadius.circular(30),
             border: Border.all(
-              color: AppColors.primary.withValues(alpha: 0.25),
-              width: 1,
+              color: Colors.white.withValues(alpha: 0.45),
+              width: 1.0,
             ),
           ),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Container(
-                width: 8,
-                height: 8,
-                decoration: const BoxDecoration(
-                  color: AppColors.primary,
-                  shape: BoxShape.circle,
-                ),
-              ),
-              const SizedBox(width: 8),
-              Text(
-                'LIVE TRAUMA CORRIDOR GRID ACTIVE',
-                style: GoogleFonts.plusJakartaSans(
-                  color: AppColors.primaryDark,
-                  fontWeight: FontWeight.w800,
-                  fontSize: 11,
-                  letterSpacing: 1.0,
-                ),
-              ),
-            ],
-          ),
-        ),
-        const SizedBox(height: 22),
-
-        // Hero Headline
-        Text(
-          'Seconds Save Lives.\nWe Clear the Path.',
-          textAlign: isMobile ? TextAlign.center : TextAlign.left,
-          style: GoogleFonts.plusJakartaSans(
-            fontSize: isMobile ? 34 : 52,
-            fontWeight: FontWeight.w900,
-            color: AppColors.slate900,
-            height: 1.12,
-            letterSpacing: -1.4,
-          ),
-        ),
-        const SizedBox(height: 20),
-
-        // Body Description
-        Text(
-          'Autonomous traffic signal preemption, driver cockpit telemetry, and hospital trauma bay synchronization. Green Corridor eliminates urban bottlenecks so emergency medical responders reach victims without friction.',
-          textAlign: isMobile ? TextAlign.center : TextAlign.left,
-          style: GoogleFonts.plusJakartaSans(
-            fontSize: isMobile ? 15 : 17,
-            color: AppColors.slate600,
-            height: 1.6,
-            fontWeight: FontWeight.w400,
-          ),
-        ),
-        const SizedBox(height: 32),
-
-        // CTA Buttons
-        Wrap(
-          spacing: 14,
-          runSpacing: 14,
-          alignment: isMobile ? WrapAlignment.center : WrapAlignment.start,
-          children: [
-            ElevatedButton(
-              onPressed: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (_) => const LoginScreen()),
-                );
-              },
-              style: ElevatedButton.styleFrom(
-                backgroundColor: AppColors.primary,
-                foregroundColor: Colors.white,
-                padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 18),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(14),
-                ),
-                elevation: 4,
-                shadowColor: AppColors.primary.withValues(alpha: 0.35),
-              ),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  const Icon(Icons.flash_on_rounded, size: 20),
-                  const SizedBox(width: 8),
-                  Text(
-                    'Launch Emergency Console',
-                    style: GoogleFonts.plusJakartaSans(
-                      fontSize: 15,
-                      fontWeight: FontWeight.w700,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            OutlinedButton(
-              onPressed: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (_) => const CitizenScreen()),
-                );
-              },
-              style: OutlinedButton.styleFrom(
-                backgroundColor: Colors.white,
-                foregroundColor: AppColors.slate800,
-                side: const BorderSide(color: AppColors.slate300, width: 1.5),
-                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 18),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(14),
-                ),
-              ),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  const Icon(Icons.radar_rounded, color: AppColors.emerald, size: 20),
-                  const SizedBox(width: 8),
-                  Text(
-                    'Citizen Siren Radar',
-                    style: GoogleFonts.plusJakartaSans(
-                      fontSize: 15,
-                      fontWeight: FontWeight.w700,
-                      color: AppColors.slate800,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            OutlinedButton(
-              onPressed: () => _showDownloadModal(context),
-              style: OutlinedButton.styleFrom(
-                backgroundColor: const Color(0xFFF0FDF4),
-                foregroundColor: AppColors.emeraldDark,
-                side: const BorderSide(color: AppColors.emerald, width: 1.5),
-                padding: const EdgeInsets.symmetric(horizontal: 22, vertical: 18),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(14),
-                ),
-              ),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  const Icon(Icons.android_rounded, color: AppColors.emerald, size: 20),
-                  const SizedBox(width: 8),
-                  Text(
-                    'Download Android APK',
-                    style: GoogleFonts.plusJakartaSans(
-                      fontSize: 15,
-                      fontWeight: FontWeight.w700,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ),
-        const SizedBox(height: 32),
-
-        // Live Operational Chips
-        Wrap(
-          spacing: 16,
-          runSpacing: 10,
-          alignment: isMobile ? WrapAlignment.center : WrapAlignment.start,
-          children: [
-            _buildHeroMicroStat(
-              icon: Icons.alt_route_rounded,
-              color: AppColors.emerald,
-              text: '15km Geofence Clearance',
-            ),
-            _buildHeroMicroStat(
-              icon: Icons.bolt_rounded,
-              color: AppColors.primary,
-              text: '0.0s Cloud Sync Latency',
-            ),
-            _buildHeroMicroStat(
-              icon: Icons.local_hospital_rounded,
-              color: AppColors.info,
-              text: 'Direct ER Trauma Lock',
-            ),
-          ],
-        ),
-      ],
-    );
-  }
-
-  Widget _buildHeroMicroStat({
-    required IconData icon,
-    required Color color,
-    required String text,
-  }) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(10),
-        border: Border.all(color: AppColors.slate200),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(icon, size: 15, color: color),
-          const SizedBox(width: 6),
-          Text(
-            text,
+          child: Text(
+            title,
             style: GoogleFonts.plusJakartaSans(
-              fontSize: 12,
-              fontWeight: FontWeight.w600,
-              color: AppColors.slate700,
+              color: AppColors.navy,
+              fontWeight: FontWeight.w700,
+              fontSize: 12.5,
             ),
           ),
-        ],
+        ),
       ),
     );
   }
 
   // ==========================================
-  // LIVE SIMULATION BANNER
+  // HERO SECTION (HAVEN AESTHETIC - EXACT FIRST IMAGE REFERENCE)
   // ==========================================
-  Widget _buildLiveSimulationBanner(BuildContext context) {
+  Widget _buildHeroSection(BuildContext context) {
     final bool isMobile = ResponsiveLayout.isMobile(context);
+    final tuning = DesignTuningController.instance;
+    final double heroHeight = math.max(
+      isMobile ? 700.0 : 860.0,
+      MediaQuery.of(context).size.height,
+    );
 
-    return Container(
-      margin: EdgeInsets.symmetric(
-        horizontal: isMobile ? 16 : 48,
-        vertical: 24,
-      ),
-      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: AppColors.slate200),
-        boxShadow: [
-          BoxShadow(
-            color: AppColors.slate900.withValues(alpha: 0.04),
-            blurRadius: 20,
-            offset: const Offset(0, 8),
-          ),
-        ],
-      ),
-      child: Flex(
-        direction: isMobile ? Axis.vertical : Axis.horizontal,
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+    return SizedBox(
+      height: heroHeight,
+      width: double.infinity,
+      child: Stack(
+        fit: StackFit.expand,
         children: [
-          Row(
-            children: [
-              Container(
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: AppColors.emeraldLight,
-                  borderRadius: BorderRadius.circular(14),
-                ),
-                child: const Icon(
-                  Icons.sensors_rounded,
-                  color: AppColors.emeraldDark,
-                  size: 26,
-                ),
+          // 1. Full-Bleed Scenic Alpine Meadow Landscape (Image 1 Haven Reference)
+          Image.asset(
+            'assets/images/haven_landscape_hero.jpg',
+            fit: BoxFit.cover,
+            alignment: Alignment.center,
+          ),
+
+          // 2. Subtle Lighting & Contrast Vignette (keeps text crisp without hiding nature)
+          Container(
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
+                colors: [
+                  AppColors.navy.withValues(alpha: 0.10),
+                  Colors.white.withValues(alpha: 0.05),
+                  AppColors.cream.withValues(alpha: 0.40),
+                ],
+                stops: const [0.0, 0.45, 1.0],
               ),
-              const SizedBox(width: 16),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    children: [
-                      Text(
-                        'DYNAMIC GREEN WAVE SYNCHRONIZATION',
-                        style: GoogleFonts.plusJakartaSans(
-                          fontSize: 12,
-                          fontWeight: FontWeight.w800,
-                          color: AppColors.emeraldDark,
-                          letterSpacing: 1.0,
+            ),
+          ),
+
+          // 3. Foreground Content with Floating Pill Navbar, Centered Haven Typography, and Bottom Scroll
+          SafeArea(
+            child: Column(
+              children: [
+                // Floating Glassmorphic Pill Navbar pinned at top
+                _buildTopNavigation(context),
+
+                const Spacer(flex: 3),
+
+                // Centered Announcement Pill (Navy on Pale Cream)
+                Center(
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(50),
+                    child: BackdropFilter(
+                      filter: ui.ImageFilter.blur(sigmaX: tuning.glassBlur, sigmaY: tuning.glassBlur),
+                      child: Container(
+                        padding: EdgeInsets.symmetric(
+                          horizontal: isMobile ? 14 : 22,
+                          vertical: 10,
+                        ),
+                        decoration: BoxDecoration(
+                          gradient: LinearGradient(
+                            begin: Alignment.topLeft,
+                            end: Alignment.bottomRight,
+                            colors: [
+                              Colors.white.withValues(alpha: (tuning.glassSurfaceOpacity * 1.5).clamp(0.15, 0.60)),
+                              AppColors.cream.withValues(alpha: (tuning.glassSurfaceOpacity * 0.7).clamp(0.08, 0.35)),
+                            ],
+                          ),
+                          borderRadius: BorderRadius.circular(50),
+                          border: Border.all(
+                            color: Colors.white.withValues(alpha: tuning.glassBorderOpacity),
+                            width: 1.3 * tuning.tileHighlightIntensity,
+                          ),
+                          boxShadow: [
+                            BoxShadow(
+                              color: AppColors.navy.withValues(alpha: tuning.glassShadowOpacity * 1.4),
+                              blurRadius: 22,
+                              offset: const Offset(0, 8),
+                            ),
+                            BoxShadow(
+                              color: Colors.white.withValues(alpha: (tuning.glassBorderOpacity * 0.85).clamp(0.2, 0.85)),
+                              blurRadius: 1,
+                              offset: const Offset(0, 1),
+                              spreadRadius: 0,
+                            ),
+                          ],
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Container(
+                              width: 8,
+                              height: 8,
+                              decoration: const BoxDecoration(
+                                color: AppColors.navy,
+                                shape: BoxShape.circle,
+                              ),
+                            ),
+                            const SizedBox(width: 8),
+                            Text(
+                              '🇮🇳 National AI Green Corridor Active • Zero Intersection Delay',
+                              style: GoogleFonts.plusJakartaSans(
+                                color: AppColors.navy,
+                                fontWeight: FontWeight.w800,
+                                fontSize: isMobile ? 11 : 13,
+                                letterSpacing: 0.2,
+                              ),
+                            ),
+                          ],
                         ),
                       ),
-                      const SizedBox(width: 8),
-                      Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                        decoration: BoxDecoration(
-                          color: AppColors.emerald,
-                          borderRadius: BorderRadius.circular(6),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 26),
+
+                // Centered Haven Typography ("Clear the way." in Navy Blue)
+                Padding(
+                  padding: EdgeInsets.symmetric(horizontal: isMobile ? 20 : 40),
+                  child: Text(
+                    'Clear the way.',
+                    textAlign: TextAlign.center,
+                    style: GoogleFonts.plusJakartaSans(
+                      fontSize: isMobile ? 44 : 76,
+                      fontWeight: FontWeight.w900,
+                      color: AppColors.navy,
+                      letterSpacing: -2.2,
+                      height: 1.05,
+                      shadows: [
+                        Shadow(
+                          color: Colors.white.withValues(alpha: 0.7),
+                          blurRadius: 16,
                         ),
-                        child: Text(
-                          'ACTIVE',
-                          style: GoogleFonts.plusJakartaSans(
-                            fontSize: 9,
-                            fontWeight: FontWeight.w800,
-                            color: Colors.white,
+                      ],
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 18),
+
+                // Centered Subtitle
+                Padding(
+                  padding: EdgeInsets.symmetric(horizontal: isMobile ? 24 : 60),
+                  child: ConstrainedBox(
+                    constraints: const BoxConstraints(maxWidth: 680),
+                    child: Text(
+                      'Preempt smarter with AI that clears traffic ahead.\nSo emergency responders save every breath.',
+                      textAlign: TextAlign.center,
+                      style: GoogleFonts.plusJakartaSans(
+                        fontSize: isMobile ? 15 : 19,
+                        color: AppColors.navyMuted,
+                        height: 1.45,
+                        fontWeight: FontWeight.w700,
+                        shadows: [
+                          Shadow(
+                            color: Colors.white.withValues(alpha: 0.8),
+                            blurRadius: 12,
                           ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 36),
+
+                // Dual Centered Pill CTAs
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    // Primary Navy Pill Button (Get Started ->)
+                    ElevatedButton(
+                      onPressed: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(builder: (_) => const HospitalDashboard()),
+                        );
+                      },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AppColors.navy,
+                        foregroundColor: AppColors.cream,
+                        padding: EdgeInsets.symmetric(
+                          horizontal: isMobile ? 24 : 34,
+                          vertical: 20,
+                        ),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(50),
+                          side: BorderSide(
+                            color: AppColors.sky.withValues(alpha: 0.65),
+                            width: 1.3,
+                          ),
+                        ),
+                        elevation: 8,
+                        shadowColor: AppColors.navy.withValues(alpha: 0.40),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          const Icon(Icons.local_hospital_rounded, color: AppColors.sky, size: 20),
+                          const SizedBox(width: 8),
+                          Text(
+                            'Get Started →',
+                            style: GoogleFonts.plusJakartaSans(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w800,
+                              color: AppColors.cream,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(width: 14),
+
+                    // Secondary Frosted Pill Button (Watch Demo)
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(50),
+                      child: BackdropFilter(
+                        filter: ui.ImageFilter.blur(sigmaX: tuning.glassBlur, sigmaY: tuning.glassBlur),
+                        child: InkWell(
+                          onTap: () => _scrollToSection(_howItWorksKey),
+                          borderRadius: BorderRadius.circular(50),
+                          child: Container(
+                            padding: EdgeInsets.symmetric(
+                              horizontal: isMobile ? 20 : 30,
+                              vertical: 18,
+                            ),
+                            decoration: BoxDecoration(
+                              gradient: LinearGradient(
+                                begin: Alignment.topLeft,
+                                end: Alignment.bottomRight,
+                                colors: [
+                                  Colors.white.withValues(alpha: (tuning.glassSurfaceOpacity * 1.6).clamp(0.18, 0.65)),
+                                  AppColors.cream.withValues(alpha: (tuning.glassSurfaceOpacity * 0.8).clamp(0.10, 0.40)),
+                                ],
+                              ),
+                              borderRadius: BorderRadius.circular(50),
+                              border: Border.all(
+                                color: Colors.white.withValues(alpha: tuning.glassBorderOpacity),
+                                width: 1.4 * tuning.tileHighlightIntensity,
+                              ),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: AppColors.navy.withValues(alpha: tuning.glassShadowOpacity * 1.4),
+                                  blurRadius: 22,
+                                  offset: const Offset(0, 8),
+                                ),
+                                BoxShadow(
+                                  color: Colors.white.withValues(alpha: (tuning.glassBorderOpacity * 0.85).clamp(0.2, 0.85)),
+                                  blurRadius: 1,
+                                  offset: const Offset(0, 1),
+                                  spreadRadius: 0,
+                                ),
+                              ],
+                            ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                const Icon(Icons.play_circle_fill_rounded, color: AppColors.navy, size: 20),
+                                const SizedBox(width: 8),
+                                Text(
+                                  'Watch Demo',
+                                  style: GoogleFonts.plusJakartaSans(
+                                    fontSize: 15,
+                                    fontWeight: FontWeight.w800,
+                                    color: AppColors.navy,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+
+                const Spacer(flex: 4),
+
+                // Floating Bobbing Pill Scroll Indicator
+                AnimatedBuilder(
+                  animation: _scrollBounceController,
+                  builder: (context, child) {
+                    final double bobOffset = 6.0 * math.sin(_scrollBounceController.value * math.pi);
+                    return Transform.translate(
+                      offset: Offset(0, bobOffset),
+                      child: child,
+                    );
+                  },
+                  child: InkWell(
+                    onTap: () => _scrollToSection(_howItWorksKey),
+                    borderRadius: BorderRadius.circular(30),
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(30),
+                      child: BackdropFilter(
+                        filter: ui.ImageFilter.blur(sigmaX: 16, sigmaY: 16),
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 22, vertical: 10),
+                          decoration: BoxDecoration(
+                            gradient: LinearGradient(
+                              begin: Alignment.topLeft,
+                              end: Alignment.bottomRight,
+                              colors: [
+                                Colors.white.withValues(alpha: 0.40),
+                                AppColors.cream.withValues(alpha: 0.18),
+                              ],
+                            ),
+                            borderRadius: BorderRadius.circular(30),
+                            border: Border.all(
+                              color: Colors.white.withValues(alpha: 0.70),
+                              width: 1.2,
+                            ),
+                            boxShadow: [
+                              BoxShadow(
+                                color: AppColors.navy.withValues(alpha: 0.12),
+                                blurRadius: 16,
+                                offset: const Offset(0, 6),
+                              ),
+                              BoxShadow(
+                                color: Colors.white.withValues(alpha: 0.50),
+                                blurRadius: 1,
+                                offset: const Offset(0, 1),
+                                spreadRadius: 0,
+                              ),
+                            ],
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Text(
+                                'SCROLL',
+                                style: GoogleFonts.plusJakartaSans(
+                                  fontSize: 11,
+                                  fontWeight: FontWeight.w800,
+                                  color: AppColors.navy,
+                                  letterSpacing: 2.0,
+                                ),
+                              ),
+                              const SizedBox(width: 6),
+                              const Icon(
+                                Icons.arrow_downward_rounded,
+                                size: 14,
+                                color: AppColors.navy,
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 28),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // ==========================================
+  // GLOBAL 3D INTERACTIVE WORLD GLOBE & PREMIER HOSPITAL TRAUMA MESH
+  // Real premier hospitals: Mayo Clinic, Cleveland Clinic, Charité,
+  // Singapore General, AIIMS, Toronto General, Karolinska, Tokyo Univ, etc.
+  // ==========================================
+  Widget _buildGlobalWorldGlobeSection(BuildContext context) {
+    final bool isMobile = ResponsiveLayout.isMobile(context);
+    final tuning = DesignTuningController.instance;
+
+    return Container(
+      width: double.infinity,
+      decoration: const BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+          colors: [
+            AppColors.cream,
+            Color(0xFFF0F8FE),
+            AppColors.cream,
+          ],
+        ),
+      ),
+      padding: EdgeInsets.symmetric(
+        horizontal: isMobile ? 18 : 56,
+        vertical: tuning.layoutSectionSpacing,
+      ),
+      child: Center(
+        child: Container(
+          constraints: BoxConstraints(maxWidth: tuning.layoutContentWidth),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              // Global Header Badge
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 7),
+                decoration: BoxDecoration(
+                  color: AppColors.skyLight,
+                  borderRadius: BorderRadius.circular(30),
+                  border: Border.all(color: AppColors.sky),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Container(
+                      width: 8,
+                      height: 8,
+                      decoration: const BoxDecoration(
+                        color: AppColors.navy,
+                        shape: BoxShape.circle,
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    Text(
+                      'GLOBAL TRAUMA TRANSIT NETWORK • REAL PREMIER HOSPITAL NODES',
+                      style: GoogleFonts.plusJakartaSans(
+                        fontSize: 11,
+                        fontWeight: FontWeight.w800,
+                        color: AppColors.navy,
+                        letterSpacing: 1.3,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 18),
+              Text(
+                'Worldwide Emergency Preemption Grid',
+                textAlign: TextAlign.center,
+                style: GoogleFonts.plusJakartaSans(
+                  fontSize: isMobile ? 28 : 44,
+                  fontWeight: FontWeight.w900,
+                  color: AppColors.navy,
+                  letterSpacing: -1.0,
+                ),
+              ),
+              const SizedBox(height: 14),
+              ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 720),
+                child: Text(
+                  'Explore our live cyber-physical transit mesh interconnecting premier hospital trauma bays across North America, Europe, and Asia. Touch and drag the 3D globe to inspect active green wave locks.',
+                  textAlign: TextAlign.center,
+                  style: GoogleFonts.plusJakartaSans(
+                    fontSize: 15,
+                    color: AppColors.navyMuted,
+                    height: 1.55,
+                  ),
+                ),
+              ),
+              const SizedBox(height: 40),
+              // Visual Holographic Global Overview Card
+              Container(
+                width: double.infinity,
+                constraints: const BoxConstraints(maxHeight: 280),
+                decoration: BoxDecoration(
+                  color: AppColors.cream,
+                  borderRadius: BorderRadius.circular(24),
+                  border: Border.all(
+                    color: AppColors.sky,
+                    width: 1.5,
+                  ),
+                  boxShadow: [
+                    BoxShadow(
+                      color: AppColors.navy.withValues(alpha: 0.08),
+                      blurRadius: 36,
+                      offset: const Offset(0, 12),
+                    ),
+                  ],
+                ),
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(24),
+                  child: Stack(
+                    fit: StackFit.expand,
+                    children: [
+                      Image.asset(
+                        'assets/images/world_3d_globe.jpg',
+                        fit: BoxFit.cover,
+                      ),
+                      Container(
+                        decoration: BoxDecoration(
+                          gradient: LinearGradient(
+                            begin: Alignment.topCenter,
+                            end: Alignment.bottomCenter,
+                            colors: [
+                              Colors.transparent,
+                              AppColors.cream.withValues(alpha: 0.85),
+                            ],
+                          ),
+                        ),
+                      ),
+                      Positioned(
+                        left: 20,
+                        bottom: 16,
+                        child: Row(
+                          children: [
+                            Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                              decoration: BoxDecoration(
+                                color: AppColors.cream,
+                                borderRadius: BorderRadius.circular(8),
+                                border: Border.all(color: AppColors.sky),
+                              ),
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  const Icon(Icons.public_rounded, color: AppColors.navy, size: 14),
+                                  const SizedBox(width: 6),
+                                  Text(
+                                    '10 Premier Trauma Centers Synchronized',
+                                    style: GoogleFonts.plusJakartaSans(
+                                      fontSize: 11,
+                                      fontWeight: FontWeight.w800,
+                                      color: AppColors.navy,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
                         ),
                       ),
                     ],
                   ),
-                  const SizedBox(height: 4),
-                  Text(
-                    'Traffic signals preempted sequentially 90 seconds prior to ambulance passage.',
-                    style: GoogleFonts.plusJakartaSans(
-                      fontSize: 14,
-                      color: AppColors.slate600,
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
-                ],
-              ),
-            ],
-          ),
-          if (isMobile) const SizedBox(height: 16),
-          Wrap(
-            spacing: 8,
-            runSpacing: 8,
-            crossAxisAlignment: WrapCrossAlignment.center,
-            children: [
-              _buildSignalStateBadge('Signal 14A', 'CLEAR', AppColors.emerald),
-              _buildSignalStateBadge('Signal 14B', 'CLEAR', AppColors.emerald),
-              _buildSignalStateBadge('Signal 15A', 'SYNCING', AppColors.amber),
-              const SizedBox(width: 4),
-              ElevatedButton.icon(
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFFFEF2F2),
-                  foregroundColor: AppColors.primary,
-                  elevation: 0,
-                  side: BorderSide(color: AppColors.primary.withValues(alpha: 0.3)),
-                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
                 ),
-                onPressed: () {
-                  CitizenAlertService.testSiren();
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      duration: const Duration(seconds: 2),
-                      behavior: SnackBarBehavior.floating,
-                      backgroundColor: AppColors.primary,
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                      content: const Text(
-                        "🚨 Playing Dual-Tone Emergency Siren Waveform...",
-                        style: TextStyle(fontWeight: FontWeight.w700),
-                      ),
-                    ),
+              ),
+              const SizedBox(height: 36),
+              InteractiveWorldGlobeWidget(
+                scrollController: _scrollController,
+                onOpenHospitalDashboard: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (_) => const HospitalDashboard()),
                   );
                 },
-                icon: const Icon(Icons.campaign_rounded, size: 16),
-                label: const Text(
-                  "Test Siren",
-                  style: TextStyle(fontSize: 12, fontWeight: FontWeight.w800),
+              ),
+              const SizedBox(height: 48),
+              ClipRRect(
+                borderRadius: BorderRadius.circular(24),
+                child: BackdropFilter(
+                  filter: ui.ImageFilter.blur(sigmaX: 18, sigmaY: 18),
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 22),
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                        colors: [
+                          Colors.white.withValues(alpha: 0.65),
+                          AppColors.cream.withValues(alpha: 0.30),
+                        ],
+                      ),
+                      borderRadius: BorderRadius.circular(24),
+                      border: Border.all(color: Colors.white.withValues(alpha: 0.85), width: 1.4),
+                      boxShadow: [
+                        BoxShadow(
+                          color: AppColors.navy.withValues(alpha: 0.08),
+                          blurRadius: 24,
+                          offset: const Offset(0, 8),
+                        ),
+                        BoxShadow(
+                          color: Colors.white.withValues(alpha: 0.65),
+                          blurRadius: 1,
+                          offset: const Offset(0, 1),
+                          spreadRadius: 0,
+                        ),
+                      ],
+                    ),
+                    child: Wrap(
+                      spacing: 32,
+                      runSpacing: 18,
+                      alignment: WrapAlignment.spaceAround,
+                      children: [
+                        _buildWorldKpi(
+                          title: 'GLOBAL LATENCY',
+                          subtitle: 'Edge MQTT synchronization',
+                          metric: '0.0',
+                          unit: 'ms',
+                          color: AppColors.navy,
+                        ),
+                        _buildWorldKpi(
+                          title: 'PREEMPTION COMPLIANCE',
+                          subtitle: 'Zero municipal red lights',
+                          metric: '99.98',
+                          unit: '%',
+                          color: AppColors.navy,
+                        ),
+                        _buildWorldKpi(
+                          title: 'GOLDEN HOUR PRESERVATION',
+                          subtitle: 'Door-to-balloon time saved',
+                          metric: '-18.4',
+                          unit: 'min',
+                          color: AppColors.navy,
+                        ),
+                        _buildWorldKpi(
+                          title: 'GLOBAL TRAUMA NODES',
+                          subtitle: 'Mayo, Charité, AIIMS, SGH...',
+                          metric: '10',
+                          unit: 'centers',
+                          color: AppColors.navy,
+                        ),
+                      ],
+                    ),
+                  ),
                 ),
               ),
             ],
           ),
-        ],
+        ),
       ),
     );
   }
 
-  Widget _buildSignalStateBadge(String signal, String state, Color color) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-      decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.12),
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: color.withValues(alpha: 0.3)),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Container(
-            width: 7,
-            height: 7,
-            decoration: BoxDecoration(color: color, shape: BoxShape.circle),
+  Widget _buildWorldKpi({
+    required String title,
+    required String subtitle,
+    required String metric,
+    required String unit,
+    required Color color,
+  }) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Text(
+          title,
+          style: GoogleFonts.plusJakartaSans(
+            fontSize: 10,
+            fontWeight: FontWeight.w800,
+            color: AppColors.navyMuted,
+            letterSpacing: 1.0,
           ),
-          const SizedBox(width: 6),
-          Text(
-            '$signal: $state',
-            style: GoogleFonts.plusJakartaSans(
-              fontSize: 11,
-              fontWeight: FontWeight.w700,
-              color: color,
+        ),
+        const SizedBox(height: 4),
+        Row(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.baseline,
+          textBaseline: TextBaseline.alphabetic,
+          children: [
+            Text(
+              metric,
+              style: GoogleFonts.jetBrainsMono(
+                fontSize: 26,
+                fontWeight: FontWeight.w900,
+                color: color,
+              ),
             ),
+            const SizedBox(width: 4),
+            Text(
+              unit,
+              style: GoogleFonts.plusJakartaSans(
+                fontSize: 12,
+                fontWeight: FontWeight.w700,
+                color: AppColors.navyLight,
+              ),
+            ),
+          ],
+        ),
+        Text(
+          subtitle,
+          style: GoogleFonts.plusJakartaSans(
+            fontSize: 11,
+            fontWeight: FontWeight.w500,
+            color: AppColors.navyMuted,
           ),
-        ],
-      ),
+        ),
+      ],
     );
   }
+
+
+
 
   // ==========================================
   // ROLE MATRIX SECTION (3 STAKEHOLDER PORTALS)
   // ==========================================
+  // DYNAMIC GLASSMORPHISM ECOSYSTEM WORKSTATION
+  // ==========================================
   Widget _buildRolePortalsSection(BuildContext context) {
     final bool isMobile = ResponsiveLayout.isMobile(context);
+    final tuning = DesignTuningController.instance;
 
     return Container(
-      padding: EdgeInsets.symmetric(
-        horizontal: isMobile ? 20 : 64,
-        vertical: 72,
+      width: double.infinity,
+      decoration: const BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+          colors: [
+            AppColors.cream,
+            Color(0xFFF4F9FD),
+            AppColors.cream,
+          ],
+        ),
       ),
-      child: Column(
-        children: [
-          Text(
-            'INTEGRATED PLATFORM ARCHITECTURE',
-            style: GoogleFonts.plusJakartaSans(
-              fontSize: 12,
-              fontWeight: FontWeight.w800,
-              color: AppColors.primary,
-              letterSpacing: 1.4,
-            ),
+      padding: EdgeInsets.symmetric(
+        horizontal: isMobile ? 18 : 48,
+        vertical: tuning.layoutSectionSpacing,
+      ),
+      child: Center(
+        child: Container(
+          constraints: BoxConstraints(maxWidth: tuning.layoutContentWidth),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              // Ecosystem pill banner
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 7),
+                decoration: BoxDecoration(
+                  color: AppColors.skyLight,
+                  borderRadius: BorderRadius.circular(30),
+                  border: Border.all(color: AppColors.sky),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Container(
+                      width: 8,
+                      height: 8,
+                      decoration: const BoxDecoration(
+                        color: AppColors.navy,
+                        shape: BoxShape.circle,
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    Text(
+                      'THREE-TIER SYSTEM ARCHITECTURE',
+                      style: GoogleFonts.plusJakartaSans(
+                        fontSize: 11,
+                        fontWeight: FontWeight.w800,
+                        color: AppColors.navy,
+                        letterSpacing: 1.4,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 16),
+              Text(
+                'One Unified Mission.\nThree Specialized Interfaces.',
+                textAlign: TextAlign.center,
+                style: GoogleFonts.plusJakartaSans(
+                  fontSize: isMobile ? 28 : 42,
+                  fontWeight: FontWeight.w900,
+                  color: AppColors.navy,
+                  letterSpacing: -1.0,
+                ),
+              ),
+              const SizedBox(height: 12),
+              ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 720),
+                child: Text(
+                  'Hospital resuscitation teams operate through this dedicated desktop web command center, while ambulance drivers and everyday commuters interact via native mobile apps with real-time acoustic and visual alerts.',
+                  textAlign: TextAlign.center,
+                  style: GoogleFonts.plusJakartaSans(
+                    fontSize: 15,
+                    color: AppColors.navyMuted,
+                    height: 1.55,
+                  ),
+                ),
+              ),
+              const SizedBox(height: 44),
+
+              // THE GLASSMORPHISM TAB BAR!
+              Center(
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(50),
+                  child: BackdropFilter(
+                    filter: ui.ImageFilter.blur(sigmaX: 16, sigmaY: 16),
+                    child: Container(
+                      padding: const EdgeInsets.all(6),
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                          colors: [
+                            Colors.white.withValues(alpha: 0.55),
+                            AppColors.cream.withValues(alpha: 0.25),
+                          ],
+                        ),
+                        borderRadius: BorderRadius.circular(50),
+                        border: Border.all(
+                          color: Colors.white.withValues(alpha: 0.80),
+                          width: 1.4,
+                        ),
+                        boxShadow: [
+                          BoxShadow(
+                            color: AppColors.navy.withValues(alpha: 0.08),
+                            blurRadius: 20,
+                            offset: const Offset(0, 6),
+                          ),
+                          BoxShadow(
+                            color: Colors.white.withValues(alpha: 0.60),
+                            blurRadius: 1,
+                            offset: const Offset(0, 1),
+                            spreadRadius: 0,
+                          ),
+                        ],
+                      ),
+                      child: Wrap(
+                        spacing: 8,
+                        runSpacing: 8,
+                        alignment: WrapAlignment.center,
+                        children: [
+                          _buildGlassTabButton(
+                            index: 0,
+                            icon: Icons.local_hospital_rounded,
+                            label: isMobile ? 'Hospital (Web)' : 'Hospital Level-1 Trauma Web Console',
+                          ),
+                          _buildGlassTabButton(
+                            index: 1,
+                            icon: Icons.navigation_rounded,
+                            label: isMobile ? 'Driver (App)' : 'Ambulance Pilot Cockpit App',
+                          ),
+                          _buildGlassTabButton(
+                            index: 2,
+                            icon: Icons.cell_tower_rounded,
+                            label: isMobile ? 'Citizen (App)' : 'Citizen Siren Radar App',
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 40),
+
+              // DYNAMIC GLASSMORPHIC SHOWCASE CARD FOR THE ACTIVE TAB
+              _buildActiveTabGlassmorphismCard(context, isMobile),
+            ],
           ),
-          const SizedBox(height: 10),
-          Text(
-            'Three Unified Portals. One Mission.',
-            textAlign: TextAlign.center,
-            style: GoogleFonts.plusJakartaSans(
-              fontSize: isMobile ? 28 : 38,
-              fontWeight: FontWeight.w900,
-              color: AppColors.slate900,
-              letterSpacing: -0.8,
+        ),
+      ),
+    );
+  }
+
+  Widget _buildGlassTabButton({
+    required int index,
+    required IconData icon,
+    required String label,
+  }) {
+    final bool isSelected = _selectedEcosystemTab == index;
+
+    return InkWell(
+      onTap: () {
+        setState(() {
+          _selectedEcosystemTab = index;
+        });
+      },
+      borderRadius: BorderRadius.circular(50),
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 250),
+        curve: Curves.easeOut,
+        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+        decoration: BoxDecoration(
+          color: isSelected ? AppColors.navy : Colors.transparent,
+          borderRadius: BorderRadius.circular(50),
+          boxShadow: isSelected
+              ? [
+                  BoxShadow(
+                    color: AppColors.navy.withValues(alpha: 0.25),
+                    blurRadius: 14,
+                    offset: const Offset(0, 4),
+                  ),
+                ]
+              : null,
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(
+              icon,
+              size: 17,
+              color: isSelected ? AppColors.sky : AppColors.navyMuted,
             ),
-          ),
-          const SizedBox(height: 12),
-          ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: 680),
-            child: Text(
-              'Designed specifically for trauma centers, emergency fleet pilots, and citizens navigating urban corridors during critical operations.',
-              textAlign: TextAlign.center,
+            const SizedBox(width: 8),
+            Text(
+              label,
               style: GoogleFonts.plusJakartaSans(
-                fontSize: 15,
-                color: AppColors.slate600,
-                height: 1.55,
+                fontSize: 13,
+                fontWeight: isSelected ? FontWeight.w800 : FontWeight.w600,
+                color: isSelected ? AppColors.cream : AppColors.navy,
               ),
             ),
-          ),
-          const SizedBox(height: 52),
-
-          // Portal Cards
-          LayoutBuilder(
-            builder: (context, constraints) {
-              if (constraints.maxWidth >= 980) {
-                return Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Expanded(child: _buildHospitalPortalCard(context)),
-                    const SizedBox(width: 24),
-                    Expanded(child: _buildDriverPortalCard(context)),
-                    const SizedBox(width: 24),
-                    Expanded(child: _buildCitizenPortalCard(context)),
-                  ],
-                );
-              } else {
-                return Column(
-                  children: [
-                    _buildHospitalPortalCard(context),
-                    const SizedBox(height: 20),
-                    _buildDriverPortalCard(context),
-                    const SizedBox(height: 20),
-                    _buildCitizenPortalCard(context),
-                  ],
-                );
-              }
-            },
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
 
-  Widget _buildHospitalPortalCard(BuildContext context) {
-    return _buildPortalCard(
-      badgeColor: AppColors.primaryLight,
-      badgeTextColor: AppColors.primaryDark,
-      badgeText: 'COMMAND & CONTROL',
-      icon: Icons.local_hospital_rounded,
-      iconColor: AppColors.primary,
-      title: 'Hospital Trauma Hub',
-      subtitle:
-          'Pre-allocate emergency trauma bays, monitor incoming ambulance telemetry in real-time, and alert surgery teams before the vehicle arrives at the bay.',
-      features: [
-        'Live patient vitals & ETA sync',
-        'Automatic trauma bay reservation',
-        'Direct driver communication line',
-        'Medical staff mobilization alerts',
-      ],
-      buttonText: 'Open ER Console',
-      onPressed: () {
-        Navigator.push(
-          context,
-          MaterialPageRoute(builder: (_) => const LoginScreen()),
-        );
-      },
-    );
+  Widget _buildActiveTabGlassmorphismCard(BuildContext context, bool isMobile) {
+    if (_selectedEcosystemTab == 0) {
+      // TAB 0: HOSPITAL WEB COMMAND PORTAL
+      return _buildGlassworkstationCard(
+        context: context,
+        isMobile: isMobile,
+        badgeText: 'CENTRAL WEB PLATFORM (HOSPITAL COMMAND)',
+        badgeColor: AppColors.primaryLight,
+        badgeTextColor: AppColors.primaryDark,
+        title: 'Hospital Level-1 Trauma Command Center',
+        subtitle:
+            'Dedicated desktop & web workstation for Level-1 trauma triage directors, emergency surgeons, and cath-lab coordinators. Live in-cabin patient telemetry and arterial corridor preemption authority.',
+        features: [
+          'Live 10 Hz patient vitals (ECG, SpO2, BP, GCS)',
+          'Automatic trauma bay & cath-lab pre-allocation',
+          'Cold ischemic clock for donor organ transit',
+          'Direct green corridor override authorization',
+        ],
+        buttonText: 'Launch Hospital Web Console →',
+        onPressed: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (_) => const HospitalDashboard()),
+          );
+        },
+        previewWidget: _buildHospitalTelemetryLivePreview(),
+      );
+    } else if (_selectedEcosystemTab == 1) {
+      // TAB 1: AMBULANCE DRIVER MOBILE APP
+      return _buildGlassworkstationCard(
+        context: context,
+        isMobile: isMobile,
+        badgeText: 'NATIVE MOBILE APP (IN-CABIN COCKPIT)',
+        badgeColor: AppColors.emeraldLight,
+        badgeTextColor: AppColors.emeraldDark,
+        title: 'Ambulance Driver Cockpit Mobile App',
+        subtitle:
+            'In-cabin heads-up mobile cockpit for emergency vehicle pilots with turn-by-turn preemption routing, queue discharge clearance, and intersection green phase countdowns.',
+        features: [
+          'Turn-by-turn green wave preemption HUD',
+          '15km automated signal light override',
+          'Zero hard-braking queue clearance guidance',
+          'Instant paramedic patient vitals transmitter',
+        ],
+        buttonText: 'Download Driver Mobile App',
+        onPressed: () => _showDownloadModal(context),
+        previewWidget: _buildDriverCockpitLivePreview(),
+      );
+    } else {
+      // TAB 2: CITIZEN SIREN RADAR MOBILE APP
+      return _buildGlassworkstationCard(
+        context: context,
+        isMobile: isMobile,
+        badgeText: 'NATIVE MOBILE APP (PUBLIC SAFETY)',
+        badgeColor: AppColors.infoLight,
+        badgeTextColor: AppColors.info,
+        title: 'Citizen Siren Radar Mobile App',
+        subtitle:
+            'Proactive mobile app for commuters and drivers delivering 800m acoustic & visual siren warnings to yield lanes smoothly before the ambulance arrives.',
+        features: [
+          '800m acoustic siren proximity radar',
+          'Real-time pull-over lane guidance instructions',
+          '1-tap emergency SOS dispatch trigger',
+          'Civic cooperation karma recognition',
+        ],
+        buttonText: 'Launch Siren Radar / Download App',
+        onPressed: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (_) => const CitizenScreen()),
+          );
+        },
+        previewWidget: _buildCitizenRadarLivePreview(),
+      );
+    }
   }
 
-  Widget _buildDriverPortalCard(BuildContext context) {
-    return _buildPortalCard(
-      badgeColor: AppColors.emeraldLight,
-      badgeTextColor: AppColors.emeraldDark,
-      badgeText: 'FLEET NAVIGATION',
-      icon: Icons.navigation_rounded,
-      iconColor: AppColors.emeraldDark,
-      title: 'Ambulance Driver Cockpit',
-      subtitle:
-          'Turn-by-turn green corridor HUD with automated intersection light overrides, dynamic lane clearance guides, and instant patient condition logs.',
-      features: [
-        'Automated 15km signal override',
-        'Turn-by-turn green wave HUD',
-        'Chokepoint avoidance algorithms',
-        'Instant SOS beacon trigger',
-      ],
-      buttonText: 'Access Driver Cockpit',
-      onPressed: () {
-        Navigator.push(
-          context,
-          MaterialPageRoute(builder: (_) => const LoginScreen()),
-        );
-      },
-    );
-  }
-
-  Widget _buildCitizenPortalCard(BuildContext context) {
-    return _buildPortalCard(
-      badgeColor: AppColors.infoLight,
-      badgeTextColor: AppColors.info,
-      badgeText: 'PUBLIC SAFETY',
-      icon: Icons.cell_tower_rounded,
-      iconColor: AppColors.info,
-      title: 'Citizen Radar & SOS',
-      subtitle:
-          'Real-time proximity warnings alert drivers when an emergency ambulance is approaching their lane, with immediate 1-tap SOS requesting for citizens.',
-      features: [
-        '500m siren proximity radar',
-        'Safe pull-over lane instructions',
-        'Instant 1-tap emergency request',
-        'Live route clearance tracking',
-      ],
-      buttonText: 'Launch Citizen Radar',
-      onPressed: () {
-        Navigator.push(
-          context,
-          MaterialPageRoute(builder: (_) => const CitizenScreen()),
-        );
-      },
-    );
-  }
-
-  Widget _buildPortalCard({
+  Widget _buildGlassworkstationCard({
+    required BuildContext context,
+    required bool isMobile,
+    required String badgeText,
     required Color badgeColor,
     required Color badgeTextColor,
-    required String badgeText,
-    required IconData icon,
-    required Color iconColor,
     required String title,
     required String subtitle,
     required List<String> features,
     required String buttonText,
     required VoidCallback onPressed,
+    required Widget previewWidget,
   }) {
+    final tuning = DesignTuningController.instance;
+
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(tuning.glassCornerRadius),
+      child: BackdropFilter(
+        filter: ui.ImageFilter.blur(sigmaX: tuning.glassBlur, sigmaY: tuning.glassBlur),
+        child: Container(
+          padding: EdgeInsets.all(isMobile ? 22 : 36),
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: [
+                Colors.white.withValues(alpha: (tuning.glassSurfaceOpacity * 1.5).clamp(0.18, 0.70)),
+                AppColors.cream.withValues(alpha: (tuning.glassSurfaceOpacity * 0.8).clamp(0.10, 0.45)),
+              ],
+            ),
+            borderRadius: BorderRadius.circular(tuning.glassCornerRadius),
+            border: Border.all(
+              color: Colors.white.withValues(alpha: tuning.glassBorderOpacity),
+              width: 1.4 * tuning.tileHighlightIntensity,
+            ),
+            boxShadow: [
+              BoxShadow(
+                color: AppColors.navy.withValues(alpha: tuning.glassShadowOpacity * 1.5),
+                blurRadius: tuning.glassShadowBlur,
+                offset: Offset(0, tuning.tileShadowOffset * 1.5),
+              ),
+              BoxShadow(
+                color: Colors.white.withValues(alpha: (tuning.glassBorderOpacity * 0.85).clamp(0.2, 0.85)),
+                blurRadius: 1,
+                offset: const Offset(0, 1),
+                spreadRadius: 0,
+              ),
+            ],
+          ),
+          child: Flex(
+            direction: isMobile ? Axis.vertical : Axis.horizontal,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Left Column: Text & Features
+              Expanded(
+                flex: isMobile ? 0 : 12,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
+                      decoration: BoxDecoration(
+                        color: AppColors.skyLight,
+                        borderRadius: BorderRadius.circular(20),
+                        border: Border.all(color: AppColors.sky),
+                      ),
+                      child: Text(
+                        badgeText,
+                        style: GoogleFonts.plusJakartaSans(
+                          fontSize: 10,
+                          fontWeight: FontWeight.w800,
+                          color: AppColors.navy,
+                          letterSpacing: 0.8,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    Text(
+                      title,
+                      style: GoogleFonts.plusJakartaSans(
+                        fontSize: isMobile ? 22 : 28,
+                        fontWeight: FontWeight.w900,
+                        color: AppColors.navy,
+                        letterSpacing: -0.5,
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    Text(
+                      subtitle,
+                      style: GoogleFonts.plusJakartaSans(
+                        fontSize: 14,
+                        color: AppColors.navyMuted,
+                        height: 1.55,
+                      ),
+                    ),
+                    const SizedBox(height: 24),
+                    Divider(color: AppColors.sky.withValues(alpha: 0.4), height: 1),
+                    const SizedBox(height: 20),
+                    Column(
+                      children: features.map((feat) {
+                        return Padding(
+                          padding: const EdgeInsets.only(bottom: 12),
+                          child: Row(
+                            children: [
+                              const Icon(
+                                Icons.check_circle_rounded,
+                                color: AppColors.navy,
+                                size: 18,
+                              ),
+                              const SizedBox(width: 10),
+                              Expanded(
+                                child: Text(
+                                  feat,
+                                  style: GoogleFonts.plusJakartaSans(
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.w600,
+                                    color: AppColors.navy,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        );
+                      }).toList(),
+                    ),
+                    const SizedBox(height: 28),
+                    ElevatedButton(
+                      onPressed: onPressed,
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AppColors.navy,
+                        foregroundColor: AppColors.cream,
+                        padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 18),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(50),
+                        ),
+                        elevation: 3,
+                        shadowColor: AppColors.navy.withValues(alpha: 0.25),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text(
+                            buttonText,
+                            style: GoogleFonts.plusJakartaSans(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w800,
+                              color: AppColors.cream,
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          const Icon(Icons.arrow_forward_rounded, size: 18, color: AppColors.sky),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+
+              if (!isMobile) const SizedBox(width: 48),
+              if (isMobile) const SizedBox(height: 32),
+
+              // Right Column: Live Interactive Glass Preview
+              Expanded(
+                flex: isMobile ? 0 : 10,
+                child: previewWidget,
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  // --- PREVIEWS FOR THE 3 TABS ---
+
+  Widget _buildHospitalTelemetryLivePreview() {
     return Container(
-      padding: const EdgeInsets.all(28),
+      padding: const EdgeInsets.all(22),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: AppColors.navy,
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: AppColors.slate200),
+        border: Border.all(color: AppColors.sky, width: 1.5),
         boxShadow: [
           BoxShadow(
-            color: AppColors.slate900.withValues(alpha: 0.03),
-            blurRadius: 18,
-            offset: const Offset(0, 6),
+            color: AppColors.navyDark.withValues(alpha: 0.35),
+            blurRadius: 20,
+            offset: const Offset(0, 8),
           ),
         ],
       ),
@@ -1438,108 +2033,369 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Container(
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: badgeColor,
-                  borderRadius: BorderRadius.circular(14),
-                ),
-                child: Icon(icon, color: iconColor, size: 26),
+              Row(
+                children: [
+                  Container(
+                    width: 9,
+                    height: 9,
+                    decoration: const BoxDecoration(
+                      color: AppColors.primary,
+                      shape: BoxShape.circle,
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  Text(
+                    'LIVE CLINICAL TELEMETRY',
+                    style: GoogleFonts.plusJakartaSans(
+                      fontSize: 11,
+                      fontWeight: FontWeight.w800,
+                      color: AppColors.primaryLight,
+                      letterSpacing: 1.0,
+                    ),
+                  ),
+                ],
               ),
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                 decoration: BoxDecoration(
-                  color: badgeColor,
-                  borderRadius: BorderRadius.circular(20),
+                  color: AppColors.emerald.withValues(alpha: 0.2),
+                  borderRadius: BorderRadius.circular(6),
                 ),
                 child: Text(
-                  badgeText,
-                  style: GoogleFonts.plusJakartaSans(
+                  '10 Hz SYNC',
+                  style: GoogleFonts.jetBrainsMono(
                     fontSize: 10,
                     fontWeight: FontWeight.w800,
-                    color: badgeTextColor,
-                    letterSpacing: 0.8,
+                    color: AppColors.emerald,
                   ),
                 ),
               ),
             ],
           ),
-          const SizedBox(height: 22),
+          const SizedBox(height: 16),
           Text(
-            title,
+            'Patient 1 • STEMI Code Red',
             style: GoogleFonts.plusJakartaSans(
-              fontSize: 20,
+              fontSize: 15,
               fontWeight: FontWeight.w800,
-              color: AppColors.slate900,
-              letterSpacing: -0.3,
+              color: Colors.white,
             ),
           ),
-          const SizedBox(height: 10),
           Text(
-            subtitle,
-            style: GoogleFonts.plusJakartaSans(
-              fontSize: 14,
-              color: AppColors.slate600,
-              height: 1.5,
+            'Ambulance DL-1C-9824 • ETA: 03:42',
+            style: GoogleFonts.jetBrainsMono(
+              fontSize: 12,
+              fontWeight: FontWeight.w600,
+              color: AppColors.slate400,
             ),
           ),
-          const SizedBox(height: 22),
-          const Divider(color: AppColors.slate100, height: 1),
           const SizedBox(height: 18),
-          Column(
-            children: features.map((feat) {
-              return Padding(
-                padding: const EdgeInsets.only(bottom: 10),
-                child: Row(
+          // Vitals Row
+          Row(
+            children: [
+              Expanded(
+                child: _buildTelemetryStatBox(
+                  title: 'HEART RATE',
+                  value: '122',
+                  unit: 'BPM',
+                  color: AppColors.primary,
+                ),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: _buildTelemetryStatBox(
+                  title: 'O2 SAT (SpO2)',
+                  value: '94%',
+                  unit: 'NORMAL',
+                  color: AppColors.emerald,
+                ),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: _buildTelemetryStatBox(
+                  title: 'BLOOD PRESS.',
+                  value: '88/56',
+                  unit: 'mmHg',
+                  color: AppColors.amber,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 18),
+          // Readiness Pills
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: Colors.white.withValues(alpha: 0.05),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Row(
                   children: [
-                    Icon(
-                      Icons.check_circle_rounded,
-                      color: iconColor,
-                      size: 16,
+                    const Icon(Icons.meeting_room_rounded, color: AppColors.emerald, size: 16),
+                    const SizedBox(width: 6),
+                    Text(
+                      'Trauma Bay 1:',
+                      style: GoogleFonts.plusJakartaSans(fontSize: 12, color: Colors.white),
                     ),
-                    const SizedBox(width: 10),
-                    Expanded(
-                      child: Text(
-                        feat,
-                        style: GoogleFonts.plusJakartaSans(
-                          fontSize: 13,
-                          fontWeight: FontWeight.w600,
-                          color: AppColors.slate800,
-                        ),
+                  ],
+                ),
+                Text(
+                  'RESERVED & STERILE',
+                  style: GoogleFonts.plusJakartaSans(
+                    fontSize: 11,
+                    fontWeight: FontWeight.w800,
+                    color: AppColors.emerald,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildDriverCockpitLivePreview() {
+    return Container(
+      padding: const EdgeInsets.all(22),
+      decoration: BoxDecoration(
+        color: const Color(0xFF0F172A),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: Colors.white.withValues(alpha: 0.12)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Row(
+                children: [
+                  const Icon(Icons.speed_rounded, color: AppColors.emerald, size: 18),
+                  const SizedBox(width: 8),
+                  Text(
+                    'IN-CABIN PREEMPTION HUD',
+                    style: GoogleFonts.plusJakartaSans(
+                      fontSize: 11,
+                      fontWeight: FontWeight.w800,
+                      color: AppColors.emeraldLight,
+                      letterSpacing: 1.0,
+                    ),
+                  ),
+                ],
+              ),
+              Text(
+                '68 KM/H',
+                style: GoogleFonts.jetBrainsMono(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w800,
+                  color: Colors.white,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+          Text(
+            'Arterial Corridor 4 • West Sector',
+            style: GoogleFonts.plusJakartaSans(
+              fontSize: 15,
+              fontWeight: FontWeight.w800,
+              color: Colors.white,
+            ),
+          ),
+          Text(
+            '3 Intersections Automatically Overridden',
+            style: GoogleFonts.plusJakartaSans(
+              fontSize: 12,
+              color: AppColors.emerald,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+          const SizedBox(height: 18),
+          Container(
+            padding: const EdgeInsets.all(14),
+            decoration: BoxDecoration(
+              color: AppColors.emerald.withValues(alpha: 0.15),
+              borderRadius: BorderRadius.circular(14),
+              border: Border.all(color: AppColors.emerald.withValues(alpha: 0.3)),
+            ),
+            child: Row(
+              children: [
+                const Icon(Icons.traffic_rounded, color: AppColors.emerald, size: 28),
+                const SizedBox(width: 14),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'NEXT: SIGNAL 14B (MAIN CHOWK)',
+                      style: GoogleFonts.plusJakartaSans(
+                        fontSize: 11,
+                        fontWeight: FontWeight.w800,
+                        color: Colors.white,
+                      ),
+                    ),
+                    Text(
+                      'GREEN LOCKED • 0 HARD-BRAKING PROBABILITY',
+                      style: GoogleFonts.jetBrainsMono(
+                        fontSize: 10,
+                        fontWeight: FontWeight.w700,
+                        color: AppColors.emeraldLight,
                       ),
                     ),
                   ],
                 ),
-              );
-            }).toList(),
+              ],
+            ),
           ),
-          const SizedBox(height: 24),
-          SizedBox(
-            width: double.infinity,
-            child: OutlinedButton(
-              onPressed: onPressed,
-              style: OutlinedButton.styleFrom(
-                foregroundColor: AppColors.slate900,
-                side: const BorderSide(color: AppColors.slate300, width: 1.2),
-                padding: const EdgeInsets.symmetric(vertical: 16),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
-                ),
-              ),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
+        ],
+      ),
+    );
+  }
+
+  Widget _buildCitizenRadarLivePreview() {
+    return Container(
+      padding: const EdgeInsets.all(22),
+      decoration: BoxDecoration(
+        color: const Color(0xFF0F172A),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: Colors.white.withValues(alpha: 0.12)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Row(
                 children: [
+                  const Icon(Icons.radar_rounded, color: AppColors.info, size: 18),
+                  const SizedBox(width: 8),
                   Text(
-                    buttonText,
+                    'ACOUSTIC SIREN RADAR',
                     style: GoogleFonts.plusJakartaSans(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w700,
+                      fontSize: 11,
+                      fontWeight: FontWeight.w800,
+                      color: AppColors.infoLight,
+                      letterSpacing: 1.0,
                     ),
                   ),
-                  const SizedBox(width: 6),
-                  const Icon(Icons.arrow_forward_rounded, size: 16),
                 ],
               ),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                decoration: BoxDecoration(
+                  color: AppColors.primary.withValues(alpha: 0.2),
+                  borderRadius: BorderRadius.circular(6),
+                ),
+                child: Text(
+                  'SIREN BEACON',
+                  style: GoogleFonts.jetBrainsMono(
+                    fontSize: 10,
+                    fontWeight: FontWeight.w800,
+                    color: AppColors.primaryLight,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+          Text(
+            'Emergency Vehicle Approaching',
+            style: GoogleFonts.plusJakartaSans(
+              fontSize: 15,
+              fontWeight: FontWeight.w800,
+              color: Colors.white,
+            ),
+          ),
+          Text(
+            'Distance: 480 meters behind • Moving at 70 km/h',
+            style: GoogleFonts.jetBrainsMono(
+              fontSize: 12,
+              fontWeight: FontWeight.w600,
+              color: AppColors.amber,
+            ),
+          ),
+          const SizedBox(height: 18),
+          Container(
+            padding: const EdgeInsets.all(14),
+            decoration: BoxDecoration(
+              color: AppColors.info.withValues(alpha: 0.15),
+              borderRadius: BorderRadius.circular(14),
+              border: Border.all(color: AppColors.info.withValues(alpha: 0.3)),
+            ),
+            child: Row(
+              children: [
+                const Icon(Icons.turn_right_rounded, color: AppColors.info, size: 28),
+                const SizedBox(width: 14),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'ACTION: YIELD RIGHT LANE SAFELY',
+                      style: GoogleFonts.plusJakartaSans(
+                        fontSize: 11,
+                        fontWeight: FontWeight.w800,
+                        color: Colors.white,
+                      ),
+                    ),
+                    Text(
+                      'Civic Karma: +50 Points upon clearance',
+                      style: GoogleFonts.plusJakartaSans(
+                        fontSize: 11,
+                        color: AppColors.infoLight,
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildTelemetryStatBox({
+    required String title,
+    required String value,
+    required String unit,
+    required Color color,
+  }) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+      decoration: BoxDecoration(
+        color: Colors.white.withValues(alpha: 0.05),
+        borderRadius: BorderRadius.circular(10),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            title,
+            style: GoogleFonts.plusJakartaSans(
+              fontSize: 8.5,
+              fontWeight: FontWeight.w700,
+              color: AppColors.slate400,
+            ),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            value,
+            style: GoogleFonts.jetBrainsMono(
+              fontSize: 17,
+              fontWeight: FontWeight.w900,
+              color: color,
+            ),
+          ),
+          Text(
+            unit,
+            style: GoogleFonts.plusJakartaSans(
+              fontSize: 8.5,
+              color: AppColors.slate400,
+              fontWeight: FontWeight.w600,
             ),
           ),
         ],
@@ -1548,10 +2404,11 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
   }
 
   // ==========================================
-  // HOW IT WORKS: 4-STAGE CORRIDOR FLOW
+  // HOW IT WORKS: 4-STAGE CORRIDOR FLOW WITH INTERACTIVE TILES ANIMATION
   // ==========================================
   Widget _buildHowItWorksSection(BuildContext context) {
     final bool isMobile = ResponsiveLayout.isMobile(context);
+    final tuning = DesignTuningController.instance;
 
     final steps = [
       {
@@ -1560,7 +2417,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
         'desc':
             'Citizen initiates SOS via radar or hospital ER alerts dynamic dispatch. Nearest optimized ambulance is deployed instantly.',
         'icon': Icons.notifications_active_rounded,
-        'color': AppColors.primary,
+        'color': AppColors.navy,
       },
       {
         'num': '02',
@@ -1568,7 +2425,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
         'desc':
             'Smart cloud calculates optimal route and synchronizes with municipal traffic light controllers to establish green corridor.',
         'icon': Icons.alt_route_rounded,
-        'color': AppColors.emerald,
+        'color': AppColors.navy,
       },
       {
         'num': '03',
@@ -1576,7 +2433,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
         'desc':
             'Commuters in the ambulance route receive geo-fenced siren warnings, guiding lanes clear before vehicle arrival.',
         'icon': Icons.broadcast_on_personal_rounded,
-        'color': AppColors.info,
+        'color': AppColors.navy,
       },
       {
         'num': '04',
@@ -1584,141 +2441,170 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
         'desc':
             'Ambulance pulls directly into reserved trauma bay with zero pre-admission delay and ER medical teams fully briefed.',
         'icon': Icons.local_hospital_rounded,
-        'color': AppColors.emeraldDark,
+        'color': AppColors.navy,
       },
     ];
 
     return Container(
-      color: Colors.white,
+      width: double.infinity,
+      decoration: const BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+          colors: [
+            AppColors.cream,
+            Color(0xFFF0F8FE),
+            AppColors.cream,
+          ],
+        ),
+      ),
       padding: EdgeInsets.symmetric(
         horizontal: isMobile ? 20 : 64,
-        vertical: 80,
+        vertical: tuning.layoutSectionSpacing,
       ),
-      child: Column(
-        children: [
-          Text(
-            'SEAMLESS END-TO-END WORKFLOW',
-            style: GoogleFonts.plusJakartaSans(
-              fontSize: 12,
-              fontWeight: FontWeight.w800,
-              color: AppColors.primary,
-              letterSpacing: 1.4,
-            ),
-          ),
-          const SizedBox(height: 10),
-          Text(
-            'How the Green Corridor Operates',
-            textAlign: TextAlign.center,
-            style: GoogleFonts.plusJakartaSans(
-              fontSize: isMobile ? 28 : 38,
-              fontWeight: FontWeight.w900,
-              color: AppColors.slate900,
-              letterSpacing: -0.8,
-            ),
-          ),
-          const SizedBox(height: 12),
-          ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: 640),
-            child: Text(
-              'A tightly integrated cloud pipeline that synchronizes emergency dispatchers, street lights, and drivers without human lag.',
-              textAlign: TextAlign.center,
-              style: GoogleFonts.plusJakartaSans(
-                fontSize: 15,
-                color: AppColors.slate600,
-                height: 1.55,
-              ),
-            ),
-          ),
-          const SizedBox(height: 56),
-
-          // Steps list
-          LayoutBuilder(
-            builder: (context, constraints) {
-              if (constraints.maxWidth >= 980) {
-                return Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: steps.map((s) {
-                    return Expanded(
-                      child: Container(
-                        margin: const EdgeInsets.symmetric(horizontal: 10),
-                        child: _buildWorkflowStepCard(s),
-                      ),
-                    );
-                  }).toList(),
-                );
-              } else {
-                return Column(
-                  children: steps.map((s) {
-                    return Container(
-                      margin: const EdgeInsets.only(bottom: 20),
-                      child: _buildWorkflowStepCard(s),
-                    );
-                  }).toList(),
-                );
-              }
-            },
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildWorkflowStepCard(Map<String, dynamic> step) {
-    final Color color = step['color'] as Color;
-
-    return Container(
-      padding: const EdgeInsets.all(26),
-      decoration: BoxDecoration(
-        color: AppColors.background,
-        borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: AppColors.slate200),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      child: Center(
+        child: Container(
+          constraints: BoxConstraints(maxWidth: tuning.layoutContentWidth),
+          child: Column(
             children: [
+              // Glowing pill badge
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 7),
+                decoration: BoxDecoration(
+                  color: AppColors.skyLight,
+                  borderRadius: BorderRadius.circular(30),
+                  border: Border.all(color: AppColors.sky),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Container(
+                      width: 8,
+                      height: 8,
+                      decoration: const BoxDecoration(
+                        color: AppColors.navy,
+                        shape: BoxShape.circle,
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    Text(
+                      'SEAMLESS AUTONOMOUS PIPELINE',
+                      style: GoogleFonts.plusJakartaSans(
+                        fontSize: 11,
+                        fontWeight: FontWeight.w800,
+                        color: AppColors.navy,
+                        letterSpacing: 1.4,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 16),
               Text(
-                step['num'] as String,
+                'How the Green Corridor Operates',
+                textAlign: TextAlign.center,
                 style: GoogleFonts.plusJakartaSans(
-                  fontSize: 28,
+                  fontSize: isMobile ? 28 : 42,
                   fontWeight: FontWeight.w900,
-                  color: color,
+                  color: AppColors.navy,
                   letterSpacing: -1.0,
                 ),
               ),
-              Container(
-                padding: const EdgeInsets.all(10),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: AppColors.slate200),
+              const SizedBox(height: 14),
+              ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 680),
+                child: Text(
+                  'A cyber-physical AI pipeline synchronizing emergency vehicles, municipal signals, and civilian motorists with zero latency.',
+                  textAlign: TextAlign.center,
+                  style: GoogleFonts.plusJakartaSans(
+                    fontSize: 15,
+                    color: AppColors.navyMuted,
+                    height: 1.55,
+                  ),
                 ),
-                child: Icon(step['icon'] as IconData, color: color, size: 20),
+              ),
+              const SizedBox(height: 52),
+
+              // LIVE SATELLITE RADAR SIMULATION HERO
+              ClipRRect(
+                borderRadius: BorderRadius.circular(28),
+                child: BackdropFilter(
+                  filter: ui.ImageFilter.blur(sigmaX: 20, sigmaY: 20),
+                  child: Container(
+                    constraints: const BoxConstraints(maxWidth: 1040),
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                        colors: [
+                          Colors.white.withValues(alpha: 0.65),
+                          AppColors.cream.withValues(alpha: 0.30),
+                        ],
+                      ),
+                      borderRadius: BorderRadius.circular(28),
+                      border: Border.all(
+                        color: Colors.white.withValues(alpha: 0.85),
+                        width: 1.5,
+                      ),
+                      boxShadow: [
+                        BoxShadow(
+                          color: AppColors.navy.withValues(alpha: 0.10),
+                          blurRadius: 40,
+                          offset: const Offset(0, 16),
+                        ),
+                        BoxShadow(
+                          color: Colors.white.withValues(alpha: 0.65),
+                          blurRadius: 1,
+                          offset: const Offset(0, 1),
+                          spreadRadius: 0,
+                        ),
+                      ],
+                    ),
+                    child: const GreenCorridorSimulationHero(),
+                  ),
+                ),
+              ),
+
+              const SizedBox(height: 60),
+
+              // 4 Workflow Step Animated Tiles below simulation
+              LayoutBuilder(
+                builder: (context, constraints) {
+                  if (constraints.maxWidth >= 980) {
+                    return Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: steps.asMap().entries.map((entry) {
+                        return Expanded(
+                          child: Container(
+                            margin: const EdgeInsets.symmetric(horizontal: 10),
+                            child: AnimatedWorkflowStepTile(
+                              step: entry.value,
+                              index: entry.key,
+                              totalCount: steps.length,
+                            ),
+                          ),
+                        );
+                      }).toList(),
+                    );
+                  } else {
+                    return Column(
+                      children: steps.asMap().entries.map((entry) {
+                        return Container(
+                          margin: const EdgeInsets.only(bottom: 20),
+                          child: AnimatedWorkflowStepTile(
+                            step: entry.value,
+                            index: entry.key,
+                            totalCount: steps.length,
+                          ),
+                        );
+                      }).toList(),
+                    );
+                  }
+                },
               ),
             ],
           ),
-          const SizedBox(height: 18),
-          Text(
-            step['title'] as String,
-            style: GoogleFonts.plusJakartaSans(
-              fontSize: 17,
-              fontWeight: FontWeight.w800,
-              color: AppColors.slate900,
-              letterSpacing: -0.2,
-            ),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            step['desc'] as String,
-            style: GoogleFonts.plusJakartaSans(
-              fontSize: 13,
-              color: AppColors.slate600,
-              height: 1.5,
-            ),
-          ),
-        ],
+        ),
       ),
     );
   }
@@ -1728,32 +2614,83 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
   // ==========================================
   Widget _buildTelemetryStatsSection(BuildContext context) {
     final bool isMobile = ResponsiveLayout.isMobile(context);
+    final tuning = DesignTuningController.instance;
 
     return Container(
+      width: double.infinity,
+      decoration: const BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+          colors: [
+            AppColors.cream,
+            Color(0xFFF0F8FE),
+            AppColors.cream,
+          ],
+        ),
+      ),
       padding: EdgeInsets.symmetric(
         horizontal: isMobile ? 20 : 64,
-        vertical: 72,
+        vertical: tuning.layoutSectionSpacing,
       ),
       child: Column(
         children: [
-          Text(
-            'MEASURABLE CLINICAL IMPACT',
-            style: GoogleFonts.plusJakartaSans(
-              fontSize: 12,
-              fontWeight: FontWeight.w800,
-              color: AppColors.emeraldDark,
-              letterSpacing: 1.4,
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+            decoration: BoxDecoration(
+              color: AppColors.skyLight,
+              borderRadius: BorderRadius.circular(20),
+              border: Border.all(
+                color: AppColors.sky,
+                width: 1.1,
+              ),
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Container(
+                  width: 7,
+                  height: 7,
+                  decoration: const BoxDecoration(
+                    color: AppColors.navy,
+                    shape: BoxShape.circle,
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Text(
+                  'MEASURABLE CLINICAL IMPACT',
+                  style: GoogleFonts.plusJakartaSans(
+                    fontSize: 11,
+                    fontWeight: FontWeight.w800,
+                    color: AppColors.navy,
+                    letterSpacing: 1.2,
+                  ),
+                ),
+              ],
             ),
           ),
-          const SizedBox(height: 10),
+          const SizedBox(height: 16),
           Text(
             'Engineered for Golden Hour Preservation',
             textAlign: TextAlign.center,
             style: GoogleFonts.plusJakartaSans(
               fontSize: isMobile ? 28 : 38,
               fontWeight: FontWeight.w900,
-              color: AppColors.slate900,
+              color: AppColors.navy,
               letterSpacing: -0.8,
+            ),
+          ),
+          const SizedBox(height: 12),
+          ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 620),
+            child: Text(
+              'Real-time urban transit metrics verified across municipal emergency deployments.',
+              textAlign: TextAlign.center,
+              style: GoogleFonts.plusJakartaSans(
+                fontSize: 14,
+                color: AppColors.navyMuted,
+                height: 1.5,
+              ),
             ),
           ),
           const SizedBox(height: 48),
@@ -1763,10 +2700,10 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
             runSpacing: 24,
             alignment: WrapAlignment.center,
             children: [
-              _buildStatCard('48%', 'Faster Response Time', 'Average reduction in urban transit delay'),
-              _buildStatCard('0.0s', 'Cloud Signal Latency', 'Sub-second edge MQTT synchronization'),
-              _buildStatCard('100%', 'Green Wave Clearance', 'Automated traffic intersection preemptions'),
-              _buildStatCard('24/7', 'Autonomous Availability', 'Redundant fail-over cloud architecture'),
+              _buildStatCard('48%', 'Faster Response Time', 'Average reduction in urban transit delay', AppColors.navy),
+              _buildStatCard('0.0s', 'Cloud Signal Latency', 'Sub-second edge MQTT synchronization', AppColors.navy),
+              _buildStatCard('100%', 'Green Wave Clearance', 'Automated traffic intersection preemptions', AppColors.navy),
+              _buildStatCard('24/7', 'Autonomous Availability', 'Redundant fail-over cloud architecture', AppColors.navy),
             ],
           ),
         ],
@@ -1774,54 +2711,76 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
     );
   }
 
-  Widget _buildStatCard(String value, String title, String subtitle) {
-    return Container(
-      width: 260,
-      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 32),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: AppColors.slate200),
-        boxShadow: [
-          BoxShadow(
-            color: AppColors.slate900.withValues(alpha: 0.03),
-            blurRadius: 16,
-            offset: const Offset(0, 6),
-          ),
-        ],
-      ),
-      child: Column(
-        children: [
-          Text(
-            value,
-            style: GoogleFonts.plusJakartaSans(
-              fontSize: 44,
-              fontWeight: FontWeight.w900,
-              color: AppColors.slate900,
-              letterSpacing: -1.5,
+  Widget _buildStatCard(String value, String title, String subtitle, Color metricColor) {
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(20),
+      child: BackdropFilter(
+        filter: ui.ImageFilter.blur(sigmaX: 18, sigmaY: 18),
+        child: Container(
+          width: 260,
+          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 32),
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: [
+                Colors.white.withValues(alpha: 0.65),
+                AppColors.cream.withValues(alpha: 0.30),
+              ],
             ),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            title,
-            textAlign: TextAlign.center,
-            style: GoogleFonts.plusJakartaSans(
-              fontSize: 15,
-              fontWeight: FontWeight.w700,
-              color: AppColors.slate800,
+            borderRadius: BorderRadius.circular(20),
+            border: Border.all(
+              color: Colors.white.withValues(alpha: 0.85),
+              width: 1.4,
             ),
+            boxShadow: [
+              BoxShadow(
+                color: AppColors.navy.withValues(alpha: 0.08),
+                blurRadius: 24,
+                offset: const Offset(0, 8),
+              ),
+              BoxShadow(
+                color: Colors.white.withValues(alpha: 0.65),
+                blurRadius: 1,
+                offset: const Offset(0, 1),
+                spreadRadius: 0,
+              ),
+            ],
           ),
-          const SizedBox(height: 6),
-          Text(
-            subtitle,
-            textAlign: TextAlign.center,
-            style: GoogleFonts.plusJakartaSans(
-              fontSize: 12,
-              color: AppColors.slate500,
-              height: 1.4,
-            ),
+          child: Column(
+            children: [
+              Text(
+                value,
+                style: GoogleFonts.plusJakartaSans(
+                  fontSize: 44,
+                  fontWeight: FontWeight.w900,
+                  color: AppColors.navy,
+                  letterSpacing: -1.5,
+                ),
+              ),
+              const SizedBox(height: 8),
+              Text(
+                title,
+                textAlign: TextAlign.center,
+                style: GoogleFonts.plusJakartaSans(
+                  fontSize: 15,
+                  fontWeight: FontWeight.w800,
+                  color: AppColors.navy,
+                ),
+              ),
+              const SizedBox(height: 6),
+              Text(
+                subtitle,
+                textAlign: TextAlign.center,
+                style: GoogleFonts.plusJakartaSans(
+                  fontSize: 12,
+                  color: AppColors.navyMuted,
+                  height: 1.4,
+                ),
+              ),
+            ],
           ),
-        ],
+        ),
       ),
     );
   }
@@ -1833,6 +2792,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
   // ==========================================
   Widget _buildValuePropositionsSection(BuildContext context) {
     final bool isMobile = ResponsiveLayout.isMobile(context);
+    final tuning = DesignTuningController.instance;
 
     final benefits = [
       'Automated Traffic Signal Preemption across municipal corridors',
@@ -1844,127 +2804,195 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
     ];
 
     return Container(
-      color: Colors.white,
+      width: double.infinity,
+      decoration: const BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+          colors: [
+            AppColors.cream,
+            Color(0xFFF4F9FD),
+            AppColors.cream,
+          ],
+        ),
+      ),
       padding: EdgeInsets.symmetric(
         horizontal: isMobile ? 20 : 64,
-        vertical: 80,
+        vertical: tuning.layoutSectionSpacing,
       ),
-      child: Flex(
-        direction: isMobile ? Axis.vertical : Axis.horizontal,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Expanded(
-            flex: isMobile ? 0 : 1,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'MISSION RELIABILITY',
-                  style: GoogleFonts.plusJakartaSans(
-                    fontSize: 12,
-                    fontWeight: FontWeight.w800,
-                    color: AppColors.primary,
-                    letterSpacing: 1.4,
-                  ),
-                ),
-                const SizedBox(height: 12),
-                Text(
-                  'Why Municipalities & Healthcare Systems Adopt Green Corridor',
-                  style: GoogleFonts.plusJakartaSans(
-                    fontSize: isMobile ? 26 : 34,
-                    fontWeight: FontWeight.w900,
-                    color: AppColors.slate900,
-                    letterSpacing: -0.8,
-                    height: 1.2,
-                  ),
-                ),
-                const SizedBox(height: 16),
-                Text(
-                  'Traditional emergency services operate in silos—ambulances fight traffic manually while emergency rooms scramble with zero advance notice. Green Corridor synthesizes every link into an automated live grid.',
-                  style: GoogleFonts.plusJakartaSans(
-                    fontSize: 15,
-                    color: AppColors.slate600,
-                    height: 1.6,
-                  ),
-                ),
-                const SizedBox(height: 28),
-                ElevatedButton(
-                  onPressed: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (_) => const RegisterScreen()),
-                    );
-                  },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: AppColors.slate900,
-                    foregroundColor: Colors.white,
-                    padding: const EdgeInsets.symmetric(horizontal: 26, vertical: 16),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                  ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Text(
-                        'Request City Onboarding',
-                        style: GoogleFonts.plusJakartaSans(
-                          fontWeight: FontWeight.w700,
-                          fontSize: 14,
+      child: Center(
+        child: Container(
+          constraints: BoxConstraints(maxWidth: tuning.layoutContentWidth),
+          child: Flex(
+            direction: isMobile ? Axis.vertical : Axis.horizontal,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Expanded(
+                flex: isMobile ? 0 : 1,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+                      decoration: BoxDecoration(
+                        color: AppColors.skyLight,
+                        borderRadius: BorderRadius.circular(20),
+                        border: Border.all(
+                          color: AppColors.sky,
+                          width: 1.1,
                         ),
                       ),
-                      const SizedBox(width: 8),
-                      const Icon(Icons.arrow_forward_rounded, size: 16),
-                    ],
-                  ),
+                      child: Text(
+                        'MISSION RELIABILITY',
+                        style: GoogleFonts.plusJakartaSans(
+                          fontSize: 11,
+                          fontWeight: FontWeight.w800,
+                          color: AppColors.navy,
+                          letterSpacing: 1.2,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    Text(
+                      'Why Municipalities & Healthcare Systems Adopt Green Corridor',
+                      style: GoogleFonts.plusJakartaSans(
+                        fontSize: isMobile ? 26 : 34,
+                        fontWeight: FontWeight.w900,
+                        color: AppColors.navy,
+                        letterSpacing: -0.8,
+                        height: 1.2,
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    Text(
+                      'Traditional emergency services operate in silos—ambulances fight traffic manually while emergency rooms scramble with zero advance notice. Green Corridor synthesizes every link into an automated live grid.',
+                      style: GoogleFonts.plusJakartaSans(
+                        fontSize: 15,
+                        color: AppColors.navyMuted,
+                        height: 1.6,
+                      ),
+                    ),
+                    const SizedBox(height: 32),
+                    ElevatedButton(
+                      onPressed: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(builder: (_) => const RegisterScreen()),
+                        );
+                      },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AppColors.navy,
+                        foregroundColor: AppColors.cream,
+                        elevation: 4,
+                        shadowColor: AppColors.navy.withValues(alpha: 0.25),
+                        padding: const EdgeInsets.symmetric(horizontal: 26, vertical: 16),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(14),
+                        ),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text(
+                            'Request City Onboarding',
+                            style: GoogleFonts.plusJakartaSans(
+                              fontWeight: FontWeight.w800,
+                              fontSize: 14,
+                              color: AppColors.cream,
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          const Icon(Icons.arrow_forward_rounded, size: 16, color: AppColors.sky),
+                        ],
+                      ),
+                    ),
+                  ],
                 ),
-              ],
-            ),
+              ),
+              if (!isMobile) const SizedBox(width: 64),
+              if (isMobile) const SizedBox(height: 36),
+              Expanded(
+                flex: isMobile ? 0 : 1,
+                child: Column(
+                  children: benefits.map((b) => _buildBenefitRow(b)).toList(),
+                ),
+              ),
+            ],
           ),
-          if (!isMobile) const SizedBox(width: 64),
-          if (isMobile) const SizedBox(height: 36),
-          Expanded(
-            flex: isMobile ? 0 : 1,
-            child: Column(
-              children: benefits.map((b) => _buildBenefitRow(b)).toList(),
-            ),
-          ),
-        ],
+        ),
       ),
     );
   }
 
   Widget _buildBenefitRow(String text) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 16),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Container(
-            padding: const EdgeInsets.all(4),
-            decoration: const BoxDecoration(
-              color: AppColors.emeraldLight,
-              shape: BoxShape.circle,
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(16),
+      child: BackdropFilter(
+        filter: ui.ImageFilter.blur(sigmaX: 16, sigmaY: 16),
+        child: Container(
+          margin: const EdgeInsets.only(bottom: 14),
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: [
+                Colors.white.withValues(alpha: 0.65),
+                AppColors.cream.withValues(alpha: 0.30),
+              ],
             ),
-            child: const Icon(
-              Icons.check_rounded,
-              color: AppColors.emeraldDark,
-              size: 16,
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(
+              color: Colors.white.withValues(alpha: 0.85),
+              width: 1.2,
             ),
-          ),
-          const SizedBox(width: 14),
-          Expanded(
-            child: Text(
-              text,
-              style: GoogleFonts.plusJakartaSans(
-                fontSize: 15,
-                fontWeight: FontWeight.w600,
-                color: AppColors.slate800,
-                height: 1.4,
+            boxShadow: [
+              BoxShadow(
+                color: AppColors.navy.withValues(alpha: 0.05),
+                blurRadius: 12,
+                offset: const Offset(0, 4),
               ),
-            ),
+              BoxShadow(
+                color: Colors.white.withValues(alpha: 0.6),
+                blurRadius: 1,
+                offset: const Offset(0, 1),
+                spreadRadius: 0,
+              ),
+            ],
           ),
-        ],
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              Container(
+                padding: const EdgeInsets.all(5),
+                decoration: BoxDecoration(
+                  color: AppColors.skyLight,
+                  shape: BoxShape.circle,
+                  border: Border.all(
+                    color: AppColors.sky,
+                  ),
+                ),
+                child: const Icon(
+                  Icons.check_rounded,
+                  color: AppColors.navy,
+                  size: 16,
+                ),
+              ),
+              const SizedBox(width: 14),
+              Expanded(
+                child: Text(
+                  text,
+                  style: GoogleFonts.plusJakartaSans(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w700,
+                    color: AppColors.navy,
+                    height: 1.4,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }
@@ -1974,6 +3002,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
   // ==========================================
   Widget _buildTestimonialsSection(BuildContext context) {
     final bool isMobile = ResponsiveLayout.isMobile(context);
+    final tuning = DesignTuningController.instance;
 
     final reviews = [
       {
@@ -2000,30 +3029,66 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
     ];
 
     return Container(
+      width: double.infinity,
+      decoration: const BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+          colors: [
+            AppColors.cream,
+            Color(0xFFF0F8FE),
+            AppColors.cream,
+          ],
+        ),
+      ),
       padding: EdgeInsets.symmetric(
         horizontal: isMobile ? 20 : 64,
-        vertical: 72,
+        vertical: tuning.layoutSectionSpacing,
       ),
       child: Column(
         children: [
-          Text(
-            'TESTED IN REAL-WORLD CONDITIONS',
-            style: GoogleFonts.plusJakartaSans(
-              fontSize: 12,
-              fontWeight: FontWeight.w800,
-              color: AppColors.primary,
-              letterSpacing: 1.4,
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+            decoration: BoxDecoration(
+              color: AppColors.navy.withValues(alpha: 0.08),
+              borderRadius: BorderRadius.circular(20),
+              border: Border.all(
+                color: AppColors.sky,
+                width: 1.1,
+              ),
+            ),
+            child: Text(
+              'TESTED IN REAL-WORLD CONDITIONS',
+              style: GoogleFonts.plusJakartaSans(
+                fontSize: 11,
+                fontWeight: FontWeight.w800,
+                color: AppColors.navy,
+                letterSpacing: 1.2,
+              ),
             ),
           ),
-          const SizedBox(height: 10),
+          const SizedBox(height: 16),
           Text(
             'Endorsed by First Responders',
             textAlign: TextAlign.center,
             style: GoogleFonts.plusJakartaSans(
               fontSize: isMobile ? 28 : 38,
               fontWeight: FontWeight.w900,
-              color: AppColors.slate900,
+              color: AppColors.navy,
               letterSpacing: -0.8,
+            ),
+          ),
+          const SizedBox(height: 12),
+          ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 620),
+            child: Text(
+              'Feedback from emergency physicians, fleet dispatchers, and smart traffic engineers.',
+              textAlign: TextAlign.center,
+              style: GoogleFonts.plusJakartaSans(
+                fontSize: 14,
+                color: AppColors.navyMuted,
+                height: 1.5,
+              ),
             ),
           ),
           const SizedBox(height: 48),
@@ -2060,27 +3125,49 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
   }
 
   Widget _buildReviewCard(Map<String, String> item) {
-    return Container(
-      padding: const EdgeInsets.all(26),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: AppColors.slate200),
-        boxShadow: [
-          BoxShadow(
-            color: AppColors.slate900.withValues(alpha: 0.02),
-            blurRadius: 14,
-            offset: const Offset(0, 4),
+    final tuning = DesignTuningController.instance;
+
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(tuning.tileRadius),
+      child: BackdropFilter(
+        filter: ui.ImageFilter.blur(sigmaX: 16, sigmaY: 16),
+        child: Container(
+          padding: EdgeInsets.all(tuning.tileCardPadding),
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: [
+                Colors.white.withValues(alpha: (tuning.glassSurfaceOpacity * 1.5).clamp(0.18, 0.70)),
+                AppColors.cream.withValues(alpha: (tuning.glassSurfaceOpacity * 0.8).clamp(0.10, 0.45)),
+              ],
+            ),
+            borderRadius: BorderRadius.circular(tuning.tileRadius),
+            border: Border.all(
+              color: Colors.white.withValues(alpha: tuning.glassBorderOpacity),
+              width: 1.3 * tuning.tileHighlightIntensity,
+            ),
+            boxShadow: [
+              BoxShadow(
+                color: AppColors.navy.withValues(alpha: tuning.glassShadowOpacity * 1.2),
+                blurRadius: tuning.glassShadowBlur,
+                offset: Offset(0, tuning.tileShadowOffset),
+              ),
+              BoxShadow(
+                color: Colors.white.withValues(alpha: 0.55),
+                blurRadius: 1,
+                offset: const Offset(0, 1),
+                spreadRadius: 0,
+              ),
+            ],
           ),
-        ],
-      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             children: List.generate(
               5,
-              (index) => const Icon(Icons.star_rounded, color: AppColors.amber, size: 18),
+              (index) => const Icon(Icons.star_rounded, color: Color(0xFFF59E0B), size: 20),
             ),
           ),
           const SizedBox(height: 16),
@@ -2088,23 +3175,23 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
             item['quote']!,
             style: GoogleFonts.plusJakartaSans(
               fontSize: 14,
-              color: AppColors.slate700,
+              color: AppColors.navy,
               fontStyle: FontStyle.italic,
-              height: 1.55,
+              height: 1.6,
             ),
           ),
           const SizedBox(height: 20),
-          const Divider(color: AppColors.slate100, height: 1),
-          const SizedBox(height: 14),
+          Divider(color: AppColors.sky.withValues(alpha: 0.3), height: 1),
+          const SizedBox(height: 16),
           Row(
             children: [
               CircleAvatar(
-                backgroundColor: AppColors.emeraldLight,
+                backgroundColor: AppColors.skyLight,
                 child: Text(
                   item['name']!.substring(0, 1),
                   style: GoogleFonts.plusJakartaSans(
                     fontWeight: FontWeight.w800,
-                    color: AppColors.emeraldDark,
+                    color: AppColors.navy,
                   ),
                 ),
               ),
@@ -2118,14 +3205,14 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                       style: GoogleFonts.plusJakartaSans(
                         fontSize: 14,
                         fontWeight: FontWeight.w800,
-                        color: AppColors.slate900,
+                        color: AppColors.navy,
                       ),
                     ),
                     Text(
                       '${item['role']} • ${item['hospital']}',
                       style: GoogleFonts.plusJakartaSans(
                         fontSize: 11,
-                        color: AppColors.slate500,
+                        color: AppColors.navyMuted,
                       ),
                       overflow: TextOverflow.ellipsis,
                     ),
@@ -2136,7 +3223,9 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
           ),
         ],
       ),
-    );
+    ),
+  ),
+);
   }
 
   // ==========================================
@@ -2144,6 +3233,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
   // ==========================================
   Widget _buildLiveCorridorsMapSection(BuildContext context) {
     final bool isMobile = ResponsiveLayout.isMobile(context);
+    final tuning = DesignTuningController.instance;
 
     return Container(
       margin: EdgeInsets.symmetric(
@@ -2155,14 +3245,17 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
         vertical: 40,
       ),
       decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(28),
-        border: Border.all(color: AppColors.slate200, width: 1.2),
+        color: AppColors.cream.withValues(alpha: tuning.glassSurfaceOpacity),
+        borderRadius: BorderRadius.circular(tuning.glassCornerRadius),
+        border: Border.all(
+          color: AppColors.sky.withValues(alpha: tuning.glassBorderOpacity),
+          width: 1.5 * tuning.tileHighlightIntensity,
+        ),
         boxShadow: [
           BoxShadow(
-            color: AppColors.slate900.withValues(alpha: 0.05),
-            blurRadius: 28,
-            offset: const Offset(0, 10),
+            color: AppColors.navy.withValues(alpha: tuning.glassShadowOpacity),
+            blurRadius: tuning.glassShadowBlur,
+            offset: Offset(0, tuning.tileShadowOffset),
           ),
         ],
       ),
@@ -2176,10 +3269,10 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
                   decoration: BoxDecoration(
-                    color: AppColors.emeraldLight,
+                    color: AppColors.skyLight.withValues(alpha: 0.5),
                     borderRadius: BorderRadius.circular(20),
                     border: Border.all(
-                      color: AppColors.emerald.withValues(alpha: 0.3),
+                      color: AppColors.sky,
                       width: 1.1,
                     ),
                   ),
@@ -2190,7 +3283,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                         width: 8,
                         height: 8,
                         decoration: const BoxDecoration(
-                          color: AppColors.emerald,
+                          color: AppColors.navy,
                           shape: BoxShape.circle,
                         ),
                       ),
@@ -2200,7 +3293,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                         style: GoogleFonts.plusJakartaSans(
                           fontSize: 11,
                           fontWeight: FontWeight.w800,
-                          color: AppColors.emeraldDark,
+                          color: AppColors.navy,
                           letterSpacing: 1.0,
                         ),
                       ),
@@ -2214,7 +3307,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                   style: GoogleFonts.plusJakartaSans(
                     fontSize: isMobile ? 24 : 34,
                     fontWeight: FontWeight.w900,
-                    color: AppColors.slate900,
+                    color: AppColors.navy,
                     letterSpacing: -0.8,
                   ),
                 ),
@@ -2226,7 +3319,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                     textAlign: TextAlign.center,
                     style: GoogleFonts.plusJakartaSans(
                       fontSize: 14,
-                      color: AppColors.slate500,
+                      color: AppColors.navyMuted,
                       height: 1.5,
                     ),
                   ),
@@ -2246,7 +3339,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                   value: _isLoadingCorridorStats ? '...' : '$_totalCorridorsCreated',
                   subtitle: 'Total life-saving routes established',
                   icon: Icons.alt_route_rounded,
-                  accentColor: AppColors.emerald,
+                  accentColor: AppColors.navy,
                   badgeText: 'All-Time Dispatches',
                 ),
                 _buildCorridorMetricCard(
@@ -2254,7 +3347,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                   value: _isLoadingCorridorStats ? '...' : '$_activeCorridorsCount',
                   subtitle: 'Live ambulances under priority signal lock',
                   icon: Icons.sensors_rounded,
-                  accentColor: AppColors.primary,
+                  accentColor: const Color(0xFF0284C7),
                   badgeText: 'Real-Time Priority',
                 ),
                 _buildCorridorMetricCard(
@@ -2262,7 +3355,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                   value: _isLoadingCorridorStats ? '...' : '$_hospitalsCount',
                   subtitle: 'Verified trauma facilities on grid',
                   icon: Icons.local_hospital_rounded,
-                  accentColor: const Color(0xFF2563EB),
+                  accentColor: AppColors.navyLight,
                   badgeText: 'Connected ER Bays',
                 ),
               ];
@@ -2294,12 +3387,15 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
             height: isMobile ? 380 : 480,
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(22),
-              border: Border.all(color: AppColors.slate200, width: 1.2),
+              border: Border.all(
+                color: AppColors.sky.withValues(alpha: 0.6),
+                width: 1.5,
+              ),
               boxShadow: [
                 BoxShadow(
-                  color: AppColors.slate900.withValues(alpha: 0.04),
-                  blurRadius: 20,
-                  offset: const Offset(0, 6),
+                  color: AppColors.navy.withValues(alpha: 0.08),
+                  blurRadius: 24,
+                  offset: const Offset(0, 8),
                 ),
               ],
             ),
@@ -2331,12 +3427,12 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                     child: Container(
                       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
                       decoration: BoxDecoration(
-                        color: Colors.white.withValues(alpha: 0.94),
+                        color: AppColors.cream,
                         borderRadius: BorderRadius.circular(12),
-                        border: Border.all(color: AppColors.slate200),
+                        border: Border.all(color: AppColors.sky),
                         boxShadow: [
                           BoxShadow(
-                            color: Colors.black.withValues(alpha: 0.08),
+                            color: AppColors.navy.withValues(alpha: 0.15),
                             blurRadius: 8,
                             offset: const Offset(0, 2),
                           ),
@@ -2349,7 +3445,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                             width: 7,
                             height: 7,
                             decoration: const BoxDecoration(
-                              color: AppColors.emerald,
+                              color: AppColors.navy,
                               shape: BoxShape.circle,
                             ),
                           ),
@@ -2359,7 +3455,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                             style: GoogleFonts.plusJakartaSans(
                               fontSize: 10,
                               fontWeight: FontWeight.w800,
-                              color: AppColors.slate800,
+                              color: AppColors.navy,
                               letterSpacing: 0.6,
                             ),
                           ),
@@ -2389,13 +3485,13 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                         ),
                       ),
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.white,
-                        foregroundColor: AppColors.slate800,
+                        backgroundColor: AppColors.cream,
+                        foregroundColor: AppColors.navy,
                         elevation: 3,
                         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(10),
-                          side: const BorderSide(color: AppColors.slate200),
+                          side: const BorderSide(color: AppColors.sky),
                         ),
                       ),
                     ),
@@ -2412,7 +3508,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                           MaterialPageRoute(builder: (_) => const CitizenScreen()),
                         );
                       },
-                      icon: const Icon(Icons.radar_rounded, size: 16, color: AppColors.emerald),
+                      icon: const Icon(Icons.radar_rounded, size: 16, color: AppColors.sky),
                       label: Text(
                         "Full Radar",
                         style: GoogleFonts.plusJakartaSans(
@@ -2421,13 +3517,13 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                         ),
                       ),
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.white,
-                        foregroundColor: AppColors.slate800,
+                        backgroundColor: AppColors.navy,
+                        foregroundColor: AppColors.cream,
                         elevation: 3,
                         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(10),
-                          side: const BorderSide(color: AppColors.slate200),
+                          side: const BorderSide(color: AppColors.sky),
                         ),
                       ),
                     ),
@@ -2442,9 +3538,12 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
           Container(
             padding: const EdgeInsets.all(22),
             decoration: BoxDecoration(
-              color: const Color(0xFFF8FAFC),
+              color: AppColors.cream,
               borderRadius: BorderRadius.circular(18),
-              border: Border.all(color: AppColors.slate200),
+              border: Border.all(
+                color: AppColors.sky,
+                width: 1.4,
+              ),
             ),
             child: Flex(
               direction: isMobile ? Axis.vertical : Axis.horizontal,
@@ -2453,12 +3552,12 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                 Container(
                   padding: const EdgeInsets.all(12),
                   decoration: BoxDecoration(
-                    color: const Color(0xFF2563EB).withValues(alpha: 0.1),
+                    color: AppColors.navy.withValues(alpha: 0.08),
                     borderRadius: BorderRadius.circular(14),
                   ),
                   child: const Icon(
                     Icons.airport_shuttle_rounded,
-                    color: Color(0xFF2563EB),
+                    color: AppColors.navy,
                     size: 26,
                   ),
                 ),
@@ -2475,7 +3574,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                         style: GoogleFonts.plusJakartaSans(
                           fontSize: 15,
                           fontWeight: FontWeight.w800,
-                          color: AppColors.slate900,
+                          color: AppColors.navy,
                         ),
                       ),
                       const SizedBox(height: 4),
@@ -2484,7 +3583,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                         textAlign: isMobile ? TextAlign.center : TextAlign.start,
                         style: GoogleFonts.plusJakartaSans(
                           fontSize: 13,
-                          color: AppColors.slate500,
+                          color: AppColors.navyMuted,
                           height: 1.4,
                         ),
                       ),
@@ -2508,8 +3607,8 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                     ),
                   ),
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF2563EB),
-                    foregroundColor: Colors.white,
+                    backgroundColor: AppColors.navy,
+                    foregroundColor: AppColors.cream,
                     padding: const EdgeInsets.symmetric(horizontal: 22, vertical: 15),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(12),
@@ -2535,9 +3634,12 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: AppColors.slate50,
+        color: AppColors.cream.withValues(alpha: 0.6),
         borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: AppColors.slate200),
+        border: Border.all(
+          color: AppColors.sky.withValues(alpha: 0.6),
+          width: 1.2,
+        ),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -2548,23 +3650,24 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
               Container(
                 padding: const EdgeInsets.all(10),
                 decoration: BoxDecoration(
-                  color: accentColor.withValues(alpha: 0.1),
+                  color: AppColors.navy.withValues(alpha: 0.08),
                   borderRadius: BorderRadius.circular(12),
                 ),
-                child: Icon(icon, color: accentColor, size: 22),
+                child: Icon(icon, color: AppColors.navy, size: 22),
               ),
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 4),
                 decoration: BoxDecoration(
-                  color: accentColor.withValues(alpha: 0.12),
+                  color: AppColors.skyLight.withValues(alpha: 0.7),
                   borderRadius: BorderRadius.circular(10),
+                  border: Border.all(color: AppColors.sky),
                 ),
                 child: Text(
                   badgeText,
                   style: GoogleFonts.plusJakartaSans(
                     fontSize: 10,
                     fontWeight: FontWeight.w800,
-                    color: accentColor,
+                    color: AppColors.navy,
                   ),
                 ),
               ),
@@ -2576,7 +3679,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
             style: GoogleFonts.plusJakartaSans(
               fontSize: 34,
               fontWeight: FontWeight.w900,
-              color: AppColors.slate900,
+              color: AppColors.navy,
               letterSpacing: -1.0,
             ),
           ),
@@ -2586,7 +3689,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
             style: GoogleFonts.plusJakartaSans(
               fontSize: 14,
               fontWeight: FontWeight.w800,
-              color: AppColors.slate800,
+              color: AppColors.navy,
             ),
           ),
           const SizedBox(height: 2),
@@ -2594,7 +3697,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
             subtitle,
             style: GoogleFonts.plusJakartaSans(
               fontSize: 12,
-              color: AppColors.slate500,
+              color: AppColors.navyMuted,
             ),
           ),
         ],
@@ -2603,13 +3706,18 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
   }
 
   // ==========================================
-  // LIGHT-MODE FOOTER SECTION
+  // EXECUTIVE NAVY BLUE FOOTER SECTION
   // ==========================================
   Widget _buildFooterSection(BuildContext context) {
     final bool isMobile = ResponsiveLayout.isMobile(context);
 
     return Container(
-      color: Colors.white,
+      decoration: BoxDecoration(
+        color: AppColors.navy,
+        border: Border(
+          top: BorderSide(color: AppColors.sky.withValues(alpha: 0.35), width: 1.5),
+        ),
+      ),
       padding: EdgeInsets.symmetric(
         horizontal: isMobile ? 20 : 64,
         vertical: 48,
@@ -2630,12 +3738,15 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                       Container(
                         padding: const EdgeInsets.all(7),
                         decoration: BoxDecoration(
-                          color: AppColors.emeraldLight,
+                          color: AppColors.cream.withValues(alpha: 0.15),
                           borderRadius: BorderRadius.circular(10),
+                          border: Border.all(
+                            color: AppColors.sky.withValues(alpha: 0.5),
+                          ),
                         ),
                         child: const Icon(
                           Icons.emergency_share_rounded,
-                          color: AppColors.emeraldDark,
+                          color: AppColors.cream,
                           size: 18,
                         ),
                       ),
@@ -2645,7 +3756,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                         style: GoogleFonts.plusJakartaSans(
                           fontSize: 16,
                           fontWeight: FontWeight.w900,
-                          color: AppColors.slate900,
+                          color: AppColors.cream,
                           letterSpacing: 0.3,
                         ),
                       ),
@@ -2653,10 +3764,10 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                   ),
                   const SizedBox(height: 8),
                   Text(
-                    'Precision Emergency Transit Optimization Platform.',
+                    'Precision Emergency Transit Optimization Platform for Hospital Administrations.',
                     style: GoogleFonts.plusJakartaSans(
                       fontSize: 13,
-                      color: AppColors.slate500,
+                      color: AppColors.sky,
                     ),
                   ),
                 ],
@@ -2666,7 +3777,9 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                 children: [
                   _footerLink('Protocol Flow', () => _scrollToSection(_howItWorksKey)),
                   const SizedBox(width: 16),
-                  _footerLink('Ecosystem', () => _scrollToSection(_portalsKey)),
+                  _footerLink('Global 3D Globe', () => _scrollToSection(_worldGlobeKey)),
+                  const SizedBox(width: 16),
+                  _footerLink('Trauma Portals', () => _scrollToSection(_portalsKey)),
                   const SizedBox(width: 16),
                   _footerLink('Live Radar', () {
                     Navigator.push(
@@ -2679,7 +3792,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
             ],
           ),
           const SizedBox(height: 32),
-          const Divider(color: AppColors.slate200, height: 1),
+          Divider(color: AppColors.sky.withValues(alpha: 0.25), height: 1),
           const SizedBox(height: 24),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -2688,17 +3801,23 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                 '© 2026 Green Corridor. All operational rights reserved.',
                 style: GoogleFonts.plusJakartaSans(
                   fontSize: 12,
-                  color: AppColors.slate500,
+                  color: AppColors.cream.withValues(alpha: 0.8),
                 ),
               ),
               Row(
                 children: [
                   Container(
-                    width: 7,
-                    height: 7,
-                    decoration: const BoxDecoration(
-                      color: AppColors.emerald,
+                    width: 8,
+                    height: 8,
+                    decoration: BoxDecoration(
+                      color: AppColors.sky,
                       shape: BoxShape.circle,
+                      boxShadow: [
+                        BoxShadow(
+                          color: AppColors.sky.withValues(alpha: 0.8),
+                          blurRadius: 6,
+                        ),
+                      ],
                     ),
                   ),
                   const SizedBox(width: 6),
@@ -2707,7 +3826,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                     style: GoogleFonts.plusJakartaSans(
                       fontSize: 12,
                       fontWeight: FontWeight.w700,
-                      color: AppColors.emeraldDark,
+                      color: AppColors.cream,
                     ),
                   ),
                 ],
@@ -2727,7 +3846,171 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
         style: GoogleFonts.plusJakartaSans(
           fontSize: 13,
           fontWeight: FontWeight.w600,
-          color: AppColors.slate700,
+          color: AppColors.cream,
+        ),
+      ),
+    );
+  }
+}
+
+/// Interactive animated workflow step tile widget with hover elevation and glowing border
+class AnimatedWorkflowStepTile extends StatefulWidget {
+  final Map<String, dynamic> step;
+  final int index;
+  final int totalCount;
+
+  const AnimatedWorkflowStepTile({
+    super.key,
+    required this.step,
+    required this.index,
+    required this.totalCount,
+  });
+
+  @override
+  State<AnimatedWorkflowStepTile> createState() =>
+      _AnimatedWorkflowStepTileState();
+}
+
+class _AnimatedWorkflowStepTileState extends State<AnimatedWorkflowStepTile> {
+  bool _isHovered = false;
+
+  @override
+  Widget build(BuildContext context) {
+    final step = widget.step;
+    final tuning = DesignTuningController.instance;
+
+    return MouseRegion(
+      onEnter: (_) => setState(() => _isHovered = true),
+      onExit: (_) => setState(() => _isHovered = false),
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 280),
+        curve: Curves.easeOutCubic,
+        transform: Matrix4.diagonal3Values(
+          _isHovered ? tuning.tileHoverScale : 1.0,
+          _isHovered ? tuning.tileHoverScale : 1.0,
+          1.0,
+        )..setTranslationRaw(0.0, _isHovered ? -tuning.tileElevation : 0.0, 0.0),
+        padding: EdgeInsets.all(tuning.tileCardPadding),
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: _isHovered
+                ? [
+                    Colors.white.withValues(alpha: 0.92),
+                    AppColors.creamLight.withValues(alpha: 0.86),
+                  ]
+                : [
+                    Colors.white.withValues(alpha: (tuning.glassSurfaceOpacity * 1.5).clamp(0.20, 0.70)),
+                    AppColors.cream.withValues(alpha: (tuning.glassSurfaceOpacity * 0.8).clamp(0.10, 0.45)),
+                  ],
+          ),
+          borderRadius: BorderRadius.circular(tuning.tileRadius),
+          border: Border.all(
+            color: _isHovered
+                ? AppColors.navy
+                : Colors.white.withValues(alpha: tuning.glassBorderOpacity),
+            width: (_isHovered ? 2.0 : 1.3) * tuning.tileHighlightIntensity,
+          ),
+          boxShadow: [
+            BoxShadow(
+              color: AppColors.navy.withValues(
+                alpha: _isHovered ? 0.22 : tuning.glassShadowOpacity * 1.3,
+              ),
+              blurRadius: _isHovered ? 36 : tuning.glassShadowBlur,
+              offset: Offset(0, _isHovered ? tuning.tileElevation * 1.8 : tuning.tileShadowOffset),
+            ),
+            BoxShadow(
+              color: Colors.white.withValues(alpha: _isHovered ? 0.85 : 0.55),
+              blurRadius: 1,
+              offset: const Offset(0, 1),
+              spreadRadius: 0,
+            ),
+          ],
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Top Step Progress Indicator & Bead
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Row(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                      decoration: BoxDecoration(
+                        color: _isHovered ? AppColors.navy : AppColors.skyLight,
+                        borderRadius: BorderRadius.circular(20),
+                        border: Border.all(
+                          color: _isHovered ? AppColors.navy : AppColors.sky,
+                          width: 1.2,
+                        ),
+                      ),
+                      child: Text(
+                        'STAGE ${step['num']}',
+                        style: GoogleFonts.jetBrainsMono(
+                          fontSize: 10,
+                          fontWeight: FontWeight.w900,
+                          color: _isHovered ? AppColors.cream : AppColors.navy,
+                          letterSpacing: 0.8,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    AnimatedContainer(
+                      duration: const Duration(milliseconds: 250),
+                      width: 8,
+                      height: 8,
+                      decoration: BoxDecoration(
+                        color: _isHovered ? AppColors.navy : AppColors.sky,
+                        shape: BoxShape.circle,
+                      ),
+                    ),
+                  ],
+                ),
+                Container(
+                  padding: const EdgeInsets.all(10),
+                  decoration: BoxDecoration(
+                    color: _isHovered
+                        ? AppColors.navy
+                        : AppColors.skyLight,
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: AppColors.sky),
+                  ),
+                  child: Icon(
+                    step['icon'] as IconData,
+                    color: _isHovered ? AppColors.cream : AppColors.navy,
+                    size: 20,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 18),
+            Text(
+              step['title'] as String,
+              style: GoogleFonts.plusJakartaSans(
+                fontSize: 17,
+                fontWeight: FontWeight.w900,
+                color: AppColors.navy,
+                letterSpacing: -0.2,
+              ),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              step['desc'] as String,
+              style: GoogleFonts.plusJakartaSans(
+                fontSize: 13,
+                color: AppColors.navyMuted,
+                height: 1.5,
+              ),
+            ),
+            // Live Interactive Telemetry Console for this workflow stage
+            WorkflowStepConsole(
+              stepNum: step['num'] as String,
+              accentColor: AppColors.navy,
+            ),
+          ],
         ),
       ),
     );

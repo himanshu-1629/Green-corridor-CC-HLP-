@@ -497,9 +497,11 @@ class _ManageDriversScreenState extends State<ManageDriversScreen> {
         ),
         if (isDeleting)
           Container(
-            color: Colors.black.withValues(alpha: 0.3),
+            color: AppColors.navyDark.withValues(alpha: 0.45),
             child: const Center(
-              child: CircularProgressIndicator(),
+              child: CircularProgressIndicator(
+                valueColor: AlwaysStoppedAnimation(AppColors.sky),
+              ),
             ),
           ),
       ],

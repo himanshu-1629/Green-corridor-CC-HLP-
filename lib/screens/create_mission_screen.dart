@@ -651,11 +651,11 @@ class _CreateMissionScreenState extends State<CreateMissionScreen> {
                           vertical: 8,
                         ),
                         decoration: BoxDecoration(
-                          color: AppColors.slate900.withValues(alpha: 0.85),
+                          color: AppColors.navy.withValues(alpha: 0.9),
                           borderRadius: BorderRadius.circular(20),
                           boxShadow: [
                             BoxShadow(
-                              color: Colors.black.withValues(alpha: 0.2),
+                              color: AppColors.navyDark.withValues(alpha: 0.25),
                               blurRadius: 10,
                             ),
                           ],
