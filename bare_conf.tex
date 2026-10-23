@@ -151,28 +151,126 @@ When modeling the aggregate behavior of non-identical independent binary events 
 }
 \end{table*}
 
-\section{Cyber-Physical System Architecture}
+\section{End-to-End System Architecture: The JeevanPath Platform}
+\label{sec:jeevanpath_platform}
+The CC-HLP framework is realized as an operational end-to-end emergency medical transit ecosystem designated as \textbf{JeevanPath} (Fig.~\ref{fig:system_architecture}). In emergency organ transplantation (e.g., donor heart, liver, or lung transit), the therapeutic window is strictly bounded by donor organ cold ischemia time (CIT), which deteriorates graft viability at exponential rates. Conventional emergency transit in emerging economies relies on manual traffic police bandobast, uncoordinated cellular phone calls, and blunt static sirens that fail to penetrate modern sound-insulated vehicle cabins~\cite{iso7731}. JeevanPath unifies hospital surgical teams, ambulance pilots, roadside traffic signal infrastructure, and civilian commuters into an integrated cyber-physical network.
 
-\subsection{Physical and Communication System Topology}
-The CC-HLP cyber-physical system comprises four interconnected layers:
+\begin{figure*}[!t]
+\centering
+\fbox{\parbox{0.96\textwidth}{%
+\centering
+\small
+\textbf{JEEVANPATH / CC-HLP CYBER-PHYSICAL ECOSYSTEM ARCHITECTURE}\\[4pt]
+\begin{tabular}{ccccc}
+\fbox{\parbox{0.18\textwidth}{\centering \textbf{Hospital Web Console}\\Organ Dispatch, CIT Countdown, 500m Trauma Bay Prep Alert}} & $\xrightarrow{\text{Dispatch / API}}$ &
+\fbox{\parbox{0.22\textwidth}{\centering \textbf{Cloud Orchestrator}\\Supabase Realtime, Route Geo-Polylines, FCM Silent Wake-Up}} & $\xleftarrow{\text{10 Hz GPS}}$ &
+\fbox{\parbox{0.20\textwidth}{\centering \textbf{Ambulance 3D Cockpit}\\Hardware-Bound GNSS, OSRM Rerouting, 3D Bearing View}} \\[10pt]
+& & $\Big\downarrow$ \scriptsize FCM High-Priority Data & & $\Big\downarrow$ \scriptsize C-V2X / Cellular Telematics \\[8pt]
+& & \fbox{\parbox{0.24\textwidth}{\centering \textbf{Civilian Mobile Radar}\\250m Perpendicular Geodesic Filter, In-Cabin Two-Tier Siren}} & &
+\fbox{\parbox{0.24\textwidth}{\centering \textbf{Roadside Edge Controller}\\Raspberry Pi / Jetson, CC-HLP $N_{\text{crit}}$ Quantile, 800ms Watchdog}} \\[10pt]
+& & & & $\Big\downarrow$ \scriptsize SDLC / Optocoupler Relays \\[6pt]
+& & & & \fbox{\parbox{0.24\textwidth}{\centering \textbf{NEMA TS2 / IRC Cabinet}\\Physical MMU / CMU Interlock, Unskippable Yellow \& All-Red}}
+\end{tabular}
+}}
+\caption{End-to-end cyber-physical architecture of the JeevanPath platform, illustrating information flow across the hospital dispatch web portal, cloud orchestration layer, ambulance 3D navigation cockpit, civilian participatory radar, and roadside edge controller.}
+\label{fig:system_architecture}
+\end{figure*}
+
+\subsection{Hospital Command Console and Trauma Bay Mobilization}
+The administrative interface operates as a secure, reactive web console engineered in Flutter Web and deployed via cloud microservices. Key functional modules include:
 \begin{enumerate}
-    \item \textbf{Emergency Vehicle Subsystem (101):} An onboard telemetry unit comprising a multi-constellation GNSS receiver (10\,Hz update, $< 1.5\text{ m}$ CEP accuracy), inertial measurement unit (IMU), and cellular-V2X (C-V2X / 5G-NR) transceiver transmitting real-time state vectors $\mathbf{x}_{\text{EV}}(t) = [x_{\text{EV}}, y_{\text{EV}}, v_{\text{EV}}, a_{\text{EV}}]^T$.
-    \item \textbf{Cloud Geofence Orchestration Layer (102):} A distributed cloud service that monitors EV dispatch routes, calculates dynamic lookahead geofence polygons, and broadcasts non-safety-critical advisory messages to civilian client navigation devices (103).
-    \item \textbf{Roadside Edge Controller (104):} An industrial computing unit (e.g., quad-core ARM Cortex-A72 / Intel Atom x6425RE running RT-PREEMPT Linux) co-located inside the intersection traffic cabinet. The edge controller executes the CC-HLP quantile algorithm at 100\,ms cycles.
-    \item \textbf{Roadside Traffic Controller Cabinet (105):} A standard NEMA TS2 Type 1 / Type 2 or IRC:SP:41 cabinet housing the main phase controller, Bus Interface Units (BIUs), detector racks, and an independent hardware Malfunction Management Unit (MMU-16LE / CMU) (106).
+    \item \textbf{Rapid Corridor Commissioning:} When an organ becomes available, hospital administrators configure source donor facilities, recipient trauma centers, assigned medical transport units, and physiological cargo classification (Heart, Liver, Lungs, Kidney, Pancreas, or Cornea).
+    \item \textbf{Surgical Team Proximity Staging (500-Meter Handover):} When the incoming transport crosses a calibrated 500-meter geodesic perimeter surrounding the recipient trauma center, the console triggers visual and auditory trauma-bay alerts. This automated notification mobilizes transplant surgeons, scrub nurses, and perfusionists to the ambulance bay prior to physical vehicle arrival, eliminating handover latency.
+    \item \textbf{Return-to-Base Fleet Rebalancing:} Following successful organ delivery, conventional systems release ambulances immediately into available dispatch queues, stranding emergency units far from home bases. JeevanPath automatically synthesizes reverse route trajectories back to donor hospital depots, maintaining fleet balance across regional trauma systems.
 \end{enumerate}
 
-\subsection{Hardware Signal Cabinet Interface and Conflict Interlocks}
-The edge controller interfaces with the NEMA TS2 cabinet via a Synchronous Data Link Control (SDLC) Port 1 bus operating at 153.6\,kbps, or via opto-isolated 24\,V DC contact closure inputs on the cabinet detector rack.
+\subsection{Driver 3D Navigation Cockpit and Hardware Telemetry}
+The ambulance driver interface is engineered for high-stress operational environments:
+\begin{enumerate}
+    \item \textbf{Hardware-Bound GNSS Stream:} Rather than relying on simulated timer intervals or interpolated position smoothing, the cockpit client binds directly to the device hardware GNSS chipset (configured with a $1.0\text{ m}$ distance filter at 10\,Hz update frequency).
+    \item \textbf{Dynamic Coordinate Rerouting:} In-flight navigation routes are computed dynamically from real-time vehicle coordinates using Open Source Routing Machine (OSRM) arterial road networks, eliminating origin-locking routing errors when convoys deviate onto alternate lanes.
+    \item \textbf{Perspective 3D Camera System:} The user interface renders a dynamic 3D perspective viewpoint with camera tilt calibrated to $\theta_{\text{tilt}} = 50.0^\circ$ and zoom level $z = 18.2$. The viewport heading continuously rotates to track the vehicle's instantaneous azimuth vector.
+    \item \textbf{Native Navigation Handover:} To accommodate institutional preferences or private campus access roads, a single-touch HUD control transfers active route waypoints directly into native turn-by-turn navigation applications (e.g., Google Maps).
+\end{enumerate}
 
-Preemption actuation is strictly subordinate to the hardware MMU/CMU. If software attempts an invalid green transition, the MMU physically forces the intersection into flash within 450\,ms, guaranteeing fail-safe operation.
+\subsection{Citizen Emergency Radar and Path-Gated Filtering Algorithm}
+A central failure mode of conventional emergency vehicle broadcasts (e.g., city-wide SMS alerts) is public alert fatigue caused by broadcasting warnings to unimpacted motorists. JeevanPath implements a hyper-localized \textbf{Path-Gated Geodesic Filtering Algorithm}:
+\begin{enumerate}
+    \item \textbf{Geodesic Corridor Polyline Projection:} Let the active emergency corridor be defined by an ordered polyline of geographic vertices $\mathcal{L} = \{v_1, v_2, \dots, v_M\}$, where each segment $S_k = [v_k, v_{k+1}]$ represents an arterial road link. For any civilian mobile device at coordinate $u = (\text{lat}_u, \text{lon}_u)$, the client calculates the minimum perpendicular geodesic distance:
+    \begin{equation}
+    d_{\perp}(u, \mathcal{L}) = \min_{k \in \{1, \dots, M-1\}} \operatorname{dist}_{\text{geodesic}}(u, S_k)
+    \end{equation}
+    \item \textbf{Directional Vector Alignment:} Let $\mathbf{r}_{\text{EV}}(t)$ be the emergency vehicle's longitudinal progress along polyline $\mathcal{L}$, and let $\mathbf{r}_u$ be the projection of user $u$ onto $\mathcal{L}$. The user is classified as \emph{downstream} if and only if $\mathbf{r}_u \cdot \mathbf{v}_{\text{EV}} > \mathbf{r}_{\text{EV}}(t) \cdot \mathbf{v}_{\text{EV}}$.
+    \item \textbf{Dual-State Alert Discrimination:}
+    \begin{itemize}
+        \item \emph{On-Path State ($d_{\perp} \le 250\text{ m}$ and Downstream):} The citizen interface illuminates in high-contrast warning tones, reveals the real-time position and speed vector of the approaching ambulance, and sounds an urgent dual-tone acoustic alert ($<1.0\text{ km}$ advisory alert, $<500\text{ m}$ critical yield directive).
+        \item \emph{Off-Path State ($d_{\perp} > 250\text{ m}$ or Upstream):} The ambulance position and route telemetry are completely suppressed from the civilian map, and zero auditory sirens sound, preserving commuter calmness and institutional privacy.
+    \end{itemize}
+\end{enumerate}
 
-\subsection{Latency Watchdog Monitor}
-The edge controller executes an asynchronous watchdog timer. Every incoming mobile advisory message carries a 64-bit UTC timestamp $t_{\text{msg}}$ synchronized via Network Time Protocol (NTP) or cellular base-station clocks. The edge controller computes instantaneous latency:
+\subsection{Closed-App Background Device Wake-Up via Cloud Push}
+To ensure alert reception when civilian devices are locked, backgrounded, or operating concurrent navigation applications, JeevanPath implements an asynchronous device wake-up protocol:
+\begin{enumerate}
+    \item Upon client authentication, each mobile device registers a unique Firebase Cloud Messaging (FCM) cryptographic token within the cloud database.
+    \item When an emergency corridor is initiated, the cloud orchestrator dispatches high-priority silent data packets carrying corridor geofence bounding boxes.
+    \item The mobile operating system baseband wakes a background isolate for a bounded 15-second execution budget, samples hardware GNSS, evaluates the perpendicular geodesic filter locally on-device, and triggers system-level audio sirens and haptic actuators without requiring user interaction.
+\end{enumerate}
+
+\section{Roadside Edge Controller and Hardware Interfacing}
+\label{sec:hardware_interfacing}
+
+\subsection{Edge Controller Architecture and Compute Specifications}
+The CC-HLP edge computing unit is deployed co-located within the physical roadside traffic signal cabinet (Fig.~\ref{fig:hardware_wiring}). To satisfy real-time constraints, the edge controller executes on an industrial single-board computer (Raspberry Pi 4B/5, quad-core ARM Cortex-A76 @ 2.4\,GHz, or NVIDIA Jetson Orin Nano) operating a real-time Linux kernel with RT-PREEMPT patches:
+\begin{itemize}
+    \item \textbf{Cycle Time:} The CC-HLP decision loop executes at deterministic $\Delta t_{\text{loop}} = 100\text{ ms}$ discrete cycles.
+    \item \textbf{Queue Observation Pipeline:} Approach queue counts $N_{\text{init}}$ are received via stopline inductive loop detectors (ILDs), magnetometer pucks, or RTSP video streams processed via lightweight Edge AI object detectors (e.g., YOLOv8n running on the Jetson TensorRT accelerator at 30 FPS).
+    \item \textbf{Zero-Overhead Poisson-Binomial Convolution:} The recursive convolution algorithm executes in under $1.5\text{ ms}$ for queues up to $N = 30$ vehicles, leaving ample processing headroom for telematics parsing.
+\end{itemize}
+
+\begin{figure}[!t]
+\centering
+\fbox{\parbox{0.46\textwidth}{%
+\centering
+\small
+\textbf{ROADSIDE HARDWARE-IN-THE-LOOP (HIL) INTERFACE}\\[4pt]
+\begin{tabular}{c}
+\fbox{\parbox{0.42\textwidth}{\centering \textbf{Industrial Edge Unit (Raspberry Pi 5 / Jetson Orin)}\\Runs CC-HLP Quantile Daemon, Evaluates ETA $\le T_{\text{lead}}$, 800ms Watchdog}}\\[6pt]
+$\Big\downarrow$ \scriptsize Isolated 3.3V GPIO / RS-485 SDLC \\[4pt]
+\fbox{\parbox{0.42\textwidth}{\centering \textbf{Optocoupler Relay Module / Bus Interface Unit (BIU)}\\Optical Galvanic Isolation, Drives Preempt 1 / Override Line}}\\[6pt]
+$\Big\downarrow$ \scriptsize Dry Contact Closure / Port 1 Bus \\[4pt]
+\fbox{\parbox{0.42\textwidth}{\centering \textbf{Traffic Controller Backplane (NEMA TS2 / IRC:SP:41)}\\Executes Signal Phase Sequences, Subordinate to MMU}}\\[6pt]
+$\Big\downarrow$ \scriptsize AC Line Voltage Sensing \\[4pt]
+\fbox{\parbox{0.42\textwidth}{\centering \textbf{Hardware Malfunction Management Unit (MMU-16LE / CMU)}\\Hardwired Interlock: Enforces $t_{\text{yellow}} \ge 3.5\text{s}$, $t_{\text{all-red}} \ge 2.0\text{s}$}}
+\end{tabular}
+}}
+\caption{Roadside Hardware-in-the-Loop interface architecture, showing galvanic isolation and the independent hardware Malfunction Management Unit (MMU) fail-safe interlock.}
+\label{fig:hardware_wiring}
+\end{figure}
+
+\subsection{Signal Cabinet Interface: NEMA TS2 and IRC:SP:41 Standards}
+To enable retrofitting across municipal jurisdictions without replacing certified roadside controllers, the edge controller supports dual physical cabinet interfaces:
+\begin{enumerate}
+    \item \textbf{SDLC Bus Protocol (NEMA TS2 Type 1):} Communicates directly over the Synchronous Data Link Control (SDLC) Port 1 interface operating at 153.6\,kbps. The edge unit issues standardized NEMA preemption request frames to the main controller Bus Interface Unit (BIU), avoiding physical wire cutting.
+    \item \textbf{Opto-Isolated Contact Closure (NEMA TS1 / IRC:SP:41):} For legacy traffic cabinets in emerging regions conforming to Indian Roads Congress standards (IRC:SP:41-1994~\cite{irc1994}), the controller connects via a 4-channel optically isolated relay board. Driving an optocoupler low closes a dry contact relay across the cabinet's physical \texttt{Preempt 1} test terminals, simulating standard emergency vehicle strobe detectors.
+\end{enumerate}
+
+\subsection{Independent Fail-Safe Interlock: The Hardware MMU}
+A fundamental principle of cyber-physical traffic safety is that software processes must \emph{never} exert unconstrained control over live signal lamps. All signal outputs are monitored by an autonomous, non-programmable \textbf{Malfunction Management Unit (MMU-16LE)} or Conflict Monitor Unit (CMU)~\cite{nema2016}:
+\begin{enumerate}
+    \item \textbf{Conflicting Green Interlock:} The MMU continuously measures AC voltages across all green, yellow, and red field terminals. If software malfunctions command simultaneous green indications on conflicting phases (e.g., arterial green and cross-street green), the MMU physically de-energizes the signal head flash transfer relay within 450\,ms, transferring the entire junction into 1.0\,Hz flashing red.
+    \item \textbf{Mandatory Clearance Enforcement:} Even under preemption demands, the physical controller logic and MMU strictly enforce non-preemptible minimum yellow change ($t_{\text{yellow}} \ge 3.5\text{ s}$) and all-red clearance intervals ($t_{\text{all-red}} \ge 2.0\text{ s}$), guaranteeing physical conflict avoidance regardless of external telemetry anomalies.
+\end{enumerate}
+
+\subsection{Finite State Machine and Latency Watchdog Monitor}
+The edge daemon executes a formal Finite State Machine (FSM) enforcing one-hot signal states:
+\begin{equation}
+\mathcal{S} \in \{\text{CROSS\_GREEN}, \text{TRANS\_YELLOW}, \text{ALL\_RED}, \text{PREEMPT\_GREEN}, \text{POST\_YELLOW}, \text{POST\_ALL\_RED}\}
+\end{equation}
+Every incoming mobile advisory message carries a 64-bit UTC timestamp $t_{\text{msg}}$ synchronized via Network Time Protocol (NTP). The edge controller computes instantaneous latency:
 \begin{equation}
 \tau_{\text{latency}} = t_{\text{edge}} - t_{\text{msg}}
 \end{equation}
-If $\tau_{\text{latency}} > 800\text{ ms}$, or if no telematics heartbeat is received for $\tau_{\text{timeout}} > 800\text{ ms}$, the watchdog trips, forcing $P_{\text{mobile}} \equiv 0$ and transitioning the controller into conservative fallback mode.
+If network latency exceeds $\tau_{\text{latency}} > 800\text{ ms}$, or if consecutive telemetry heartbeats drop for $\tau_{\text{timeout}} > 800\text{ ms}$, the watchdog trips, forcing $P_{\text{mobile}} \equiv 0$ and gracefully collapsing the critical quantile $N_{\text{crit}} \to N_{\text{init}}$ (Proposition~\ref{sec:zero_adoption_lemma}), returning the system to conservative passive queue-discharge operation without service disruption.
 
 \section{The CC-HLP Mathematical Framework}
 
