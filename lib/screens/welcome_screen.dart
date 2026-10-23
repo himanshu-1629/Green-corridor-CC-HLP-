@@ -12,6 +12,8 @@ import '../theme/design_tuning_controller.dart';
 import '../widgets/interactive_world_globe.dart';
 import '../widgets/workflow_step_consoles.dart';
 import '../widgets/glass_ai_button.dart';
+import '../widgets/glass_button.dart';
+import '../widgets/animated_top_dock.dart';
 import 'citizen_screen.dart';
 import 'hospital_dashboard.dart';
 import 'login_screen.dart';
@@ -380,21 +382,15 @@ class _WelcomeScreenState extends State<WelcomeScreen>
                           ],
                         ),
                       ),
-                      ElevatedButton(
+                      GlassButton(
                         onPressed: () {
                           launchUrl(Uri.parse('/app-release.bin'), mode: LaunchMode.externalApplication);
                         },
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: AppColors.emerald,
-                          foregroundColor: Colors.white,
-                          elevation: 0,
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-                        ),
-                        child: Text(
-                          'Download',
-                          style: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.w700, fontSize: 13),
-                        ),
+                        variant: GlassButtonVariant.accent,
+                        borderRadius: 10,
+                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                        fontSize: 13,
+                        label: 'Download',
                       ),
                     ],
                   ),
@@ -444,20 +440,15 @@ class _WelcomeScreenState extends State<WelcomeScreen>
                           ],
                         ),
                       ),
-                      OutlinedButton(
+                      GlassButton(
                         onPressed: () {
                           launchUrl(Uri.parse('/app-release.zip'), mode: LaunchMode.externalApplication);
                         },
-                        style: OutlinedButton.styleFrom(
-                          foregroundColor: AppColors.slate800,
-                          side: const BorderSide(color: AppColors.slate300),
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-                        ),
-                        child: Text(
-                          'Get ZIP',
-                          style: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.w700, fontSize: 13),
-                        ),
+                        variant: GlassButtonVariant.secondary,
+                        borderRadius: 10,
+                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                        fontSize: 13,
+                        label: 'Get ZIP',
                       ),
                     ],
                   ),
@@ -775,99 +766,69 @@ class _WelcomeScreenState extends State<WelcomeScreen>
                     ),
                   ),
 
-                  // Desktop Links (Navy & Sky Blue)
+                  // ThreeUI AnimatedTopDock (Sable Dock variant)
                   if (!isMobile)
-                    Row(
-                      children: [
-                        _navButton('Protocol', () => _scrollToSection(_howItWorksKey)),
-                        _navButton('Global 3D Globe', () => _scrollToSection(_worldGlobeKey)),
-                        _navButton('Trauma Portals', () => _scrollToSection(_portalsKey)),
-                        _navButton('Telemetry', () => _scrollToSection(_statsKey)),
-                        _navButton('Citizen Radar', () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(builder: (_) => const CitizenScreen()),
-                          );
-                        }),
-                      ],
+                    Expanded(
+                      child: Center(
+                        child: AnimatedTopDockWidget(
+                          width: 580,
+                          height: 54,
+                          onItemSelected: (id) {
+                            switch (id) {
+                              case 'home':
+                                _scrollController.animateTo(
+                                  0,
+                                  duration: const Duration(milliseconds: 500),
+                                  curve: Curves.easeOut,
+                                );
+                                break;
+                              case 'system':
+                                _scrollToSection(_howItWorksKey);
+                                break;
+                              case 'method':
+                                _scrollToSection(_worldGlobeKey);
+                                break;
+                              case 'work':
+                                _scrollToSection(_portalsKey);
+                                break;
+                              case 'access':
+                                _scrollToSection(_statsKey);
+                                break;
+                              case 'notes':
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(builder: (_) => const CitizenScreen()),
+                                );
+                                break;
+                            }
+                          },
+                        ),
+                      ),
                     ),
 
-                  // Right Action: Navy Blue Button with Pale Cream text
+                  // Right Action: Frosted Glass Button for Hospital ER Portal
                   Row(
                     children: [
-                      ElevatedButton(
+                      GlassButton(
                         onPressed: () {
                           Navigator.push(
                             context,
                             MaterialPageRoute(builder: (_) => const HospitalDashboard()),
                           );
                         },
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: AppColors.navy,
-                          foregroundColor: AppColors.cream,
-                          elevation: 6,
-                          shadowColor: AppColors.navy.withValues(alpha: 0.40),
-                          padding: EdgeInsets.symmetric(
-                            horizontal: isMobile ? 14 : 22,
-                            vertical: 12,
-                          ),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(50),
-                            side: BorderSide(
-                              color: AppColors.sky.withValues(alpha: 0.65),
-                              width: 1.2,
-                            ),
-                          ),
+                        variant: GlassButtonVariant.primary,
+                        borderRadius: 50,
+                        padding: EdgeInsets.symmetric(
+                          horizontal: isMobile ? 14 : 20,
+                          vertical: 10,
                         ),
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            const Icon(Icons.security_rounded, size: 14, color: AppColors.sky),
-                            const SizedBox(width: 6),
-                            Text(
-                              isMobile ? 'Hospital ER' : 'Hospital Portal',
-                              style: GoogleFonts.plusJakartaSans(
-                                fontWeight: FontWeight.w800,
-                                fontSize: 13,
-                                color: AppColors.cream,
-                              ),
-                            ),
-                          ],
-                        ),
+                        icon: const Icon(Icons.security_rounded, size: 14, color: AppColors.warmPeach),
+                        label: isMobile ? 'Hospital ER' : 'Hospital Portal',
                       ),
                     ],
                   ),
                 ],
               ),
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _navButton(String title, VoidCallback onTap) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 3),
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(30),
-        child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 13, vertical: 7),
-          decoration: BoxDecoration(
-            color: Colors.white.withValues(alpha: 0.22),
-            borderRadius: BorderRadius.circular(30),
-            border: Border.all(
-              color: Colors.white.withValues(alpha: 0.45),
-              width: 1.0,
-            ),
-          ),
-          child: Text(
-            title,
-            style: GoogleFonts.plusJakartaSans(
-              color: AppColors.navy,
-              fontWeight: FontWeight.w700,
-              fontSize: 12.5,
             ),
           ),
         ),
@@ -1061,107 +1022,38 @@ class _WelcomeScreenState extends State<WelcomeScreen>
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     // Primary Navy Pill Button (Get Started ->)
-                    ElevatedButton(
+                    // Primary Glass Pill Button (Get Started ->)
+                    GlassButton(
                       onPressed: () {
                         Navigator.push(
                           context,
                           MaterialPageRoute(builder: (_) => const HospitalDashboard()),
                         );
                       },
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: AppColors.navy,
-                        foregroundColor: AppColors.cream,
-                        padding: EdgeInsets.symmetric(
-                          horizontal: isMobile ? 24 : 34,
-                          vertical: 20,
-                        ),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(50),
-                          side: BorderSide(
-                            color: AppColors.sky.withValues(alpha: 0.65),
-                            width: 1.3,
-                          ),
-                        ),
-                        elevation: 8,
-                        shadowColor: AppColors.navy.withValues(alpha: 0.40),
+                      variant: GlassButtonVariant.primary,
+                      borderRadius: 50,
+                      padding: EdgeInsets.symmetric(
+                        horizontal: isMobile ? 24 : 34,
+                        vertical: 18,
                       ),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          const Icon(Icons.local_hospital_rounded, color: AppColors.sky, size: 20),
-                          const SizedBox(width: 8),
-                          Text(
-                            'Get Started →',
-                            style: GoogleFonts.plusJakartaSans(
-                              fontSize: 16,
-                              fontWeight: FontWeight.w800,
-                              color: AppColors.cream,
-                            ),
-                          ),
-                        ],
-                      ),
+                      fontSize: 16,
+                      icon: const Icon(Icons.local_hospital_rounded, color: AppColors.warmPeach, size: 20),
+                      label: 'Get Started →',
                     ),
                     const SizedBox(width: 14),
 
-                    // Secondary Frosted Pill Button (Watch Demo)
-                    ClipRRect(
-                      borderRadius: BorderRadius.circular(50),
-                      child: BackdropFilter(
-                        filter: ui.ImageFilter.blur(sigmaX: tuning.glassBlur, sigmaY: tuning.glassBlur),
-                        child: InkWell(
-                          onTap: () => _scrollToSection(_howItWorksKey),
-                          borderRadius: BorderRadius.circular(50),
-                          child: Container(
-                            padding: EdgeInsets.symmetric(
-                              horizontal: isMobile ? 20 : 30,
-                              vertical: 18,
-                            ),
-                            decoration: BoxDecoration(
-                              gradient: LinearGradient(
-                                begin: Alignment.topLeft,
-                                end: Alignment.bottomRight,
-                                colors: [
-                                  Colors.white.withValues(alpha: (tuning.glassSurfaceOpacity * 1.6).clamp(0.18, 0.65)),
-                                  AppColors.cream.withValues(alpha: (tuning.glassSurfaceOpacity * 0.8).clamp(0.10, 0.40)),
-                                ],
-                              ),
-                              borderRadius: BorderRadius.circular(50),
-                              border: Border.all(
-                                color: Colors.white.withValues(alpha: tuning.glassBorderOpacity),
-                                width: 1.4 * tuning.tileHighlightIntensity,
-                              ),
-                              boxShadow: [
-                                BoxShadow(
-                                  color: AppColors.navy.withValues(alpha: tuning.glassShadowOpacity * 1.4),
-                                  blurRadius: 22,
-                                  offset: const Offset(0, 8),
-                                ),
-                                BoxShadow(
-                                  color: Colors.white.withValues(alpha: (tuning.glassBorderOpacity * 0.85).clamp(0.2, 0.85)),
-                                  blurRadius: 1,
-                                  offset: const Offset(0, 1),
-                                  spreadRadius: 0,
-                                ),
-                              ],
-                            ),
-                            child: Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                const Icon(Icons.play_circle_fill_rounded, color: AppColors.navy, size: 20),
-                                const SizedBox(width: 8),
-                                Text(
-                                  'Watch Demo',
-                                  style: GoogleFonts.plusJakartaSans(
-                                    fontSize: 15,
-                                    fontWeight: FontWeight.w800,
-                                    color: AppColors.navy,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ),
+                    // Secondary Glass Pill Button (Watch Demo)
+                    GlassButton(
+                      onPressed: () => _scrollToSection(_howItWorksKey),
+                      variant: GlassButtonVariant.secondary,
+                      borderRadius: 50,
+                      padding: EdgeInsets.symmetric(
+                        horizontal: isMobile ? 20 : 30,
+                        vertical: 18,
                       ),
+                      fontSize: 15,
+                      icon: const Icon(Icons.play_circle_fill_rounded, color: AppColors.deepViolet, size: 20),
+                      label: 'Watch Demo',
                     ),
                   ],
                 ),
@@ -1980,33 +1872,14 @@ class _WelcomeScreenState extends State<WelcomeScreen>
                       }).toList(),
                     ),
                     const SizedBox(height: 28),
-                    ElevatedButton(
+                    GlassButton(
                       onPressed: onPressed,
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: AppColors.navy,
-                        foregroundColor: AppColors.cream,
-                        padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 18),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(50),
-                        ),
-                        elevation: 3,
-                        shadowColor: AppColors.navy.withValues(alpha: 0.25),
-                      ),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Text(
-                            buttonText,
-                            style: GoogleFonts.plusJakartaSans(
-                              fontSize: 14,
-                              fontWeight: FontWeight.w800,
-                              color: AppColors.cream,
-                            ),
-                          ),
-                          const SizedBox(width: 8),
-                          const Icon(Icons.arrow_forward_rounded, size: 18, color: AppColors.sky),
-                        ],
-                      ),
+                      variant: GlassButtonVariant.primary,
+                      borderRadius: 50,
+                      padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 16),
+                      fontSize: 14,
+                      icon: const Icon(Icons.arrow_forward_rounded, size: 18, color: AppColors.warmPeach),
+                      label: buttonText,
                     ),
                   ],
                 ),
@@ -2890,38 +2763,19 @@ class _WelcomeScreenState extends State<WelcomeScreen>
                       ),
                     ),
                     const SizedBox(height: 32),
-                    ElevatedButton(
+                    GlassButton(
                       onPressed: () {
                         Navigator.push(
                           context,
                           MaterialPageRoute(builder: (_) => const RegisterScreen()),
                         );
                       },
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: AppColors.navy,
-                        foregroundColor: AppColors.cream,
-                        elevation: 4,
-                        shadowColor: AppColors.navy.withValues(alpha: 0.25),
-                        padding: const EdgeInsets.symmetric(horizontal: 26, vertical: 16),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(14),
-                        ),
-                      ),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Text(
-                            'Request City Onboarding',
-                            style: GoogleFonts.plusJakartaSans(
-                              fontWeight: FontWeight.w800,
-                              fontSize: 14,
-                              color: AppColors.cream,
-                            ),
-                          ),
-                          const SizedBox(width: 8),
-                          const Icon(Icons.arrow_forward_rounded, size: 16, color: AppColors.sky),
-                        ],
-                      ),
+                      variant: GlassButtonVariant.primary,
+                      borderRadius: 14,
+                      padding: const EdgeInsets.symmetric(horizontal: 26, vertical: 16),
+                      fontSize: 14,
+                      icon: const Icon(Icons.arrow_forward_rounded, size: 16, color: AppColors.warmPeach),
+                      label: 'Request City Onboarding',
                     ),
                   ],
                 ),
@@ -3485,7 +3339,7 @@ class _WelcomeScreenState extends State<WelcomeScreen>
                   Positioned(
                     bottom: 14,
                     left: 14,
-                    child: ElevatedButton.icon(
+                    child: GlassButton(
                       onPressed: () {
                         if (_landingMapController != null) {
                           _landingMapController!.animateCamera(
@@ -3493,24 +3347,12 @@ class _WelcomeScreenState extends State<WelcomeScreen>
                           );
                         }
                       },
-                      icon: const Icon(Icons.my_location_rounded, size: 16),
-                      label: Text(
-                        "Center Hubs",
-                        style: GoogleFonts.plusJakartaSans(
-                          fontSize: 12,
-                          fontWeight: FontWeight.w700,
-                        ),
-                      ),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: AppColors.cream,
-                        foregroundColor: AppColors.navy,
-                        elevation: 3,
-                        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(10),
-                          side: const BorderSide(color: AppColors.sky),
-                        ),
-                      ),
+                      variant: GlassButtonVariant.secondary,
+                      borderRadius: 10,
+                      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                      fontSize: 12,
+                      icon: const Icon(Icons.my_location_rounded, size: 16, color: AppColors.navy),
+                      label: "Center Hubs",
                     ),
                   ),
 
@@ -3518,31 +3360,19 @@ class _WelcomeScreenState extends State<WelcomeScreen>
                   Positioned(
                     top: 14,
                     right: 14,
-                    child: ElevatedButton.icon(
+                    child: GlassButton(
                       onPressed: () {
                         Navigator.push(
                           context,
                           MaterialPageRoute(builder: (_) => const CitizenScreen()),
                         );
                       },
-                      icon: const Icon(Icons.radar_rounded, size: 16, color: AppColors.sky),
-                      label: Text(
-                        "Full Radar",
-                        style: GoogleFonts.plusJakartaSans(
-                          fontSize: 12,
-                          fontWeight: FontWeight.w700,
-                        ),
-                      ),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: AppColors.navy,
-                        foregroundColor: AppColors.cream,
-                        elevation: 3,
-                        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(10),
-                          side: const BorderSide(color: AppColors.sky),
-                        ),
-                      ),
+                      variant: GlassButtonVariant.primary,
+                      borderRadius: 10,
+                      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                      fontSize: 12,
+                      icon: const Icon(Icons.radar_rounded, size: 16, color: AppColors.warmPeach),
+                      label: "Full Radar",
                     ),
                   ),
                 ],
@@ -3608,29 +3438,19 @@ class _WelcomeScreenState extends State<WelcomeScreen>
                   ),
                 ),
                 const SizedBox(width: 20, height: 16),
-                ElevatedButton.icon(
+                GlassButton(
                   onPressed: () {
                     Navigator.push(
                       context,
                       MaterialPageRoute(builder: (_) => const LoginScreen()),
                     );
                   },
-                  icon: const Icon(Icons.login_rounded, size: 18),
-                  label: Text(
-                    'Driver Sign In (Sync FCM)',
-                    style: GoogleFonts.plusJakartaSans(
-                      fontSize: 13,
-                      fontWeight: FontWeight.w700,
-                    ),
-                  ),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: AppColors.navy,
-                    foregroundColor: AppColors.cream,
-                    padding: const EdgeInsets.symmetric(horizontal: 22, vertical: 15),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                  ),
+                  variant: GlassButtonVariant.primary,
+                  borderRadius: 12,
+                  padding: const EdgeInsets.symmetric(horizontal: 22, vertical: 15),
+                  fontSize: 13,
+                  icon: const Icon(Icons.login_rounded, size: 18, color: AppColors.warmPeach),
+                  label: 'Driver Sign In (Sync FCM)',
                 ),
               ],
             ),
