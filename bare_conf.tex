@@ -45,11 +45,11 @@ Emergency Vehicle Preemption, Intelligent Transportation Systems, Chance-Constra
 \end{IEEEkeywords}
 
 \section{Introduction}
-\IEEEPARstart{E}{mergency} medical service response times and fire rescue transit speeds are critically linked to patient survival and structural damage mitigation. Consequently, Emergency Vehicle Preemption (EVP) has long been deployed to interrupt normal cyclic signal operation and grant immediate right-of-way to approaching emergency vehicles (EVs). Traditional EVP architectures employ fixed optical strobe sensors, localized acoustic detectors, or static radio-frequency transponders that trigger green phases once an EV crosses a fixed distance threshold (typically 200--400\,meters upstream).
+\IEEEPARstart{E}{mergency} medical service response times and fire rescue transit speeds are critically linked to patient survival and structural damage mitigation. Consequently, Emergency Vehicle Preemption (EVP) has long been deployed to interrupt normal cyclic signal operation and grant immediate right-of-way to approaching emergency vehicles (EVs). Traditional EVP architectures employ fixed optical strobe sensors, localized acoustic detectors, or static radio-frequency transponders that trigger green phases once an EV crosses a fixed distance threshold~\cite{skabardonis2000,mirchandani2001,dion2005} (typically 200--400\,meters upstream).
 
 While static preemption ensures right-of-way, it suffers from two major operational limitations:
 \begin{enumerate}
-    \item \textbf{Severe Cross-Street Gridlock:} Initiating preemption too early truncates conflicting green phases, cutting pedestrian clearance and triggering oversaturation queue spillback along intersecting arterial roads.
+    \item \textbf{Severe Cross-Street Gridlock:} Initiating preemption too early truncates conflicting green phases, cutting pedestrian clearance and triggering oversaturation queue spillback along intersecting arterial roads~\cite{qin2012evp,bie2020evp,kang2021preempt}.
     \item \textbf{Standing Stopline Queues:} If the approach lane is heavily queued, a fixed-distance trigger fails to allocate sufficient lead time for stationary civilian vehicles to discharge, forcing the EV to decelerate severely behind blocked lanes.
 \end{enumerate}
 
@@ -99,25 +99,35 @@ This paper establishes four foundational contributions:
 
 \section{Related Work and Prior Art Differentiation}
 
-\subsection{Classical and Queue-Aware Preemption}
-Traditional EVP systems rely on NEMA TS2~\cite{nema2016} or 170/2070 controller standards, enforcing minimum green ($g_{\min}$), yellow change ($t_{\text{yellow}}$), and all-red ($t_{\text{all-red}}$) clearance intervals. Static distance-based preemption triggers green at a constant distance $d_{\text{trigger}}$, typically utilizing optical strobe emitters or roadside video sensors (e.g., YOLO-based emergency light-bar detection frameworks~\cite{lamrabet2026}). When queue lengths fluctuate stochastically, static triggers either under-preempt or over-preempt because they possess no lookahead knowledge of standing queues.
+\subsection{Classical, Transit, and Queue-Aware Preemption Systems}
+Traditional traffic signal preemption and priority architectures trace back to early fixed-time override systems~\cite{skabardonis2000} and real-time responsive frameworks such as RHODES~\cite{mirchandani2001} and adaptive transit priority (TSP) models~\cite{dion2005,hu2013transit}. Early priority models focus primarily on transit buses along fixed routes, employing green extension and red truncation strategies~\cite{christofa2011,ma2013dynamic}. In arterial networks, platoon-based multi-modal signal control (e.g., PAMSCOD~\cite{he2014pam}) and connected-vehicle intersection models~\cite{guler2014} optimize phase schedules across continuous traffic streams.
+
+For emergency vehicles, preemption requires absolute right-of-way override rather than marginal delay reduction. Standard implementations rely on NEMA TS2~\cite{nema2016} or 170/2070 controller standards, enforcing minimum green ($g_{\min}$), yellow change ($t_{\text{yellow}}$), and all-red ($t_{\text{all-red}}$) clearance intervals. Static distance-based preemption triggers green at a constant distance $d_{\text{trigger}}$, typically utilizing optical strobe emitters or roadside video sensors (e.g., YOLO-based emergency light-bar detection frameworks~\cite{lamrabet2026}). When queue lengths fluctuate stochastically, static distance triggers cause acute inefficiencies: early triggering cuts pedestrian clearance and induces oversaturation queue spillback along cross streets~\cite{bie2020evp,kang2021preempt,qin2012evp}, whereas late triggering forces emergency vehicles to decelerate abruptly behind standing queues.
 
 Obrusn\'{\i}k, Herman, and Hur\'ak~\cite{obrusnik2020} advanced preemption design by introducing dynamic queue-discharge preemption:
 \begin{equation}
 T_{\text{clear}} = t_L + N \cdot h_s
 \end{equation}
-where $t_L = 2.0\text{ s}$ is startup lost time and $h_s = 2.0\text{ s/veh}$ is saturation departure headway ($1800\text{ veh/h/lane}$). Preemption is initiated when $\text{ETA} \le T_{\text{clear}} + T_{\text{transition}}$. While mathematically sound, Obrusn\'{\i}k et al. treat civilian traffic as passive agents ($P_{\text{yield}} = 0$).
+where $t_L = 2.0\text{ s}$ is startup lost time and $h_s = 2.0\text{ s/veh}$ is saturation departure headway ($1800\text{ veh/h/lane}$). Preemption is initiated when $\text{ETA} \le T_{\text{clear}} + T_{\text{transition}}$. While mathematically sound and aligned with classical Webster queue-discharge kinematics~\cite{webster1958,lighthill1955lwr}, Obrusn\'{\i}k et al. treat all civilian vehicles as purely passive physical obstacles that do not move until the signal turns green ($P_{\text{yield}} = 0$).
 
-\subsection{Connected Vehicle Preemption and Advisory Telematics}
-Human-factors studies demonstrate that standard acoustic sirens suffer from high sound attenuation in modern sound-insulated vehicle cabins (ISO 7731~\cite{iso7731}). Lidestam et al.~\cite{lidestam2020} demonstrated that in-car auditory and visual warnings markedly enhance driver yielding compliance and situational awareness.
+\subsection{Connected Vehicles, V2X Telematics, and Cooperative Trajectories}
+With the advent of Dedicated Short-Range Communications (DSRC IEEE 802.11p)~\cite{kenney2011dsrc} and cellular vehicle-to-everything (C-V2X / 5G-NR)~\cite{abboud2016cv2x,gyawali2020v2x,siegel2018connected}, vehicle-to-infrastructure (V2I) communication enables real-time trajectory awareness and priority reservation. 
 
-Recent connected vehicle frameworks investigate automated preemption: Ding et al.~\cite{ding2024} formulate V2X-supported, deep reinforcement learning (DRL)-assisted mobility-aware lane changing for emergency preemption in connected autonomous transport systems. While demonstrating substantial progression benefits for automated fleets, their focus is on autonomous vehicle control (CAVs) rather than modeling the stochastic perception latencies and voluntary compliance of human drivers in mixed legacy traffic. In the domain of integrated priority, a 2024 collaborative control framework~\cite{collaborative_control_2024} coordinates dynamic emergency-lane management, signal timing, and vehicle trajectories to minimize ordinary traffic disruption, while a coordinated optimization strategy published in April 2026~\cite{coordinated_preemption_2026} jointly models dynamic emergency lane clearance and signal pre-emption across complex traffic networks. Similarly, Zhang et al.~\cite{zhang2024collaborative} and Wang et al.~\cite{wang2026coordinated} investigate CAV trajectory-signal co-optimization and distributed arterial coordination. However, these frameworks focus on automated vehicular obedience, dedicated emergency-lane allocation, or macroscopic shockwave approximations; they do not model the deadline-constrained voluntary yielding compliance of individual human drivers in mixed queues, nor do they derive a chance-constrained signal preemption trigger based on exact Poisson-binomial residual-queue quantiles.
+Recent connected vehicle frameworks investigate automated preemption: Ding et al.~\cite{ding2024} formulate V2X-supported, deep reinforcement learning (DRL)-assisted mobility-aware lane changing for emergency preemption in connected autonomous transport systems. While demonstrating substantial progression benefits for automated fleets, their focus is on autonomous vehicle control (CAVs) rather than modeling the stochastic perception latencies and voluntary compliance of human drivers in mixed legacy traffic. In the domain of integrated priority, a collaborative control framework~\cite{collaborative_control_2024} coordinates dynamic emergency-lane management, signal timing, and vehicle trajectories to minimize ordinary traffic disruption, while a coordinated optimization strategy~\cite{coordinated_preemption_2026} jointly models dynamic emergency lane clearance and signal pre-emption across complex networks. Similarly, Zhang et al.~\cite{zhang2024collaborative} and Wang et al.~\cite{wang2026coordinated} investigate CAV trajectory-signal co-optimization and distributed arterial coordination. However, these frameworks focus on automated vehicular obedience, dedicated emergency-lane allocation, or macroscopic shockwave approximations; they do not model the deadline-constrained voluntary yielding compliance of individual human drivers in mixed queues, nor do they derive a chance-constrained signal preemption trigger based on exact Poisson-binomial residual-queue quantiles.
 
-In the patent literature, Sony Group Corporation's patent application US 2026/0188114 A1~\cite{sony2026} describes distributing emergency-route notifications to client navigation devices and coordinating with roadside infrastructure to prompt cooperative vehicle maneuvers. However, its claims focus on client-side route messaging and cooperative maneuvering instructions, without incorporating deadline-conditioned human yielding probabilities or deriving a chance-constrained signal preemption trigger for roadside traffic controllers.
-
-Furthermore, earlier patent disclosures such as Bachelder's cellular-based preemption system (US 7,868,783 B2~\cite{bachelder2011}) demonstrate that utilizing vehicle position reports, estimated arrival times, and probabilistic preemption criteria is established in general emergency signal priority. Similarly, recent route-level priority frameworks (e.g., Heusser et al., US 2026/0266618 A1~\cite{us20260266618}) coordinate dynamic emergency routing with signal priority across multiple upcoming intersections, while probabilistic arrival studies (e.g., Roja Ramani et al.~\cite{ieee_prob_preempt2026}) evaluate arrival-time uncertainty using Monte Carlo simulation. 
+In the patent literature, Sony Group Corporation's patent application US 2026/0188114 A1~\cite{sony2026} describes distributing emergency-route notifications to client navigation devices and coordinating with roadside infrastructure to prompt cooperative vehicle maneuvers. However, its claims focus on client-side route messaging and cooperative maneuvering instructions, without incorporating deadline-conditioned human yielding probabilities or deriving a chance-constrained signal preemption trigger for roadside traffic controllers. Furthermore, earlier patent disclosures such as Bachelder's cellular-based preemption system (US 7,868,783 B2~\cite{bachelder2011}) demonstrate that utilizing vehicle position reports, estimated arrival times, and probabilistic preemption criteria is established in general emergency signal priority. Similarly, recent route-level priority frameworks (e.g., Heusser et al., US 2026/0266618 A1~\cite{us20260266618}) coordinate dynamic emergency routing with signal priority across multiple upcoming intersections, while probabilistic arrival studies (e.g., Roja Ramani et al.~\cite{ieee_prob_preempt2026}) evaluate arrival-time uncertainty using Monte Carlo simulation. 
 
 However, these prior approaches address arrival uncertainty, macroscopic coordination, or static queue clearing under passive traffic; they do not model the deadline-constrained probability of individual human drivers yielding along approach queues or formulate roadside preemption via a chance-constrained residual-queue quantile.
+
+\subsection{Human Factors, Perception-Reaction Latency, and Maneuver Deadlines}
+Human-factors studies demonstrate that standard acoustic sirens suffer from high sound attenuation in modern sound-insulated vehicle cabins (ISO 7731~\cite{iso7731}). Field experiments by Lidestam et al.~\cite{lidestam2020} demonstrated that in-car auditory and visual warnings markedly enhance driver yielding compliance and situational awareness. 
+
+Driver perception-reaction time (PRT) and brake/steering execution latencies have been extensively investigated in transportation safety literature~\cite{green2000prt,taoka1989brake,koppa2000human,lerner1996prt,fitch2014alerts}. Empirical studies confirm that unalerted driver reaction times follow skewed, lognormal distributions, where discretionary steering maneuvers require perception-decision latency followed by lateral execution. Simultaneously, lateral gap acceptance and lane-changing mechanics in urban queues depend on adjacent lane traffic density and acceptable headways, foundational concepts established by Gipps~\cite{gipps1986lane}, Toledo et al.~\cite{toledo2003driving}, Choudhury et al.~\cite{choudhury2007lane}, and Zheng~\cite{zheng2014lane}. Modern Highway Capacity Manual standards~\cite{hcm2016} corroborate that adjacent lane gaps determine lane-change completion feasibility.
+
+\subsection{Stochastic Programming, Chance Constraints, and Poisson-Binomial Distributions}
+To handle stochastic uncertainty in engineering systems, chance-constrained programming was pioneered by Charnes and Cooper~\cite{charnes1959chance} and formalized in stochastic programming theory by Pr\'ekopa~\cite{prekopa1995stochastic}. In transportation operations, robust and chance-constrained optimization has been applied to signal timing under demand uncertainty by Yin~\cite{yin2008robust}.
+
+When modeling the aggregate behavior of non-identical independent binary events (such as whether individual queued vehicles yield or remain blockers), the sum of heterogeneous Bernoulli trials follows a Poisson-Binomial distribution~\cite{chen1993poisson,barlow1984reliability}. Unlike standard binomial distributions which assume identical trial probabilities, evaluating the exact cumulative distribution function of a Poisson-Binomial random variable requires recursive discrete convolution or discrete Fourier transforms, as rigorously formulated by Hong~\cite{hong2013}.
 
 \begin{table*}[t]
 \caption{Selected Prior Art Comparison and Methodological Differentiation}
@@ -307,7 +317,7 @@ Furthermore, because the roadside traffic controller locks phase transitions upo
 \section{Experimental Methodology and Benchmark Design}
 
 \subsection{Microscopic Discrete-Event Kinematic Simulation Setup}
-To provide an open-source, fully reproducible scientific benchmark without proprietary simulator dependencies, we implemented an object-oriented Microscopic Discrete-Event Kinematic Simulation (MDE-KS) in Python (complete simulation codebase, configuration scripts, random seeds 1001--1050, and per-seed raw output logs available at \url{https://github.com/himanshu-1629/green-corridor}, Git commit \texttt{e3a77c5}). The reproducible artifacts comprise the benchmark execution engine (\texttt{scratch/run\_four\_controller\_ablation.py}), per-seed logging output (\texttt{scratch/per\_seed\_benchmark\_results.csv}), parameter calibration scripts (\texttt{scratch/test\_physics\_calibration.py}), and sensitivity suite (\texttt{scratch/run\_penetration\_sweep.py}), executable under standard scientific Python environments (\texttt{numpy >= 1.24}, \texttt{pandas >= 2.0}, \texttt{scipy >= 1.10}):
+To provide an open-source, fully reproducible scientific benchmark without proprietary simulator dependencies (such as SUMO~\cite{krajzewicz2012}), we implemented an object-oriented Microscopic Discrete-Event Kinematic Simulation (MDE-KS) in Python (complete simulation codebase, configuration scripts, random seeds 1001--1050, and per-seed raw output logs available at \url{https://github.com/himanshu-1629/green-corridor}, Git commit \texttt{e3a77c5}). The reproducible artifacts comprise the benchmark execution engine (\texttt{scratch/run\_four\_controller\_ablation.py}), per-seed logging output (\texttt{scratch/per\_seed\_benchmark\_results.csv}), parameter calibration scripts (\texttt{scratch/test\_physics\_calibration.py}), and sensitivity suite (\texttt{scratch/run\_penetration\_sweep.py}), executable under standard scientific Python environments (\texttt{numpy >= 1.24}, \texttt{pandas >= 2.0}, \texttt{scipy >= 1.10}):
 \begin{itemize}
     \item \textbf{Arterial Corridor Geometry:} 5 consecutive signalized intersections along a 3.2\,km arterial corridor. The emergency vehicle begins at dispatch origin $x = 0$ with an initial 640\,m approach to the first intersection at $x = 640\text{ m}$, followed by 4 inter-intersection links of 640\,m each (intersections located at $x = 640\text{ m}, 1280\text{ m}, 1920\text{ m}, 2560\text{ m},$ and $3200\text{ m}$). The inter-intersection span between the first and fifth signal is $4 \times 640\text{ m} = 2.56\text{ km}$, yielding a total corridor transit run of $3200\text{ m} = 3.2\text{ km}$.
     \item \textbf{Continuous Kinematic Integration:} Longitudinal EV trajectory integrated at $\Delta t = 0.1\text{ s}$ time steps:
@@ -463,7 +473,7 @@ Across 50 audited paired Monte Carlo simulation runs on a 3.2\,km arterial corri
 
 Future research will extend CC-HLP to grid networks, multi-agency preemption, and mixed CAV-human corridors.
 
-\begin{thebibliography}{10}
+\begin{thebibliography}{50}
 \bibitem{obrusnik2020}
 V.~Obrusn\'{\i}k, I.~Herman, and Z.~Hur\'ak, ``Queue discharge-based emergency vehicle traffic signal preemption,'' \emph{IFAC-PapersOnLine}, vol.~53, no.~2, pp. 14997--15002, 2020, doi: 10.1016/j.ifacol.2020.12.1998.
 
@@ -486,7 +496,7 @@ International Organization for Standardization, \emph{Ergonomics --- Danger sign
 F.~V. Webster, ``Traffic signal settings,'' \emph{Road Research Technical Paper No. 39}, Her Majesty's Stationery Office, London, UK, 1958.
 
 \bibitem{hong2013}
-Y.~Hong, ``On computing the distribution function for the Poisson binomial distribution,'' \emph{Computational Statistics \& Data Analysis}, vol.~59, pp. 41--51, 2013.
+Y.~Hong, ``On computing the distribution function for the Poisson binomial distribution,'' \emph{Computational Statistics \& Data Analysis}, vol.~59, pp. 41--51, 2013, doi: 10.1016/j.csda.2012.10.006.
 
 \bibitem{irc1994}
 Indian Roads Congress, \emph{Guidelines on Design for Signalized Intersections}, IRC:SP:41-1994, New Delhi, India, 1994.
@@ -524,6 +534,95 @@ H.~Liu, J.~Wu, L.~Zhao, and M.~Wang, ``A collaborative control framework: Achiev
 \bibitem{coordinated_preemption_2026}
 Z.~Chen, Y.~Zhang, X.~Sun, and H.~Zhou, ``A coordinated optimization strategy integrating dynamic emergency lane management and signal pre-emption in complex traffic systems,'' \emph{Transportmetrica A: Transport Science}, published online Apr. 19, 2026, doi: 10.1080/23249935.2026.2341902.
 
+\bibitem{skabardonis2000}
+A.~Skabardonis, ``Control strategies for transit priority,'' \emph{Transportation Research Record}, vol.~1727, no.~1, pp. 20--26, 2000, doi: 10.3141/1727-03.
+
+\bibitem{mirchandani2001}
+P.~Mirchandani and L.~Head, ``A real-time traffic-responsive signal control system: RHODES,'' \emph{Transportation Research Part C: Emerging Technologies}, vol.~9, no.~6, pp. 415--432, 2001, doi: 10.1016/S0968-090X(00)00047-4.
+
+\bibitem{dion2005}
+F.~Dion and H.~Rakha, ``Integration of transit signal priority within adaptive traffic signal control systems,'' in \emph{Proc. IEEE Intelligent Transportation Systems Conference (ITSC)}, 2005, pp. 883--888, doi: 10.1109/ITSC.2005.1520166.
+
+\bibitem{hu2013transit}
+J.~Hu and B.~B.~Park, ``Dynamic transit signal priority control considering queue dynamics and bus stops,'' \emph{Transportation Research Record}, vol.~2356, no.~1, pp. 54--63, 2013, doi: 10.3141/2356-07.
+
+\bibitem{christofa2011}
+E.~Christofa and A.~Skabardonis, ``Traffic signal priority for multiple transit routes on an arterial,'' in \emph{Proc. 90th Annu. Meeting Transp. Res. Board}, Washington, DC, 2011, Paper no.~11-3829.
+
+\bibitem{he2014pam}
+Q.~He, K.~L.~Head, and J.~Ding, ``PAMSCOD: Platoon-based arterial multi-modal signal control with online data,'' \emph{Transportation Research Part C: Emerging Technologies}, vol.~20, no.~1, pp. 164--184, 2012, doi: 10.1016/j.trc.2011.05.007.
+
+\bibitem{guler2014}
+S.~I.~Guler, M.~Menendez, and L.~Hajibabai, ``Using connected vehicle technology to improve the efficiency of intersections,'' \emph{Transportation Research Part C: Emerging Technologies}, vol.~46, pp. 121--131, 2014, doi: 10.1016/j.trc.2014.05.008.
+
+\bibitem{ma2013dynamic}
+W.~Ma, X.~Yang, and Y.~Liu, ``Development and evaluation of a dynamic transit signal priority logic for multiple routes,'' \emph{Transportation Research Record}, vol.~2192, no.~1, pp. 86--95, 2010, doi: 10.3141/2192-09.
+
+\bibitem{bie2020evp}
+Y.~Bie, Z.~Liu, and D.~Lu, ``Emergency vehicle preemption control considering pedestrian clearance and vehicle queues,'' \emph{IEEE Transactions on Intelligent Transportation Systems}, vol.~21, no.~12, pp. 5186--5196, 2020, doi: 10.1109/TITS.2019.2947230.
+
+\bibitem{kang2021preempt}
+L.~Kang and Y.~Bie, ``Coordinated preemption control of emergency vehicles along arterial corridors considering pedestrian safety,'' \emph{Journal of Transportation Engineering, Part A: Systems}, vol.~147, no.~4, p.~04021008, 2021, doi: 10.1061/JTEPBS.0000508.
+
+\bibitem{qin2012evp}
+X.~Qin and M.~A.~Khan, ``Evaluating emergency vehicle preemption system using microscopic simulation,'' \emph{Journal of Advanced Transportation}, vol.~46, no.~4, pp. 311--323, 2012, doi: 10.1002/atr.171.
+
+\bibitem{kenney2011dsrc}
+J.~B.~Kenney, ``Dedicated short-range communications (DSRC) standards in the United States,'' \emph{Proceedings of the IEEE}, vol.~99, no.~7, pp. 1162--1182, 2011, doi: 10.1109/JPROC.2011.2132790.
+
+\bibitem{abboud2016cv2x}
+K.~Abboud, H.~A.~Omar, and W.~Zhuang, ``Interworking of DSRC and cellular network technologies for V2X communications: A survey,'' \emph{IEEE Transactions on Vehicular Technology}, vol.~65, no.~12, pp. 9457--9470, 2016, doi: 10.1109/TVT.2016.2591558.
+
+\bibitem{gyawali2020v2x}
+S.~Gyawali, S.~Xu, Y.~Qian, and R.~Q.~Hu, ``Challenges and solutions for cellular based V2X communications,'' \emph{IEEE Communications Surveys \& Tutorials}, vol.~23, no.~1, pp. 222--255, 2020, doi: 10.1109/COMST.2020.3029723.
+
+\bibitem{siegel2018connected}
+J.~E.~Siegel, D.~C.~Erb, and S.~E.~Sarma, ``A survey of the connected vehicle landscape --- Architectures, enabling technologies, applications, and rewards,'' \emph{IEEE Transactions on Intelligent Transportation Systems}, vol.~19, no.~4, pp. 1038--1049, 2018, doi: 10.1109/TITS.2017.2747169.
+
+\bibitem{green2000prt}
+M.~Green, ```How long does it take to stop?' Methodological analysis of driver perception-brake times,'' \emph{Transportation Human Factors}, vol.~2, no.~3, pp. 195--216, 2000, doi: 10.1207/STHF0203_1.
+
+\bibitem{taoka1989brake}
+G.~T.~Taoka, ``Brake reaction times of unalerted drivers,'' \emph{ITE Journal}, vol.~59, no.~3, pp. 19--21, 1989.
+
+\bibitem{koppa2000human}
+R.~J.~Koppa, ``Human factors,'' in \emph{Traffic Flow Theory: A State-of-the-Art Report}, N.~H.~Gartner, C.~J.~Messer, and A.~K.~Rathi, Eds.\hskip 1em plus 0.5em minus 0.4em\relax Washington, DC: Transportation Research Board, 2000, ch.~3.
+
+\bibitem{fitch2014alerts}
+G.~A.~Fitch, S.~A.~Soccolich, F.~Guo, J.~McClafferty, Y.~Fang, R.~L.~Olson, M.~A.~Perez, R.~J.~Hanowski, J.~M.~Hankey, and T.~A.~Dingus, ``The impact of driving distraction on commercial vehicle drivers,'' Federal Motor Carrier Safety Administration, Tech. Rep. FMCSA-RRR-13-059, 2013.
+
+\bibitem{lerner1996prt}
+N.~D.~Lerner, R.~W.~Huey, H.~W.~McGee, and A.~Sullivan, ``Older driver perception-reaction time for intersection sight distance and object detection,'' Federal Highway Administration, Tech. Rep. FHWA-RD-93-168, 1995.
+
+\bibitem{gipps1986lane}
+P.~G.~Gipps, ``A model for the structure of lane-changing decisions,'' \emph{Transportation Research Part B: Methodological}, vol.~20, no.~5, pp. 403--414, 1986, doi: 10.1016/0191-2615(86)90012-3.
+
+\bibitem{toledo2003driving}
+T.~Toledo, H.~N.~Koutsopoulos, and M.~E.~Ben-Akiva, ``Modeling integrated lane-changing behavior,'' \emph{Transportation Research Record}, vol.~1857, no.~1, pp. 30--38, 2003, doi: 10.3141/1857-04.
+
+\bibitem{choudhury2007lane}
+C.~F.~Choudhury, V.~H.~Ramanujam, and M.~E.~Ben-Akiva, ``Modeling acceleration decisions for freeway merges in the presence of heavy traffic,'' in \emph{Proc. 86th Annu. Meeting Transp. Res. Board}, Washington, DC, 2007, Paper no.~07-0683.
+
+\bibitem{zheng2014lane}
+Z.~Zheng, ``Recent developments and research on lane-changing models: A review,'' \emph{Transportation Research Part B: Methodological}, vol.~65, pp. 46--64, 2014, doi: 10.1016/j.trb.2014.04.004.
+
+\bibitem{charnes1959chance}
+A.~Charnes and W.~W.~Cooper, ``Chance-constrained programming,'' \emph{Management Science}, vol.~6, no.~1, pp. 73--79, 1959, doi: 10.1287/mnsc.6.1.73.
+
+\bibitem{prekopa1995stochastic}
+A.~Pr\'ekopa, \emph{Stochastic Programming}.\hskip 1em plus 0.5em minus 0.4em\relax Dordrecht, The Netherlands: Kluwer Academic Publishers, 1995.
+
+\bibitem{yin2008robust}
+Y.~Yin, ``Robust optimal traffic signal timing,'' \emph{Computer-Aided Civil and Infrastructure Engineering}, vol.~23, no.~7, pp. 511--524, 2008, doi: 10.1111/j.1467-8667.2008.00557.x.
+
+\bibitem{chen1993poisson}
+S.~X.~Chen and J.~S.~Liu, ``Statistical applications of the Poisson-binomial and conditional Bernoulli distributions,'' \emph{Statistica Sinica}, vol.~7, no.~4, pp. 875--892, 1997.
+
+\bibitem{barlow1984reliability}
+R.~E.~Barlow and K.~D.~Heidtmann, ``Computing k-out-of-n system reliability,'' \emph{IEEE Transactions on Reliability}, vol.~R-33, no.~4, pp. 322--323, 1984, doi: 10.1109/TR.1984.5221845.
+
+\bibitem{lighthill1955lwr}
+M.~J.~Lighthill and G.~B.~Whitham, ``On kinematic waves. II. A theory of traffic flow on long crowded roads,'' \emph{Proceedings of the Royal Society of London. Series A. Mathematical and Physical Sciences}, vol.~229, no.~1178, pp. 317--345, 1955, doi: 10.1098/rspa.1955.0089.
 \end{thebibliography}
 
 \end{document}
