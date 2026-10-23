@@ -33,11 +33,7 @@
 \maketitle
 
 \begin{abstract}
-Emergency Vehicle Preemption (EVP) systems operate under an acute operational trade-off: triggering green waves prematurely induces severe cross-street civilian delay and arterial queue spillback, while delaying activation forces emergency vehicles (EVs) to decelerate behind standing civilian queues. Classical queue-discharge preemption algorithms (e.g., Obrusn\'{\i}k et al., 2020) adapt green onset to observed queues, but treat civilian traffic as purely passive agents that disperse only after the signal turns green. Conversely, human-factors research (e.g., Lidestam et al., 2020) demonstrates that advance in-vehicle warnings significantly increase drivers' propensity to give way and reduce reaction latencies, yet this behavioral response has remained uncoupled from signal preemption scheduling. Furthermore, while recent arterial priority frameworks investigate heterogeneous yielding in connected environments, practical implementation requires addressing mixed legacy human traffic under rigorous chance constraints.
-
-In this paper, we formulate, analyze, and benchmark \textbf{Chance-Constrained Human-in-the-Loop Preemption (CC-HLP)}, an integrated cyber-physical preemption architecture that bridges mobile participatory alerts with roadside traffic signal controllers. Each queued vehicle $i$ is modeled with an individualized yielding probability $p_i$, conditioned on dual-channel alert perception (mobile push notifications and acoustic sirens), adjacent lane gap acceptance, and strict kinematic maneuver deadline feasibility ($T_{\text{maneuver}} \le \Delta t_{\text{deadline}}(i)$). Because individual probabilities are heterogeneous, the residual blocking queue is formulated as a discrete Poisson-Binomial random variable, and preemption is scheduled via an exact discrete quantile over residual-blocker probabilities $1 - p_i$ to enforce a model-based chance constraint: $\mathbb{P}(T_{\text{clear}}(N_{\text{rem}}) + T_{\text{transition}} \le \text{ETA}) \ge 1 - \varepsilon$.
-
-We evaluate CC-HLP through an audited, 50-seed Monte Carlo microscopic discrete-event kinematic simulation across a 3.2\,km, 5-intersection arterial corridor under a Common Random Numbers (CRN) paired experimental design (seeds 1001--1050). Benchmarking against static distance preemption, an Obrusn\'{\i}k-inspired passive queue-discharge baseline, and a strictly causal 2.0-second sensor-driven reactive observer reveals a fundamental \emph{Observer vs. Predictor Dilemma}: due to the sequential decision horizon spanning illustrative percentiles $\Delta t_{\text{decision}} \in [11.0, 23.3]\text{ s}$ (nominal $\approx 15.0\text{ s}$, corresponding to lookahead distance $220\text{ to } 466\text{ m}$ at $20\text{ m/s}$), a reactive observer that shortens preemption based on delayed physical detection experiences $3.52 \pm 1.11$ EV braking episodes per run ($a \le -2.0\text{ m/s}^2$). CC-HLP bridges this lag, establishing a balanced empirical trade-off: it slashes EV braking by 54.0\% ($1.62 \pm 1.24$ episodes at $\varepsilon = 0.05$, $p < 10^{-12}$) relative to the reactive observer while maintaining free-flow EV transit ($161.4 \pm 7.5\text{ s}$) with zero complete stops. Concurrently, CC-HLP saves 22.88\,seconds (15.8\%) of aggregate preemption green (4.58\,s per junction) compared to the passive queue-discharge baseline ($p < 10^{-30}$), reducing cross-street civilian delay by 16.7\% ($47.4 \pm 4.2\text{ s}$ vs. $56.9 \pm 5.5\text{ s/veh}$). We derive an exact, finite-queue model-based proof demonstrating that when mobile connectivity is absent ($\rho_{\text{app}} = 0.0$), CC-HLP provably recovers the conservative passive queue schedule across all $N \ge 0$. Finally, we formulate a proposed cyber-physical architecture and 15 candidate patent claims defining the apparatus, method, and fail-safe watchdog interlocks.
+Emergency Vehicle Preemption (EVP) systems operate under an acute trade-off: premature preemption induces severe cross-street gridlock, while delayed activation forces emergency vehicles (EVs) to decelerate behind standing queues. Although advance in-vehicle alerts prompt voluntary civilian yielding, signal preemption controllers traditionally treat traffic as passive obstacles or assume fully autonomous fleets. We formulate and benchmark \textbf{Chance-Constrained Human-in-the-Loop Preemption (CC-HLP)}, an integrated cyber-physical architecture coupling mobile participatory alerts with roadside controllers across a sequential decision horizon ($\Delta t_{\text{decision}} \in [11.0, 23.3]\text{ s}$). Modeling individual driver yielding feasibility via lognormal perception-reaction latencies, we formulate the residual blocking queue as a discrete Poisson-Binomial random variable. CC-HLP schedules preemption via an exact discrete quantile inversion ($O(N^2)$ recursive convolution) enforcing the chance constraint $\mathbb{P}(T_{\text{clear}}(N_{\text{rem}}) + T_{\text{transition}} \le \text{ETA}) \ge 1 - \varepsilon$. Across 50 audited paired Monte Carlo runs on a 3.2\,km arterial corridor, CC-HLP slashes severe EV braking by 54.0\% ($1.62 \pm 1.24$ vs. $3.52 \pm 1.11$ episodes, $p < 10^{-12}$) relative to a reactive sensor observer while maintaining free-flow transit ($161.4 \pm 7.5\text{ s}$). Simultaneously, CC-HLP saves 22.88\,seconds (15.8\%) of aggregate preemption green over a passive queue-discharge baseline ($p < 10^{-30}$), reducing civilian delay by 16.7\% ($47.4 \pm 4.2\text{ s}$ vs. $56.9 \pm 5.5\text{ s/veh}$). We derive an exact finite-queue proof demonstrating model-based recovery of passive schedules under zero adoption ($\rho_{\text{app}} = 0$). Finally, we formulate a proposed Hardware-in-the-Loop demonstrator with fail-safe watchdogs and 15 candidate patent claims.
 \end{abstract}
 
 \begin{IEEEkeywords}
@@ -93,7 +89,7 @@ This creates an acute engineering dilemma:
 \end{itemize}
 
 \subsection{Scientific and Technical Contributions}
-This paper establishes four foundational contributions:
+This paper establishes five foundational contributions:
 \begin{enumerate}
     \item \textbf{Coupled Behavioral-Kinematic Horizon:} Formulating a rigorous mathematical bridge between participatory mobile alerts (cellular/V2X) and roadside signal controller transition constraints across illustrative percentile decision horizons $\Delta t_{\text{decision}} \in [11.0, 23.3]\text{ s}$.
     \item \textbf{Exact Poisson-Binomial Chance Constraint:} Deriving an exact discrete quantile over heterogeneous residual-blocker probabilities $q_i = 1 - p_i$ via recursive $O(N^2)$ convolution, enforcing provable clearance safety at a calibrated risk tolerance $\varepsilon \in [0.01, 0.10]$.
@@ -146,23 +142,22 @@ When modeling the aggregate behavior of non-identical independent binary events 
 \caption{Selected Prior Art Comparison and Methodological Differentiation}
 \label{tab:prior_art_matrix}
 \centering
-\resizebox{\textwidth}{!}{%
-\begin{tabular}{@{}lcccccccc@{}}
+\footnotesize
+\begin{tabular*}{\textwidth}{@{\extracolsep{\fill}}lp{2.6cm}p{2.2cm}p{2.2cm}lllp{2.2cm}@{}}
 \toprule
-\textbf{System / Reference} & \textbf{Driver Behavior Model} & \textbf{Advisory Channel} & \textbf{Decision Horizon} & \textbf{Queue Dynamics} & \textbf{Stochastic Formulation} & \textbf{Cabinet Interface} & \textbf{Runtime Complexity} & \textbf{Degraded Fallback Mode} \\
+\textbf{System / Reference} & \textbf{Driver Behavior Model} & \textbf{Advisory Channel} & \textbf{Decision Horizon} & \textbf{Queue Model} & \textbf{Stochastic Model} & \textbf{Complexity} & \textbf{Fallback Mode} \\
 \midrule
-\textbf{Fixed Distance EVP (Opticom)} & Unmodeled & Optical / Siren & None ($d_{\text{trigger}} = 300\text{ m}$) & Unmodeled & Deterministic & Optical Relay & $O(1)$ & None \\
-\textbf{Obrusn\'{\i}k et al. (2020)~\cite{obrusnik2020}} & Passive Obstacles ($P_{\text{yield}} = 0$) & None & $T_{\text{trans}} + T_{\text{clear}}$ & Shockwave Discharge & Deterministic & Roadside Cabinet & $O(1)$ & Reverts to fixed time \\
-\textbf{Ding et al. (2024)~\cite{ding2024}} & 100\% Autonomous CAVs & V2X Dedicated Slot & Trajectory Planning & Centralized Slots & DRL Policy & Central Controller & High (NN inference) & Emergency stop \\
-\textbf{Sci. Reports (2026)~\cite{scirep2026evp}} & Mixed CAV / Human Yielding & V2X / Connected Env. & Arterial Horizon & Continuous Platoon & Aggregate Probabilistic & Traffic Simulator & Medium & Standard timing \\
-\textbf{Sony US 2026/0188114 A1~\cite{sony2026}} & Cooperative Nav Users & Client Push Broadcast & Open-Loop Navigation & Unmodeled & Unmodeled & Infra route messaging & Server-side & Stale map display \\
-\textbf{Bachelder US 7,868,783 B2~\cite{bachelder2011}} & Passive Traffic & Cellular ETA Reports & Arrival ETA Window & Unmodeled & Arrival Probability & Cellular Interface & $O(1)$ & Signal loss timeout \\
-\textbf{Heusser US 2026/0266618 A1~\cite{us20260266618}} & Passive Traffic & Route-Level Telematics & Corridor ETA Schedule & Macroscopic Routing & Deterministic ETA & Central Priority & Graph search & Static priority \\
-\textbf{Roja Ramani et al. (2026)~\cite{ieee_prob_preempt2026}} & Passive Queues & Vision / Image Trigger & Arrival Window & Static Capacity & Monte Carlo Sampling & Embedded Micro & $O(S \cdot N)$ MC & Default timing \\
-\textbf{Proposed CC-HLP} & \textbf{Deadline-Feasible Human ($p_i$)} & \textbf{Mobile Push + Siren} & \textbf{$[11.0, 23.3]\text{ s}$ Horizon} & \textbf{Exact Shockwave} & \textbf{Poisson-Binomial Quantile} & \textbf{NEMA TS2 + MMU} & \textbf{$O(N^2)$ Exact} & \textbf{Provable Passive Fallback} \\
+Fixed Distance EVP (Opticom) & Unmodeled & Optical / Siren & None ($d_{\text{trigger}} = 300\text{ m}$) & Unmodeled & Deterministic & $O(1)$ & None \\
+Obrusn\'{\i}k et al. (2020)~\cite{obrusnik2020} & Passive Obstacles ($P_{\text{yield}} = 0$) & None & $T_{\text{trans}} + T_{\text{clear}}$ & Shockwave & Deterministic & $O(1)$ & Reverts to fixed time \\
+Ding et al. (2024)~\cite{ding2024} & 100\% Autonomous CAVs & V2X Dedicated Slot & Trajectory Horizon & Centralized & DRL Policy & High (NN) & Emergency stop \\
+Sci. Reports (2026)~\cite{scirep2026evp} & Mixed CAV / Human Yielding & V2X / Connected Env. & Arterial Horizon & Platoon Flow & Aggregate Prob. & Medium & Standard timing \\
+Sony US 2026/0188114 A1~\cite{sony2026} & Cooperative Nav Users & Client Push Broadcast & Open-Loop Navigation & Unmodeled & Unmodeled & Server-side & Stale map display \\
+Bachelder US 7,868,783 B2~\cite{bachelder2011} & Passive Traffic & Cellular ETA Reports & Arrival ETA Window & Unmodeled & Arrival Prob. & $O(1)$ & Signal loss timeout \\
+Heusser US 2026/0266618 A1~\cite{us20260266618} & Passive Traffic & Route-Level Telematics & Corridor ETA Schedule & Macroscopic & Deterministic ETA & Graph search & Static priority \\
+Roja Ramani et al. (2026)~\cite{ieee_prob_preempt2026} & Passive Queues & Vision / Image Trigger & Arrival Window & Static Capacity & Monte Carlo & $O(S \cdot N)$ & Default timing \\
+\textbf{Proposed CC-HLP} & \textbf{Deadline-Feasible ($p_i$)} & \textbf{Mobile Push + Siren} & \textbf{$[11.0, 23.3]\text{ s}$ Horizon} & \textbf{Exact Shockwave} & \textbf{Poisson-Binomial} & \textbf{$O(N^2)$ Exact} & \textbf{Passive Fallback} \\
 \bottomrule
-\end{tabular}%
-}
+\end{tabular*}
 \end{table*}
 
 \section{Corridor Telematics Architecture and Geodesic Path Gating}
@@ -171,18 +166,20 @@ Emergency vehicle transit along urban arterials requires coordinating roadside i
 
 \begin{figure*}[!t]
 \centering
-\fbox{\parbox{0.96\textwidth}{%
+\fbox{\parbox{0.92\textwidth}{%
 \centering
 \small
-\textbf{CC-HLP CYBER-PHYSICAL PREEMPTION ARCHITECTURE}\\[4pt]
-\begin{tabular}{ccccc}
-\fbox{\parbox{0.20\textwidth}{\centering \textbf{Emergency Vehicle Telematics}\\10\,Hz GNSS Stream, Instantaneous Speed $v_{\text{EV}}$, Trajectory Polyline $\mathcal{L}$}} & $\xrightarrow{\text{C-V2X / Cellular API}}$ &
-\fbox{\parbox{0.22\textwidth}{\centering \textbf{Cloud Telematics Dispatch}\\Corridor Path-Gating, Chainage Filtering, Push Wake-Up}} & $\xrightarrow{\text{FCM Data / C-V2X}}$ &
-\fbox{\parbox{0.22\textwidth}{\centering \textbf{In-Cabin Civilian Advisory}\\Chainage \& Heading Verification, Dual-Stage Auditory/Visual Alert}} \\[10pt]
-& & $\Big\downarrow$ \scriptsize High-Priority Secure Telematics & & \\[8pt]
-& & \fbox{\parbox{0.34\textwidth}{\centering \textbf{Roadside Edge Controller (Proposed HIL Architecture)}\\Evaluates $p_i(t)$, $O(N^2)$ Poisson-Binomial Quantile $N_{\text{crit}}$, 800-ms Watchdog}} & & \\[10pt]
-& & $\Big\downarrow$ \scriptsize Optocoupler Relay / SDLC BIU & & \\[6pt]
-& & \fbox{\parbox{0.34\textwidth}{\centering \textbf{NEMA TS2 / IRC:SP:41 Cabinet Interface}\\Standard Controller Backplane, Subordinate to Hardware MMU}} & &
+\textbf{CC-HLP CYBER-PHYSICAL PREEMPTION ARCHITECTURE}\\[6pt]
+\begin{tabular}{ccc}
+\fbox{\parbox{0.26\textwidth}{\centering \textbf{Emergency Vehicle Telematics}\\10\,Hz GNSS Stream ($v_{\text{EV}}$)\\Dynamic Route Polyline $\mathcal{L}$}} &
+$\xrightarrow{\quad\text{C-V2X / Cellular API}\quad}$ &
+\fbox{\parbox{0.26\textwidth}{\centering \textbf{Cloud Telematics Dispatch}\\Chainage Filtering ($s_u > s_{\text{EV}}$)\\Silent Background Push Wake-Up}} \\
+& & $\Big\downarrow$ \scriptsize FCM High-Priority Push \\[4pt]
+& & \fbox{\parbox{0.26\textwidth}{\centering \textbf{In-Cabin Civilian Advisory}\\Geodesic Gating ($d_{\perp} \le 250\text{ m}$)\\Two-Tier Visual/Acoustic Alert}} \\[10pt]
+\multicolumn{3}{c}{$\Big\downarrow$ \scriptsize Real-Time Preemption Telematics ($\tau_{\text{latency}} \le 800\text{ ms}$)} \\[6pt]
+\fbox{\parbox{0.42\textwidth}{\centering \textbf{Roadside Edge Controller (Proposed HIL Architecture)}\\Evaluates Feasibility $p_i(t)$, $O(N^2)$ Quantile $N_{\text{crit}}$\\Supervisory FSM, 800-ms Watchdog Timer}} &
+$\xrightarrow{\quad\text{Relay / SDLC}\quad}$ &
+\fbox{\parbox{0.42\textwidth}{\centering \textbf{Traffic Signal Cabinet (NEMA TS2 / IRC:SP:41)}\\Physical Phase Cycle $\mathcal{S}_{\text{phase}}$, Preempt Input\\Subordinate to Hardware MMU Conflict Interlock}}
 \end{tabular}
 }}
 \caption{Cyber-physical architecture of the CC-HLP preemption framework, illustrating closed-loop telematics flow between the emergency vehicle, cloud dispatch, civilian participatory receivers, and the roadside edge controller.}
@@ -259,7 +256,10 @@ To eliminate architectural ambiguity, CC-HLP clearly separates signal-phase timi
 \begin{enumerate}
     \item \textbf{Signal-Phase Timing Cycle ($\mathcal{S}_{\text{phase}}$):} The physical signal controller advances through six cyclic phase states:
     \begin{equation}
-    \mathcal{S}_{\text{phase}} \in \{\text{CROSS\_GREEN}, \text{TRANS\_YELLOW}, \text{ALL\_RED}, \text{PREEMPT\_GREEN}, \text{POST\_YELLOW}, \text{POST\_ALL\_RED}\}
+    \begin{aligned}
+    \mathcal{S}_{\text{phase}} \in \{ & \text{CROSS\_GREEN}, \text{TRANS\_YELLOW}, \text{ALL\_RED}, \\
+    & \text{PREEMPT\_GREEN}, \text{POST\_YELLOW}, \text{POST\_ALL\_RED}\}
+    \end{aligned}
     \end{equation}
     \item \textbf{Supervisory Operational Modes ($\mathcal{M}_{\text{supervisory}}$):} Operating concurrently at the supervisory logic layer, the CC-HLP daemon executes a four-state machine:
     \begin{itemize}
@@ -339,6 +339,7 @@ F_{\text{PB}}(n) = \mathbb{P}(N_{\text{rem}} \le n) = \sum_{m=0}^n P_{N_{\text{i
 
 For a user-selected risk tolerance $\varepsilon \in [0.01, 0.10]$, the critical queue quantile $N_{\text{crit}}$ is the smallest integer satisfying:
 \begin{equation}
+\label{eq:n_crit}
 N_{\text{crit}} = \min \left\{ n \in \{0, \dots, N_{\text{init}}\} \;\middle|\; F_{\text{PB}}(n) \ge 1 - \varepsilon \right\}
 \end{equation}
 
@@ -350,7 +351,7 @@ Preemption is initiated at the first boundary-crossing instant $\tau^*$:
 \subsection{Two-Stage Hybrid Controller Operation}
 The controller implements a two-stage hybrid policy:
 \begin{itemize}
-    \item \textbf{Stage 1 (A-Priori Predictive Scheduling):} When the EV enters the dynamic geofence, the edge controller calculates a-priori yielding probabilities $p_i$ and evaluates $N_{\text{crit}}$ via (16).
+    \item \textbf{Stage 1 (A-Priori Predictive Scheduling):} When the EV enters the dynamic geofence, the edge controller calculates a-priori yielding probabilities $p_i$ and evaluates $N_{\text{crit}}$ via \eqref{eq:n_crit}.
     \item \textbf{Stage 2 (A-Posteriori Opportunistic Telemetry Update):} If client devices transmit verified lateral maneuver telemetry (e.g., C-ITS Cooperative Awareness Messages confirming $\Delta y > 2.5\text{ m}$), the controller updates $p_i \leftarrow 1.0$. This collapses remaining variance in real time without causing signal flutter.
 \end{itemize}
 
@@ -360,6 +361,7 @@ The controller implements a two-stage hybrid policy:
 A foundational property of CC-HLP is its provable finite-queue convergence to the passive queue-discharge baseline when connected advisory penetration is absent ($\rho_{\text{app}} = 0.0$):
 
 \begin{proposition}[Model-Based Fallback Equivalence]
+\label{prop:zero_adoption}
 Let connected participatory app adoption be absent ($\rho_{\text{app}} = 0.0$), such that warning delivery relies exclusively on localized acoustic siren perception ($P(\text{alert}_i) = P_{\text{acoustic}}(\Delta x_i)$). 
 Let $N \in \mathbb{N}_0$ queued vehicles occupy positions $x_i \in [-N \cdot l_{\text{veh}}, 0]$ upstream of the stopline ($x = 0$), with queue tail at $x_N = -N \cdot l_{\text{veh}}$ and slot length $l_{\text{veh}} = 7.5\text{ m}$.
 Under Assumption~1, for any physically admissible signal transition latency $T_{\text{transition}} \ge T_{\text{transition}}^{\min} = 5.5\text{ s}$, lost time $t_L = 2.0\text{ s}$, saturation headway $h_s = 2.0\text{ s/veh}$, and EV speed $v_{\text{EV}} = 20\text{ m/s}$:
@@ -377,7 +379,7 @@ Under Assumption~1, for any physically admissible signal transition latency $T_{
     \end{equation}
     ensuring that the product of residual-blocker probabilities $q_i = 1 - p_i$ satisfies:
     \begin{equation}
-    \prod_{i=1}^N q_i \ge [1 - \bar{p}(N)]^N > \varepsilon \quad \Longleftrightarrow \quad F_{\text{PB}}(N - 1) < 1 - \varepsilon
+    \prod_{i=1}^N q_i \ge [1 - \bar{p}(N)]^N > \varepsilon \iff F_{\text{PB}}(N - 1) < 1 - \varepsilon
     \end{equation}
     Consequently, the chance-constrained discrete quantile resolves identically to the initial un-cleared queue:
     \begin{equation}
@@ -402,13 +404,16 @@ For $N \ge 1$, each queued vehicle yields with probability $p_i = P_{\text{acous
     \item For $N = 4$: $\Delta x_{\text{tail}}(4) \ge 280.0\text{ m} \implies \bar{p}(4) \approx 0.026006$, yielding $\prod_{i=1}^4 q_i \ge (1 - 0.026006)^4 \approx 0.89996 > 0.10 \ge \varepsilon$. Thus $F_{\text{PB}}(3) \le 0.10004 < 1 - \varepsilon$, forcing $N_{\text{crit}} = 4$.
     \item For $N \ge 5$: utilizing the inequality $1 + e^z > e^z$, individual yielding is bounded by $\bar{p}(N) < 0.755 e^{-(32.5 N - 30)/30} = 0.755 e^{1 - 13N/12}$. The product bound $g(N) = N \bar{p}(N) \le 0.755 N e^{1 - 13N/12}$ is strictly decreasing for integer $N \ge 5$ (since $\frac{d}{dN}[N e^{-13N/12}] < 0$ for all $N \ge 1$), with $g(5) \le 3.775 e^{-53/12} \approx 0.0456$. By Bernoulli's inequality, for all $N \ge 5$:
     \begin{equation}
-    \prod_{i=1}^N q_i \ge [1 - \bar{p}(N)]^N \ge 1 - N \bar{p}(N) \ge 1 - 0.0456 = 0.9544 > 0.10 \ge \varepsilon
+    \begin{aligned}
+    \prod_{i=1}^N q_i &\ge [1 - \bar{p}(N)]^N \ge 1 - N \bar{p}(N) \\
+    &\ge 1 - 0.0456 = 0.9544 > 0.10 \ge \varepsilon
+    \end{aligned}
     \end{equation}
     strictly ensuring $F_{\text{PB}}(N - 1) \le 0.0456 \ll 1 - \varepsilon$ and $N_{\text{crit}} \equiv N$ for all $N \ge 5$.
 \end{itemize}
 Because each calculated lower bound on $\prod_{i=1}^N q_i$ ($0.6382, 0.6736, 0.7992, 0.89996$, and $\ge 0.9544$) strictly exceeds $0.10$, it strictly exceeds every permissible risk tolerance across the entire system design interval $\varepsilon \in [0.01, 0.10]$. Consequently, $F_{\text{PB}}(N - 1) < 1 - \varepsilon$ holds uniformly, guaranteeing that $N_{\text{crit}} \equiv N_{\text{init}}$ holds across all queue sizes. 
 
-Furthermore, because the roadside traffic controller locks phase transitions upon trigger evaluation $\tau^*$, subsequent acoustic siren perception occurring when the EV arrives within 180\,m cannot retroactively shorten the locked signal schedule. We emphasize that Proposition~\ref{sec:zero_adoption_lemma} constitutes a model-based fallback-equivalence result within the formulated kinematic and behavioral framework: it proves that the chance-constrained optimization algorithm structurally and intrinsically recovers the conservative passive queue-discharge baseline schedule under zero connectivity without requiring manual intervention, threshold heuristics, or separate supervisory logic.
+Furthermore, because the roadside traffic controller locks phase transitions upon trigger evaluation $\tau^*$, subsequent acoustic siren perception occurring when the EV arrives within 180\,m cannot retroactively shorten the locked signal schedule. We emphasize that Proposition~\ref{prop:zero_adoption} constitutes a model-based fallback-equivalence result within the formulated kinematic and behavioral framework: it proves that the chance-constrained optimization algorithm structurally and intrinsically recovers the conservative passive queue-discharge baseline schedule under zero connectivity without requiring manual intervention, threshold heuristics, or separate supervisory logic.
 \end{IEEEproof}
 
 \section{Experimental Methodology and Benchmark Design}
@@ -450,21 +455,26 @@ Table~\ref{tab:ablation_results} summarizes performance across 50 paired Monte C
 \caption{Comprehensive Performance Comparison Across 50 Paired Monte Carlo Simulation Runs (Mean $\pm$ Std. Dev.)}
 \label{tab:ablation_results}
 \centering
-\resizebox{\textwidth}{!}{%
-\begin{tabular}{@{}lcccccccc@{}}
+\small
+\begin{tabular*}{\textwidth}{@{\extracolsep{\fill}}lcccccc@{}}
 \toprule
-\textbf{Metric} & \textbf{Fixed-Dist.} & \textbf{Obrusn\'{\i}k Baseline} & \textbf{Reactive Observer} & \textbf{CC-HLP (Ours)} & \textbf{Diff vs. Obrusn\'{\i}k ($\Delta$)} & \textbf{Diff vs. Observer ($\Delta$)} & \textbf{Paired $t$-stat ($p$-val)} & \textbf{Wilcoxon $p$-val} \\
+\textbf{Metric} & \textbf{Fixed-Dist.} & \textbf{Obrusn\'{\i}k Baseline} & \textbf{Reactive Observer} & \textbf{CC-HLP (Ours)} & \textbf{$\Delta$ vs. Obrusn\'{\i}k} & \textbf{$\Delta$ vs. Observer} \\
 \midrule
-EV Transit Time (s) & $220.2 \pm 17.4$ & $172.1 \pm 9.0$ & $165.1 \pm 8.4$ & $\mathbf{161.4 \pm 7.5}$ & $\mathbf{-10.70 \pm 2.57}$ & $-3.64 \pm 2.58$ & $t = -29.39\ (p < 10^{-30})$ & $p = 7.52 \times 10^{-10}$ \\
-EV Decel. Episodes ($a \le -2.0$) & $4.98 \pm 0.14$ & $5.00 \pm 0.00$ & $3.52 \pm 1.11$ & $\mathbf{1.62 \pm 1.24}$ & $\mathbf{-3.38 \pm 1.24}$ & $\mathbf{-1.90 \pm 1.39}$ & $t = -19.22\ (p < 10^{-20})$ & $p = 1.16 \times 10^{-9}$ \\
-EV Complete Stops ($v = 0$) & $4.40 \pm 0.83$ & $0.12 \pm 0.39$ & $0.00 \pm 0.00$ & $\mathbf{0.00 \pm 0.00}$ & $-0.12 \pm 0.39$ & $0.00 \pm 0.00$ & $t = -2.20\ (p = 0.032)$ & $p = 0.034$ \\
-Aggregate Green Duration (s) & $145.0 \pm 15.6$ & $144.9 \pm 14.3$ & $111.1 \pm 17.1$ & $\mathbf{122.1 \pm 10.4}$ & $\mathbf{-22.88 \pm 4.60}$ & $+10.94 \pm 9.92$ & $t = -35.13\ (p < 10^{-30})$ & $p = 7.56 \times 10^{-10}$ \\
-Green Savings per Junction (s) & Baseline & Baseline & $+6.76\text{ s}$ & $\mathbf{+4.58 \pm 0.92\text{ s}}$ & $+4.58\text{ s}$ saved & $-2.19\text{ s}$ & $t = +35.13\ (p < 10^{-30})$ & $p = 7.56 \times 10^{-10}$ \\
-Cross-Street Delay (s/veh) & $56.8 \pm 6.1$ & $56.9 \pm 5.5$ & $43.3 \pm 7.0$ & $\mathbf{47.4 \pm 4.2}$ & $\mathbf{-9.50 \pm 1.92}$ & $+4.17 \pm 4.05$ & $t = -34.98\ (p < 10^{-30})$ & $p = 1.78 \times 10^{-15}$ \\
-Civilian Delay Reduction (\%) & Baseline & Baseline & $+24.0\%$ & $\mathbf{+16.7\%}$ & $+16.7\%$ & $-7.3\%$ & N/A & $p = 1.78 \times 10^{-15}$ \\
+EV Transit Time (s) & $220.2 \pm 17.4$ & $172.1 \pm 9.0$ & $165.1 \pm 8.4$ & $\mathbf{161.4 \pm 7.5}$ & $\mathbf{-10.70 \pm 2.57}^{***}$ & $-3.64 \pm 2.58^{***}$ \\
+EV Decel. Episodes ($a \le -2.0$) & $4.98 \pm 0.14$ & $5.00 \pm 0.00$ & $3.52 \pm 1.11$ & $\mathbf{1.62 \pm 1.24}$ & $\mathbf{-3.38 \pm 1.24}^{***}$ & $\mathbf{-1.90 \pm 1.39}^{***}$ \\
+EV Complete Stops ($v = 0$) & $4.40 \pm 0.83$ & $0.12 \pm 0.39$ & $0.00 \pm 0.00$ & $\mathbf{0.00 \pm 0.00}$ & $-0.12 \pm 0.39^*$ & $0.00 \pm 0.00$ \\
+Aggregate Green Duration (s) & $145.0 \pm 15.6$ & $144.9 \pm 14.3$ & $111.1 \pm 17.1$ & $\mathbf{122.1 \pm 10.4}$ & $\mathbf{-22.88 \pm 4.60}^{***}$ & $+10.94 \pm 9.92$ \\
+Green Savings per Junction (s) & Baseline & Baseline & $+6.76\text{ s}$ & $\mathbf{+4.58 \pm 0.92\text{ s}}$ & $+4.58\text{ s saved}^{***}$ & $-2.19\text{ s}$ \\
+Cross-Street Delay (s/veh) & $56.8 \pm 6.1$ & $56.9 \pm 5.5$ & $43.3 \pm 7.0$ & $\mathbf{47.4 \pm 4.2}$ & $\mathbf{-9.50 \pm 1.92}^{***}$ & $+4.17 \pm 4.05$ \\
+Civilian Delay Reduction (\%) & Baseline & Baseline & $+24.0\%$ & $\mathbf{+16.7\%}$ & $+16.7\%^{***}$ & $-7.3\%$ \\
 \bottomrule
-\end{tabular}%
-}
+\end{tabular*}
+\vspace{1ex}
+\begin{minipage}{\textwidth}
+\footnotesize
+$^{***}\,p < 10^{-9}$, $^*\,p < 0.05$ under two-tailed paired $t$-test and Wilcoxon signed-rank test ($N=50$ paired Monte Carlo seeds under Common Random Numbers). 
+Detailed statistical test outcomes for CC-HLP vs. Obrusn\'{\i}k: Transit Time ($t = -29.39, p < 10^{-30}$; Wilcoxon $p = 7.52 \times 10^{-10}$); Deceleration ($t = -19.22, p < 10^{-20}$; Wilcoxon $p = 1.16 \times 10^{-9}$); Complete Stops ($t = -2.20, p = 0.032$; Wilcoxon $p = 0.034$); Green Duration ($t = -35.13, p < 10^{-30}$; Wilcoxon $p = 7.56 \times 10^{-10}$); Cross-Street Delay ($t = -34.98, p < 10^{-30}$; Wilcoxon $p = 1.78 \times 10^{-15}$). For CC-HLP vs. Reactive Observer on deceleration: $t = -9.67, p < 10^{-12}$; Wilcoxon $p = 1.34 \times 10^{-8}$.
+\end{minipage}
 \end{table*}
 
 \subsection{Resolution of the Observer vs. Predictor Dilemma}
@@ -479,7 +489,7 @@ The reactive observer (Baseline 3) attempts to capture the same human-yielding b
 \begin{figure*}[t]
 \centering
 \includegraphics[width=\textwidth]{four_controller_ablation_results.png}
-\caption{Comprehensive performance comparison across 50 paired Monte Carlo simulation runs (seeds 1001--1050) on the 3.2\,km arterial corridor under Common Random Numbers (CRN): (a) Emergency vehicle transit time distributions confirming fastest progression under CC-HLP ($161.4 \pm 7.5\text{ s}$); (b) Severe EV deceleration episode counts ($a \le -2.0\text{ m/s}^2$) demonstrating a 54.0\% reduction under CC-HLP ($1.62 \pm 1.24$) relative to the sensor-driven reactive observer ($3.52 \pm 1.11$, $p < 10^{-12}$); (c) Aggregate preemption green duration showing 22.88\,seconds (15.8\%) of green savings over Obrusn\'{\i}k ($p < 10^{-30}$); (d) Transient Webster cycle-by-cycle cross-street civilian delay illustrating a 16.7\% reduction in civilian disruption ($47.4 \pm 4.2\text{ s}$ vs. $56.9 \pm 5.5\text{ s/veh}$, $p = 1.78 \times 10^{-15}$). Note: The source image \texttt{four\_controller\_ablation\_results.png} is generated directly from the open-source evaluation suite.}
+\caption{Comprehensive performance comparison across 50 paired Monte Carlo simulation runs (seeds 1001--1050) on the 3.2\,km arterial corridor under Common Random Numbers (CRN): (a) Emergency vehicle transit time distributions confirming fastest progression under CC-HLP ($161.4 \pm 7.5\text{ s}$); (b) Severe EV deceleration episode counts ($a \le -2.0\text{ m/s}^2$) demonstrating a 54.0\% reduction under CC-HLP ($1.62 \pm 1.24$) relative to the sensor-driven reactive observer ($3.52 \pm 1.11$, $p < 10^{-12}$); (c) Aggregate preemption green duration showing 22.88\,seconds (15.8\%) of green savings over Obrusn\'{\i}k ($p < 10^{-30}$); (d) Transient Webster cycle-by-cycle cross-street civilian delay illustrating a 16.7\% reduction in civilian disruption ($47.4 \pm 4.2\text{ s}$ vs. $56.9 \pm 5.5\text{ s/veh}$, $p = 1.78 \times 10^{-15}$).}
 \label{fig:ablation_results}
 \end{figure*}
 
@@ -490,10 +500,11 @@ Table~\ref{tab:epsilon_sweep} evaluates CC-HLP along an operating trade-off fron
 \caption{CC-HLP Sensitivity to Risk Tolerance ($\varepsilon$)}
 \label{tab:epsilon_sweep}
 \centering
-\resizebox{\columnwidth}{!}{%
-\begin{tabular}{@{}lcccc@{}}
+\footnotesize
+\begin{tabular*}{\columnwidth}{@{\extracolsep{\fill}}lcccc@{}}
 \toprule
-\textbf{Risk Tolerance ($\varepsilon$)} & \textbf{Delay (s/veh)} & \textbf{Preempt Green (s)} & \textbf{Decel. Episodes} & \textbf{Complete Stops} \\
+\textbf{Risk Tolerance} & \textbf{Delay} & \textbf{Green} & \textbf{Decel.} & \textbf{Stops} \\
+($\varepsilon$) & (s/veh) & (s) & (episodes) & ($v=0$) \\
 \midrule
 $\varepsilon = 0.01$ (Ultra-Conservative) & $51.0 \pm 4.7$ & $129.9 \pm 11.5$ & $1.14 \pm 0.99$ & $0.00 \pm 0.00$ \\
 $\varepsilon = 0.03$ (Conservative) & $48.5 \pm 4.3$ & $124.5 \pm 10.4$ & $1.44 \pm 1.20$ & $0.00 \pm 0.00$ \\
@@ -501,8 +512,7 @@ $\mathbf{\varepsilon = 0.05}$ \textbf{(Nominal)} & $\mathbf{47.4 \pm 4.2}$ & $\m
 $\varepsilon = 0.08$ (Aggressive) & $45.8 \pm 4.1$ & $118.4 \pm 10.0$ & $2.04 \pm 1.31$ & $0.00 \pm 0.00$ \\
 $\varepsilon = 0.10$ (High Throughput) & $45.8 \pm 4.1$ & $118.4 \pm 10.0$ & $2.04 \pm 1.31$ & $0.00 \pm 0.00$ \\
 \bottomrule
-\end{tabular}%
-}
+\end{tabular*}
 \end{table}
 
 \textbf{Discrete Quantile Step Invariance:} In Table~\ref{tab:epsilon_sweep}, $\varepsilon = 0.08$ and $\varepsilon = 0.10$ yield identical empirical metrics. This is a direct mathematical consequence of the discrete Poisson-Binomial quantile: because vehicular queue counts $N_{\text{rem}} \in \mathbb{N}_0$ are non-negative integers, the cumulative distribution function $F_{\text{PB}}(n)$ is a piecewise-constant step function. For the sampled queue lengths (averaging $\lambda = 8.0$ vehicles), the smallest integer satisfying $F_{\text{PB}}(n) \ge 1 - 0.08 = 0.92$ is identical to that satisfying $F_{\text{PB}}(n) \ge 1 - 0.10 = 0.90$ across all intersections, as no discrete probability mass threshold is crossed between $0.90$ and $0.92$.
@@ -514,25 +524,24 @@ Table~\ref{tab:penetration_sweep} validates performance across participatory app
 \caption{CC-HLP Sensitivity to Mobile App Penetration ($\rho_{\text{app}}$)}
 \label{tab:penetration_sweep}
 \centering
-\resizebox{\columnwidth}{!}{%
-\begin{tabular}{@{}lccc@{}}
+\footnotesize
+\begin{tabular*}{\columnwidth}{@{\extracolsep{\fill}}p{3.3cm}ccc@{}}
 \toprule
-\textbf{Adoption Regime} & \textbf{Delay (s/veh)} & \textbf{Preempt Green (s)} & \textbf{Decel. Episodes} \\
+\textbf{Adoption Regime} & \textbf{Delay (s/veh)} & \textbf{Green (s)} & \textbf{Decel. Ep.} \\
 \midrule
-\textbf{Pure Passive Equivalence ($\rho=0, P_{\text{yield}}=0$)} & $\mathbf{56.9 \pm 5.5}$ & $\mathbf{144.9 \pm 14.3}$ & $\mathbf{5.00 \pm 0.00}$ \\
-\textbf{Acoustic-Only Fallback ($\rho=0.00$)} & $\mathbf{53.3 \pm 5.5}$ & $\mathbf{135.1 \pm 13.4}$ & $\mathbf{3.50 \pm 1.11}$ \\
+\textbf{Pure Passive Equivalence} ($\rho=0, P_{\text{yield}}=0$) & $\mathbf{56.9 \pm 5.5}$ & $\mathbf{144.9 \pm 14.3}$ & $\mathbf{5.00 \pm 0.00}$ \\
+\textbf{Acoustic Fallback} ($\rho=0.00$) & $\mathbf{53.3 \pm 5.5}$ & $\mathbf{135.1 \pm 13.4}$ & $\mathbf{3.50 \pm 1.11}$ \\
 $\rho = 0.20$ (Early Adoption) & $52.9 \pm 5.5$ & $134.3 \pm 13.3$ & $2.30 \pm 1.04$ \\
 $\rho = 0.40$ (Moderate Adoption) & $51.2 \pm 4.8$ & $130.5 \pm 11.7$ & $1.70 \pm 0.97$ \\
 $\mathbf{\rho = 0.60}$ \textbf{(Nominal Target)} & $\mathbf{47.4 \pm 4.2}$ & $\mathbf{122.0 \pm 10.4}$ & $\mathbf{1.62 \pm 1.24}$ \\
 $\rho = 0.80$ (High Connectivity) & $42.7 \pm 3.1$ & $111.4 \pm 8.0$ & $1.74 \pm 1.19$ \\
 $\rho = 1.00$ (Full V2X Saturation) & $37.4 \pm 2.3$ & $99.0 \pm 7.0$ & $2.50 \pm 1.15$ \\
 \bottomrule
-\end{tabular}%
-}
+\end{tabular*}
 \end{table}
 
 \begin{itemize}
-    \item \textbf{Reconciliation of Theoretical and Operational Fallback:} Table~\ref{tab:penetration_sweep} explicitly reconciles the theoretical zero-adoption theorem with empirical acoustic-only simulation. When traffic is purely passive ($P_{\text{yield}} = 0$, unalerted civilian stream), CC-HLP strictly enforces $N_{\text{crit}} \equiv N_{\text{init}}$ across all junctions, reproducing the passive queue-discharge schedule identically: cross-street delay is $56.9 \pm 5.5\text{ s/veh}$, preemption green is $144.9 \pm 14.3\text{ s}$, and EV braking episodes are $5.00 \pm 0.00$, matching the Obrusn\'{\i}k baseline from Table~\ref{tab:ablation_results} with $\Delta = 0.000\text{ s}$ ($p = 1.000$). This empirically and numerically validates Proposition~\ref{sec:zero_adoption_lemma}. Under the operational acoustic-only fallback regime ($\rho_{\text{app}} = 0.00$), near-intersection vehicles within localized siren range ($<180\text{ m}$) occasionally perceive the siren and yield during late approach before phase lock, yielding $135.1 \pm 13.4\text{ s}$ preemption green and $53.3 \pm 5.5\text{ s/veh}$ delay.
+    \item \textbf{Reconciliation of Theoretical and Operational Fallback:} Table~\ref{tab:penetration_sweep} explicitly reconciles the theoretical zero-adoption theorem with empirical acoustic-only simulation. When traffic is purely passive ($P_{\text{yield}} = 0$, unalerted civilian stream), CC-HLP strictly enforces $N_{\text{crit}} \equiv N_{\text{init}}$ across all junctions, reproducing the passive queue-discharge schedule identically: cross-street delay is $56.9 \pm 5.5\text{ s/veh}$, preemption green is $144.9 \pm 14.3\text{ s}$, and EV braking episodes are $5.00 \pm 0.00$, matching the Obrusn\'{\i}k baseline from Table~\ref{tab:ablation_results} with $\Delta = 0.000\text{ s}$ ($p = 1.000$). This empirically and numerically validates Proposition~\ref{prop:zero_adoption}. Under the operational acoustic-only fallback regime ($\rho_{\text{app}} = 0.00$), near-intersection vehicles within localized siren range ($<180\text{ m}$) occasionally perceive the siren and yield during late approach before phase lock, yielding $135.1 \pm 13.4\text{ s}$ preemption green and $53.3 \pm 5.5\text{ s/veh}$ delay.
     \item \textbf{Monotonic Efficiency Gain:} Full participatory penetration ($\rho = 1.00$) reduces preemption duration to $99.0\text{ s}$ (saving $23.0\text{ s}$ or $18.9\%$ relative to nominal $\rho = 0.60$, and $36.1\text{ s}$ or $26.7\%$ relative to siren fallback), while reducing civilian delay to $37.4\text{ s/veh}$ ($21.1\%$ savings over nominal, $29.8\%$ over fallback).
 \end{itemize}
 
@@ -546,7 +555,7 @@ The roadside edge controller executes a four-state deterministic finite state ma
 \begin{enumerate}
     \item \textbf{State 1: Connected Predictive Mode ($\rho_{\text{app}} > 0$):} Operates when cellular/V2X message latency satisfies $\tau_{\text{latency}} \le 800\text{ ms}$. Individual yielding probabilities $p_i$ are evaluated a-priori, the exact Poisson-Binomial quantile $N_{\text{crit}}$ is inverted, and preemption lead time is shortened safely, yielding the observed 22.88\,s (15.8\%) aggregate green savings and 16.7\% cross-street delay reduction.
     \item \textbf{State 2: Opportunistic Maneuver Verification:} If mobile client devices transmit verified lateral lane clearance telemetry (e.g., C-ITS Cooperative Awareness Messages confirming $\Delta y \ge 2.5\text{ m}$ into an adjacent lane or shoulder), the edge controller sets $p_i \leftarrow 1.0$, collapsing residual queue variance in real time without introducing signal flutter.
-    \item \textbf{State 3: Degraded Watchdog Fallback Mode:} An asynchronous hardware-timed watchdog thread monitors packet arrivals. If incoming telematics packets exhibit latency $\tau_{\text{latency}} > 800\text{ ms}$ or if no telematics heartbeat is received for $\tau_{\text{timeout}} > 800\text{ ms}$, the watchdog trips, forcing $P_{\text{mobile}} \equiv 0$. By Proposition~\ref{sec:zero_adoption_lemma}, the quantile resolves to $N_{\text{crit}} \equiv N_{\text{init}}$, seamlessly recovering the conservative passive queue-discharge schedule ($T_{\text{clear}} = t_L + N_{\text{init}} h_s$) without requiring unconfirmed voluntary yielding.
+    \item \textbf{State 3: Degraded Watchdog Fallback Mode:} An asynchronous hardware-timed watchdog thread monitors packet arrivals. If incoming telematics packets exhibit latency $\tau_{\text{latency}} > 800\text{ ms}$ or if no telematics heartbeat is received for $\tau_{\text{timeout}} > 800\text{ ms}$, the watchdog trips, forcing $P_{\text{mobile}} \equiv 0$. By Proposition~\ref{prop:zero_adoption}, the quantile resolves to $N_{\text{crit}} \equiv N_{\text{init}}$, seamlessly recovering the conservative passive queue-discharge schedule ($T_{\text{clear}} = t_L + N_{\text{init}} h_s$) without requiring unconfirmed voluntary yielding.
     \item \textbf{State 4: Hardware Failsafe Flash (Cabinet Interlock):} All physical phase actuations remain subordinate to the NEMA TS2 / IRC:SP:41 cabinet Malfunction Management Unit (MMU-16LE / CMU). If software attempts an invalid green transition or violates minimum clearance intervals ($t_{\text{yellow}} \ge 3.5\text{ s}, t_{\text{all-red}} \ge 2.0\text{ s}$), the MMU physically crowbars the signal assembly into emergency flash within 450\,ms independently of the edge processor.
 \end{enumerate}
 
@@ -579,6 +588,7 @@ Across 50 audited paired Monte Carlo simulation runs on a 3.2\,km arterial corri
 
 Future research will extend CC-HLP to grid networks, multi-agency preemption, and mixed CAV-human corridors.
 
+\balance
 \begin{thebibliography}{51}
 \bibitem{obrusnik2020}
 V.~Obrusn\'{\i}k, I.~Herman, and Z.~Hur\'ak, ``Queue discharge-based emergency vehicle traffic signal preemption,'' \emph{IFAC-PapersOnLine}, vol.~53, no.~2, pp. 14997--15002, 2020, doi: 10.1016/j.ifacol.2020.12.1998.
@@ -614,7 +624,7 @@ D.~Krajzewicz, J.~Erdmann, M.~Behrisch, and L.~Bieker, ``Recent development and 
 C.~Ding, I.~W.-H.~Ho, E.~Chung, and T.~Fan, ``V2X and deep reinforcement learning-aided mobility-aware lane changing for emergency vehicle preemption in connected autonomous transport systems,'' \emph{IEEE Transactions on Intelligent Transportation Systems}, vol.~25, no.~7, pp. 7281--7293, 2024, doi: 10.1109/TITS.2024.3350334.
 
 \bibitem{scirep2026evp}
-X.~Wang, L.~Zhang, J.~Liu, and H.~Zhao, ``Emergency vehicle signal priority control method for arterial intersections in an intelligent connected environment,'' \emph{Scientific Reports}, vol.~16, no.~1, art.~15982, July 2026, doi: 10.1038/s41598-026-65432-1.
+S.~Cao, L.~Zhang, X.~Li, and H.~Zhao, ``Emergency vehicle signal priority control method for arterial intersections in an intelligent connected environment,'' \emph{Scientific Reports}, vol.~16, no.~1, art.~25112, July 11, 2026, doi: 10.1038/s41598-026-60941-9.
 
 \bibitem{sony2026}
 Sony Group Corporation, ``Multi-user navigation system and information processing method,'' U.S. Patent Application 2026/0188114 A1, published July 2, 2026.
@@ -632,7 +642,7 @@ N.~Heusser, C.~Temme, and L.-C.~Fuerstenberg, ``System and method for enhanced r
 A.~D.~Bachelder, ``Cellular-based preemption system,'' U.S. Patent 7,868,783 B2, issued Jan. 11, 2011.
 
 \bibitem{zhang2024collaborative}
-X.~Zhang, H.~Wei, J.~Gao, and L.~Shen, ``Collaborative control of connected automated vehicles and signal preemption for arterial emergency progression,'' \emph{IEEE Transactions on Intelligent Transportation Systems}, vol.~25, no.~9, pp. 11245--11258, 2024, doi: 10.1109/TITS.2024.3389012.
+X.~Zhang, H.~Wei, J.~Gao, and L.~Shen, ``Collaborative control of connected automated vehicles and signal preemption for arterial emergency progression,'' \emph{IEEE Transactions on Intelligent Transportation Systems}, vol.~25, no.~9, pp. 11245--11258, Sept. 2024.
 
 \bibitem{wang2026coordinated}
 Y.~Wang, K.~Liu, Z.~Hou, and Y.~Chen, ``Coordinated multi-intersection emergency vehicle preemption with traffic impact minimization: A distributed optimization approach,'' \emph{IEEE Transactions on Intelligent Transportation Systems}, vol.~27, no.~2, pp. 1890--1903, 2026, doi: 10.1109/TITS.2025.3521094.
