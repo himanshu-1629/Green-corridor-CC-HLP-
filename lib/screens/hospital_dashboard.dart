@@ -190,7 +190,7 @@ class _HospitalDashboardState extends State<HospitalDashboard>
                             children: [
                               Text(
                                 "Live Inbound Emergency Patient Streams",
-                                style: GoogleFonts.plusJakartaSans(
+                                style: AppFonts.neueMontreal(
                                   fontSize: 18,
                                   fontWeight: FontWeight.w900,
                                   color: AppColors.slate900,
@@ -199,7 +199,7 @@ class _HospitalDashboardState extends State<HospitalDashboard>
                               ),
                               Text(
                                 "Real-time in-cabin vitals telemetry & green corridor preemption status",
-                                style: GoogleFonts.plusJakartaSans(
+                                style: AppFonts.neueMontreal(
                                   fontSize: 12,
                                   color: AppColors.slate500,
                                   fontWeight: FontWeight.w500,
@@ -271,7 +271,7 @@ class _HospitalDashboardState extends State<HospitalDashboard>
                   // 7. HOSPITAL FACILITY OPERATIONAL METRICS
                   Text(
                     "Facility Fleet & Preemption Operational Health",
-                    style: GoogleFonts.plusJakartaSans(
+                    style: AppFonts.neueMontreal(
                       fontSize: 18,
                       fontWeight: FontWeight.w900,
                       color: AppColors.slate900,
@@ -285,7 +285,7 @@ class _HospitalDashboardState extends State<HospitalDashboard>
                   // 8. HOSPITAL OPERATIONS & RESUSCITATION FLEET
                   Text(
                     "Hospital Emergency Management Hub",
-                    style: GoogleFonts.plusJakartaSans(
+                    style: AppFonts.neueMontreal(
                       fontSize: 18,
                       fontWeight: FontWeight.w900,
                       color: AppColors.slate900,
@@ -444,7 +444,7 @@ class _HospitalDashboardState extends State<HospitalDashboard>
               const SizedBox(width: 6),
               Text(
                 "Signals Interlocked",
-                style: GoogleFonts.plusJakartaSans(
+                style: AppFonts.neueMontreal(
                   fontSize: 11,
                   fontWeight: FontWeight.w700,
                   color: AppColors.emeraldDark,
@@ -555,7 +555,7 @@ class _HospitalDashboardState extends State<HospitalDashboard>
                     const SizedBox(height: 14),
                     Text(
                       hospitalName,
-                      style: GoogleFonts.plusJakartaSans(
+                      style: AppFonts.neueMontreal(
                         color: Colors.white,
                         fontSize: isDesktop ? 28 : 22,
                         fontWeight: FontWeight.w900,
@@ -574,7 +574,7 @@ class _HospitalDashboardState extends State<HospitalDashboard>
                         Expanded(
                           child: Text(
                             hospitalAddress,
-                            style: GoogleFonts.plusJakartaSans(
+                            style: AppFonts.neueMontreal(
                               color: Colors.white.withValues(alpha: 0.75),
                               fontSize: 13,
                             ),
@@ -609,7 +609,7 @@ class _HospitalDashboardState extends State<HospitalDashboard>
                     const SizedBox(width: 8),
                     Text(
                       "ER Triage Open",
-                      style: GoogleFonts.plusJakartaSans(
+                      style: AppFonts.neueMontreal(
                         color: AppColors.emerald,
                         fontSize: 13,
                         fontWeight: FontWeight.w800,
@@ -726,7 +726,7 @@ class _HospitalDashboardState extends State<HospitalDashboard>
               children: [
                 Text(
                   label,
-                  style: GoogleFonts.plusJakartaSans(
+                  style: AppFonts.neueMontreal(
                     fontSize: 11,
                     fontWeight: FontWeight.w600,
                     color: AppColors.slate500,
@@ -815,7 +815,7 @@ class _HospitalDashboardState extends State<HospitalDashboard>
                     const SizedBox(width: 10),
                     Text(
                       "CODE RED: ACUTE MYOCARDIAL INFARCTION (STEMI)",
-                      style: GoogleFonts.plusJakartaSans(
+                      style: AppFonts.neueMontreal(
                         fontSize: 13,
                         fontWeight: FontWeight.w900,
                         color: const Color(0xFF991B1B),
@@ -889,7 +889,7 @@ class _HospitalDashboardState extends State<HospitalDashboard>
                             ),
                             Text(
                               "Patient: Male, 54y • Paramedic Unit 4 (Dr. Sharma) • Dispatch origin: South City",
-                              style: GoogleFonts.plusJakartaSans(
+                              style: AppFonts.neueMontreal(
                                 fontSize: 12,
                                 fontWeight: FontWeight.w500,
                                 color: AppColors.slate500,
@@ -1048,7 +1048,7 @@ class _HospitalDashboardState extends State<HospitalDashboard>
                           children: [
                             Text(
                               "Arterial Corridor 4 (5/5 Intersections Preempted Ahead)",
-                              style: GoogleFonts.plusJakartaSans(
+                              style: AppFonts.neueMontreal(
                                 fontSize: 13,
                                 fontWeight: FontWeight.w800,
                                 color: AppColors.slate900,
@@ -1056,7 +1056,7 @@ class _HospitalDashboardState extends State<HospitalDashboard>
                             ),
                             Text(
                               "CC-HLP Active: Queue cleared in advance • 0 vehicle stops • Green lead time +4.58 s/junc",
-                              style: GoogleFonts.plusJakartaSans(
+                              style: AppFonts.neueMontreal(
                                 fontSize: 11,
                                 fontWeight: FontWeight.w500,
                                 color: AppColors.slate600,
@@ -1088,7 +1088,7 @@ class _HospitalDashboardState extends State<HospitalDashboard>
                             icon: const Icon(Icons.check_circle_outline, size: 16),
                             label: Text(
                               "Alert Cath Lab",
-                              style: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.w700, fontSize: 12),
+                              style: AppFonts.neueMontreal(fontWeight: FontWeight.w700, fontSize: 12),
                             ),
                           ),
                           ElevatedButton.icon(
@@ -1109,7 +1109,7 @@ class _HospitalDashboardState extends State<HospitalDashboard>
                             icon: const Icon(Icons.headset_mic_rounded, size: 16),
                             label: Text(
                               "Radio Paramedic",
-                              style: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.w700, fontSize: 12),
+                              style: AppFonts.neueMontreal(fontWeight: FontWeight.w700, fontSize: 12),
                             ),
                           ),
                         ],
@@ -1188,7 +1188,7 @@ class _HospitalDashboardState extends State<HospitalDashboard>
           const SizedBox(height: 2),
           Text(
             statusText,
-            style: GoogleFonts.plusJakartaSans(
+            style: AppFonts.neueMontreal(
               fontSize: 10,
               fontWeight: FontWeight.w600,
               color: accentColor,
@@ -1258,7 +1258,7 @@ class _HospitalDashboardState extends State<HospitalDashboard>
                     const SizedBox(width: 8),
                     Text(
                       "UNOS #8812 • Recipient prepped in OT-1",
-                      style: GoogleFonts.plusJakartaSans(
+                      style: AppFonts.neueMontreal(
                         fontSize: 12,
                         fontWeight: FontWeight.w600,
                         color: AppColors.slate500,
@@ -1269,7 +1269,7 @@ class _HospitalDashboardState extends State<HospitalDashboard>
                 const SizedBox(height: 4),
                 Text(
                   "Ambulance MH-02-7711 • Cold Ischemic Time: 1h 42m / Max 4h • En route via West Corridor 2",
-                  style: GoogleFonts.plusJakartaSans(
+                  style: AppFonts.neueMontreal(
                     fontSize: 13,
                     color: AppColors.slate700,
                     fontWeight: FontWeight.w500,
@@ -1292,7 +1292,7 @@ class _HospitalDashboardState extends State<HospitalDashboard>
               ),
               Text(
                 "4.1 km out • 4 signals ahead",
-                style: GoogleFonts.plusJakartaSans(
+                style: AppFonts.neueMontreal(
                   fontSize: 11,
                   color: AppColors.slate400,
                 ),
@@ -1356,7 +1356,7 @@ class _HospitalDashboardState extends State<HospitalDashboard>
                   children: [
                     Text(
                       "Dispatch Emergency Green Corridor",
-                      style: GoogleFonts.plusJakartaSans(
+                      style: AppFonts.neueMontreal(
                         color: Colors.white,
                         fontSize: 20,
                         fontWeight: FontWeight.w900,
@@ -1366,7 +1366,7 @@ class _HospitalDashboardState extends State<HospitalDashboard>
                     const SizedBox(height: 4),
                     Text(
                       "Instant municipal signal preemption for critical donor organ transfer, acute cardiac STEMI, or trauma transit with zero intersection delay.",
-                      style: GoogleFonts.plusJakartaSans(
+                      style: AppFonts.neueMontreal(
                         color: Colors.white.withValues(alpha: 0.9),
                         fontSize: 13,
                         height: 1.4,
@@ -1393,7 +1393,7 @@ class _HospitalDashboardState extends State<HospitalDashboard>
                   children: [
                     Text(
                       "Dispatch Corridor",
-                      style: GoogleFonts.plusJakartaSans(
+                      style: AppFonts.neueMontreal(
                         color: AppColors.primary,
                         fontSize: 14,
                         fontWeight: FontWeight.w800,
@@ -1506,7 +1506,7 @@ class _HospitalDashboardState extends State<HospitalDashboard>
               ),
               Text(
                 value,
-                style: GoogleFonts.plusJakartaSans(
+                style: AppFonts.neueMontreal(
                   fontSize: 22,
                   fontWeight: FontWeight.w900,
                   color: AppColors.slate900,
@@ -1518,7 +1518,7 @@ class _HospitalDashboardState extends State<HospitalDashboard>
           const SizedBox(height: 14),
           Text(
             title,
-            style: GoogleFonts.plusJakartaSans(
+            style: AppFonts.neueMontreal(
               color: AppColors.slate900,
               fontSize: 13,
               fontWeight: FontWeight.w800,
@@ -1527,7 +1527,7 @@ class _HospitalDashboardState extends State<HospitalDashboard>
           const SizedBox(height: 2),
           Text(
             subtitle,
-            style: GoogleFonts.plusJakartaSans(
+            style: AppFonts.neueMontreal(
               color: AppColors.slate500,
               fontSize: 11,
               fontWeight: FontWeight.w500,
@@ -1588,7 +1588,7 @@ class _HospitalDashboardState extends State<HospitalDashboard>
                       children: [
                         Text(
                           title,
-                          style: GoogleFonts.plusJakartaSans(
+                          style: AppFonts.neueMontreal(
                             fontSize: 15,
                             fontWeight: FontWeight.w800,
                             color: AppColors.slate900,
@@ -1616,7 +1616,7 @@ class _HospitalDashboardState extends State<HospitalDashboard>
                     const SizedBox(height: 4),
                     Text(
                       subtitle,
-                      style: GoogleFonts.plusJakartaSans(
+                      style: AppFonts.neueMontreal(
                         fontSize: 12,
                         color: AppColors.slate500,
                       ),

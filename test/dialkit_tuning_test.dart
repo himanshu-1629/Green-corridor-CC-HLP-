@@ -124,24 +124,14 @@ void main() {
       expect(controller.layoutCardSizing, 350.0);
     });
 
-    test('Switching color preset to Velvet Botanical applies approved 4 colors', () {
-      controller.setPalettePreset("Velvet Botanical");
-
-      expect(controller.activePalettePreset, "Velvet Botanical");
-      expect(controller.currentNavy.toARGB32(), const Color(0xFF502D55).toARGB32());
-      expect(controller.currentSecondary.toARGB32(), const Color(0xFF935073).toARGB32());
-      expect(controller.currentAccentWarm.toARGB32(), const Color(0xFFF6DBC0).toARGB32());
-      expect(controller.currentCream.toARGB32(), const Color(0xFFF8F4E9).toARGB32());
+    test('Active color preset applies approved Neue Montreal 5 brand colors', () {
+      expect(controller.currentNavy.toARGB32(), AppColors.nearBlack.toARGB32());
+      expect(controller.currentSecondary.toARGB32(), AppColors.brown.toARGB32());
+      expect(controller.currentAccentWarm.toARGB32(), AppColors.orange.toARGB32());
+      expect(controller.currentCream.toARGB32(), AppColors.white.toARGB32());
 
       // Ensure NO black backgrounds exist
       expect(controller.currentCream.toARGB32() != const Color(0xFF000000).toARGB32(), isTrue);
-
-      // Revert back to Tri-Tone Core
-      controller.setPalettePreset("Tri-Tone Core");
-      expect(controller.activePalettePreset, "Tri-Tone Core");
-      expect(controller.currentNavy.toARGB32(), AppColors.navy.toARGB32());
-      expect(controller.currentCream.toARGB32(), AppColors.cream.toARGB32());
-      expect(controller.currentSecondary.toARGB32(), AppColors.sky.toARGB32());
     });
 
     test('Export to Dart code generates valid compile-ready tokens', () {

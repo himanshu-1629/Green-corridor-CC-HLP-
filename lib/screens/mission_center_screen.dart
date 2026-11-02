@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../theme/app_theme.dart';
 import 'mission_details_screen.dart';
@@ -203,7 +202,7 @@ class _MissionCenterScreenState extends State<MissionCenterScreen> {
                 children: [
                   Text(
                     "Mission Dispatch Center",
-                    style: GoogleFonts.plusJakartaSans(
+                    style: AppFonts.neueMontreal(
                       fontSize: 16,
                       fontWeight: FontWeight.w800,
                       color: AppColors.slate900,
@@ -212,7 +211,7 @@ class _MissionCenterScreenState extends State<MissionCenterScreen> {
                   ),
                   Text(
                     "Real-Time Corridor Tracking & Ingestion",
-                    style: GoogleFonts.plusJakartaSans(
+                    style: AppFonts.neueMontreal(
                       fontSize: 11,
                       fontWeight: FontWeight.w600,
                       color: AppColors.slate500,
@@ -233,8 +232,8 @@ class _MissionCenterScreenState extends State<MissionCenterScreen> {
                 indicatorWeight: 3,
                 labelColor: AppColors.primary,
                 unselectedLabelColor: AppColors.slate500,
-                labelStyle: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.w700, fontSize: 13),
-                unselectedLabelStyle: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.w600, fontSize: 13),
+                labelStyle: AppFonts.neueMontreal(fontWeight: FontWeight.w700, fontSize: 13),
+                unselectedLabelStyle: AppFonts.neueMontreal(fontWeight: FontWeight.w600, fontSize: 13),
                 tabs: [
                   Tab(
                     child: Row(

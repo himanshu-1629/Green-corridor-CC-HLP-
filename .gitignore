@@ -11,6 +11,9 @@
 .svn/
 .swiftpm/
 migrate_working_dir/
+scratch/
+.planning/
+__pycache__/
 
 # IntelliJ related
 *.iml

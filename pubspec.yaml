@@ -96,3 +96,13 @@ flutter:
       fonts:
         - asset: assets/fonts/PeaceSans-Regular.otf
           weight: 400
+    - family: NeueMontreal
+      fonts:
+        - asset: assets/fonts/NeueMontreal-Light.ttf
+          weight: 300
+        - asset: assets/fonts/NeueMontreal-Regular.ttf
+          weight: 400
+        - asset: assets/fonts/NeueMontreal-Medium.ttf
+          weight: 500
+        - asset: assets/fonts/NeueMontreal-Bold.ttf
+          weight: 700

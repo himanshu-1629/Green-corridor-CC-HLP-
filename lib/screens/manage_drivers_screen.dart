@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../theme/app_theme.dart';
 
@@ -283,7 +282,7 @@ class _ManageDriversScreenState extends State<ManageDriversScreen> {
                   children: [
                     Text(
                       "Emergency Drivers",
-                      style: GoogleFonts.plusJakartaSans(
+                      style: AppFonts.neueMontreal(
                         fontSize: 16,
                         fontWeight: FontWeight.w800,
                         color: AppColors.slate900,
@@ -292,7 +291,7 @@ class _ManageDriversScreenState extends State<ManageDriversScreen> {
                     ),
                     Text(
                       "Hospital Certified Pilot Roster",
-                      style: GoogleFonts.plusJakartaSans(
+                      style: AppFonts.neueMontreal(
                         fontSize: 11,
                         fontWeight: FontWeight.w600,
                         color: AppColors.slate500,
@@ -318,7 +317,7 @@ class _ManageDriversScreenState extends State<ManageDriversScreen> {
             icon: const Icon(Icons.person_add_rounded, color: Colors.white),
             label: Text(
               "Add Driver",
-              style: GoogleFonts.plusJakartaSans(color: Colors.white, fontWeight: FontWeight.w700),
+              style: AppFonts.neueMontreal(color: Colors.white, fontWeight: FontWeight.w700),
             ),
           ),
           body: isLoading

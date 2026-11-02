@@ -9,10 +9,11 @@ import 'package:url_launcher/url_launcher.dart';
 
 import '../theme/app_theme.dart';
 import '../theme/design_tuning_controller.dart';
-import '../widgets/interactive_world_globe.dart';
+import '../widgets/caduceus_3d_emblem.dart';
+import '../widgets/city_diorama_3d.dart';
 import '../widgets/workflow_step_consoles.dart';
 import '../widgets/glass_button.dart';
-import '../widgets/animated_top_dock.dart';
+import '../widgets/tactile_button.dart';
 import 'citizen_screen.dart';
 import 'hospital_dashboard.dart';
 import 'login_screen.dart';
@@ -61,7 +62,6 @@ class WelcomeScreen extends StatefulWidget {
 class _WelcomeScreenState extends State<WelcomeScreen>
     with TickerProviderStateMixin {
   final ScrollController _scrollController = ScrollController();
-  final GlobalKey _worldGlobeKey = GlobalKey();
   final GlobalKey _howItWorksKey = GlobalKey();
   final GlobalKey _portalsKey = GlobalKey();
   final GlobalKey _statsKey = GlobalKey();
@@ -78,6 +78,8 @@ class _WelcomeScreenState extends State<WelcomeScreen>
   GoogleMapController? _landingMapController;
   LatLng _landingMapCenter = const LatLng(28.5672, 77.2100);
 
+  double _scrollProgress = 0.0;
+
   @override
   void initState() {
     super.initState();
@@ -85,6 +87,15 @@ class _WelcomeScreenState extends State<WelcomeScreen>
       vsync: this,
       duration: const Duration(milliseconds: 1400),
     )..repeat(reverse: true);
+
+    _scrollController.addListener(() {
+      if (!mounted) return;
+      final progress = (_scrollController.offset / 550.0).clamp(0.0, 3.0);
+      setState(() {
+        _scrollProgress = progress;
+      });
+    });
+
     _checkExistingSession();
     _loadLandingMapAndStats();
   }
@@ -293,7 +304,7 @@ class _WelcomeScreenState extends State<WelcomeScreen>
                         children: [
                           Text(
                             'Install Mobile App',
-                            style: GoogleFonts.plusJakartaSans(
+                            style: AppFonts.neueMontreal(
                               fontSize: 20,
                               fontWeight: FontWeight.w800,
                               color: AppColors.slate900,
@@ -302,7 +313,7 @@ class _WelcomeScreenState extends State<WelcomeScreen>
                           const SizedBox(height: 2),
                           Text(
                             'Green Corridor Emergency Pilot Suite',
-                            style: GoogleFonts.plusJakartaSans(
+                            style: AppFonts.neueMontreal(
                               fontSize: 12,
                               fontWeight: FontWeight.w500,
                               color: AppColors.slate600,
@@ -346,7 +357,7 @@ class _WelcomeScreenState extends State<WelcomeScreen>
                               children: [
                                 Text(
                                   'Android APK',
-                                  style: GoogleFonts.plusJakartaSans(
+                                  style: AppFonts.neueMontreal(
                                     fontSize: 15,
                                     fontWeight: FontWeight.w700,
                                     color: AppColors.slate900,
@@ -361,7 +372,7 @@ class _WelcomeScreenState extends State<WelcomeScreen>
                                   ),
                                   child: Text(
                                     'DIRECT',
-                                    style: GoogleFonts.plusJakartaSans(
+                                    style: AppFonts.neueMontreal(
                                       fontSize: 10,
                                       fontWeight: FontWeight.w800,
                                       color: Colors.white,
@@ -373,7 +384,7 @@ class _WelcomeScreenState extends State<WelcomeScreen>
                             const SizedBox(height: 2),
                             Text(
                               'Standalone native binary (58 MB)',
-                              style: GoogleFonts.plusJakartaSans(
+                              style: AppFonts.neueMontreal(
                                 fontSize: 12,
                                 color: AppColors.slate600,
                               ),
@@ -422,7 +433,7 @@ class _WelcomeScreenState extends State<WelcomeScreen>
                           children: [
                             Text(
                               'Compressed ZIP',
-                              style: GoogleFonts.plusJakartaSans(
+                              style: AppFonts.neueMontreal(
                                 fontSize: 15,
                                 fontWeight: FontWeight.w700,
                                 color: AppColors.slate900,
@@ -431,7 +442,7 @@ class _WelcomeScreenState extends State<WelcomeScreen>
                             const SizedBox(height: 2),
                             Text(
                               'Contains APK (fast 26 MB package)',
-                              style: GoogleFonts.plusJakartaSans(
+                              style: AppFonts.neueMontreal(
                                 fontSize: 12,
                                 color: AppColors.slate600,
                               ),
@@ -474,7 +485,7 @@ class _WelcomeScreenState extends State<WelcomeScreen>
                           children: [
                             Text(
                               'Instant Install without download (iOS / Android):',
-                              style: GoogleFonts.plusJakartaSans(
+                              style: AppFonts.neueMontreal(
                                 fontSize: 12,
                                 fontWeight: FontWeight.w700,
                                 color: const Color(0xFF1E3A8A),
@@ -483,7 +494,7 @@ class _WelcomeScreenState extends State<WelcomeScreen>
                             const SizedBox(height: 2),
                             Text(
                               'Open this website on mobile Safari or Chrome, tap Share/Options (⋮) -> "Add to Home Screen" to install instantly with live GPS & Siren audio.',
-                              style: GoogleFonts.plusJakartaSans(
+                              style: AppFonts.neueMontreal(
                                 fontSize: 11,
                                 height: 1.4,
                                 color: const Color(0xFF1E40AF),
@@ -512,113 +523,74 @@ class _WelcomeScreenState extends State<WelcomeScreen>
 
   @override
   Widget build(BuildContext context) {
+    final bool isMobile = ResponsiveLayout.isMobile(context);
+    final bool isDesktop = MediaQuery.of(context).size.width >= 1060;
+
+    // 1. First Landing Viewport: Pure White (#FFFFFF)
+    // Caduceus is hidden at scrollOffset == 0.
+    // As the hero leaves the viewport (from offset 80px to 450px), opacity gradually increases.
+    final double scrollOffset = _scrollController.hasClients ? _scrollController.offset : 0.0;
+    final double caduceusReveal = ((scrollOffset - 80.0) / 370.0).clamp(0.0, 1.0);
+    // Smooth fade before deep-violet telemetry section
+    final double caduceusFade = (1.0 - ((scrollOffset - 2200.0) / 500.0).clamp(0.0, 1.0));
+    final double caduceusOpacity = (0.15 * caduceusReveal * caduceusFade).clamp(0.0, 0.15);
+
+    // Initial viewport is pure white: Technical coordinate grid is hidden at top,
+    // and emerges smoothly as user scrolls past the hero into the technical documentation.
+    final double gridOpacity = ((scrollOffset - 120.0) / 320.0).clamp(0.0, 1.0);
+
     return ListenableBuilder(
       listenable: DesignTuningController.instance,
       builder: (context, _) {
         return Scaffold(
-          backgroundColor: AppColors.cream,
+          backgroundColor: Colors.white, // Global Page Canvas: Pure White #FFFFFF
           body: Stack(
             children: [
-              // Multi-depth ambient glow orbs in soft Sky Blue and Pale Cream across scroll height
-              Positioned(
-                top: -100,
-                right: -80,
-                child: Container(
-                  width: 580,
-                  height: 580,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    gradient: RadialGradient(
-                      colors: [
-                        AppColors.sky.withValues(alpha: 0.22),
-                        Colors.transparent,
-                      ],
+              // 1. Subtle branded background system (reveals on scroll below initial pure-white hero)
+              if (gridOpacity > 0.005)
+                Positioned.fill(
+                  child: Opacity(
+                    opacity: gridOpacity,
+                    child: CustomPaint(
+                      painter: _MedicalGridBackgroundPainter(),
                     ),
                   ),
                 ),
-              ),
-              Positioned(
-                top: 750,
-                left: -120,
-                child: Container(
-                  width: 620,
-                  height: 620,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    gradient: RadialGradient(
-                      colors: [
-                        AppColors.skyLight.withValues(alpha: 0.35),
-                        Colors.transparent,
-                      ],
-                    ),
-                  ),
-                ),
-              ),
-              Positioned(
-                top: 1700,
-                right: -100,
-                child: Container(
-                  width: 550,
-                  height: 550,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    gradient: RadialGradient(
-                      colors: [
-                        AppColors.sky.withValues(alpha: 0.18),
-                        Colors.transparent,
-                      ],
-                    ),
-                  ),
-                ),
-              ),
-              Positioned(
-                top: 2600,
-                left: -80,
-                child: Container(
-                  width: 520,
-                  height: 520,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    gradient: RadialGradient(
-                      colors: [
-                        AppColors.creamDark.withValues(alpha: 0.35),
-                        Colors.transparent,
-                      ],
-                    ),
-                  ),
-                ),
-              ),
-              Positioned(
-                top: 3500,
-                right: -60,
-                child: Container(
-                  width: 500,
-                  height: 500,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    gradient: RadialGradient(
-                      colors: [
-                        AppColors.skyLight.withValues(alpha: 0.30),
-                        Colors.transparent,
-                      ],
-                    ),
-                  ),
-                ),
-              ),
 
-              // Main scrollable content
+              // 2. Persistent 3D Caduceus Background Sculpture revealed on scroll
+              // Completely invisible at scroll position 0. Gradually revealed as user scrolls below hero.
+              if (caduceusOpacity > 0.005)
+                Positioned(
+                  top: isDesktop ? 60 : 30,
+                  left: 0,
+                  right: 0,
+                  child: IgnorePointer(
+                    child: Center(
+                      child: Opacity(
+                        opacity: caduceusOpacity,
+                        child: Caduceus3DEmblem(
+                          size: isMobile ? 380 : (isDesktop ? 760 : 540),
+                          enableInteractiveTilt: false,
+                          scrollProgress: _scrollProgress,
+                          opacity: caduceusOpacity,
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+
+              // 3. Main scrollable content
               SingleChildScrollView(
                 controller: _scrollController,
+                physics: const AlwaysScrollableScrollPhysics(
+                  parent: BouncingScrollPhysics(),
+                ),
                 child: Column(
                   children: [
                     _buildHeroSection(context),
                     KeyedSubtree(
                       key: _howItWorksKey,
                       child: _buildHowItWorksSection(context),
-                    ),
-                    KeyedSubtree(
-                      key: _worldGlobeKey,
-                      child: _buildGlobalWorldGlobeSection(context),
                     ),
                     KeyedSubtree(
                       key: _portalsKey,
@@ -646,727 +618,215 @@ class _WelcomeScreenState extends State<WelcomeScreen>
   // TOP NAVIGATION BAR
   // ==========================================
   // ==========================================
-  // TOP NAVIGATION BAR (HAVEN FROSTED GLASS PILL)
+  // ==========================================
+  // TOP NAVIGATION BAR (COMPACT, SKEUOMORPHIC, NEUE MONTREAL)
   // ==========================================
   Widget _buildTopNavigation(BuildContext context) {
     final bool isMobile = ResponsiveLayout.isMobile(context);
-    final tuning = DesignTuningController.instance;
 
     return Container(
       width: double.infinity,
       padding: EdgeInsets.symmetric(
-        horizontal: isMobile ? 12 : 24,
-        vertical: ((tuning.layoutNavHeight - 44) / 2).clamp(6.0, 28.0),
-      ),
-      child: Center(
-        child: ClipRRect(
-          borderRadius: BorderRadius.circular(50),
-          child: BackdropFilter(
-            filter: ui.ImageFilter.blur(sigmaX: tuning.glassBlur, sigmaY: tuning.glassBlur),
-            child: Container(
-              constraints: BoxConstraints(maxWidth: tuning.layoutContentWidth),
-              padding: EdgeInsets.symmetric(
-                horizontal: isMobile ? 14 : 24,
-                vertical: 8,
-              ),
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                  colors: [
-                    Colors.white.withValues(alpha: (tuning.glassSurfaceOpacity * 1.5).clamp(0.12, 0.65)),
-                    AppColors.cream.withValues(alpha: (tuning.glassSurfaceOpacity * 0.7).clamp(0.06, 0.35)),
-                  ],
-                ),
-                borderRadius: BorderRadius.circular(50),
-                border: Border.all(
-                  color: Colors.white.withValues(alpha: tuning.glassBorderOpacity),
-                  width: 1.4 * tuning.tileHighlightIntensity,
-                ),
-                boxShadow: [
-                  BoxShadow(
-                    color: AppColors.navy.withValues(alpha: tuning.glassShadowOpacity * 1.5),
-                    blurRadius: tuning.glassShadowBlur,
-                    offset: Offset(0, tuning.tileShadowOffset),
-                  ),
-                  BoxShadow(
-                    color: Colors.white.withValues(alpha: (tuning.glassBorderOpacity * 0.85).clamp(0.2, 0.85)),
-                    blurRadius: 1,
-                    offset: const Offset(0, 1),
-                    spreadRadius: 0,
-                  ),
-                ],
-              ),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  // Brand Logo & Title (Navy & Pale Cream)
-                  InkWell(
-                    onTap: () {
-                      _scrollController.animateTo(
-                        0,
-                        duration: const Duration(milliseconds: 500),
-                        curve: Curves.easeOut,
-                      );
-                    },
-                    borderRadius: BorderRadius.circular(50),
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
-                      child: Row(
-                        children: [
-                          Container(
-                            padding: const EdgeInsets.all(7),
-                            decoration: BoxDecoration(
-                              color: Colors.white.withValues(alpha: 0.55),
-                              shape: BoxShape.circle,
-                              border: Border.all(
-                                color: Colors.white.withValues(alpha: 0.8),
-                                width: 1.2,
-                              ),
-                              boxShadow: [
-                                BoxShadow(
-                                  color: AppColors.navy.withValues(alpha: 0.08),
-                                  blurRadius: 8,
-                                  offset: const Offset(0, 2),
-                                ),
-                              ],
-                            ),
-                            child: const Icon(
-                              Icons.emergency_share_rounded,
-                              color: AppColors.navy,
-                              size: 18,
-                            ),
-                          ),
-                          const SizedBox(width: 9),
-                          Row(
-                            children: [
-                              Text(
-                                'Green Corridor',
-                                style: GoogleFonts.plusJakartaSans(
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.w900,
-                                  color: AppColors.navy,
-                                  letterSpacing: -0.2,
-                                ),
-                              ),
-                              const SizedBox(width: 5),
-                              Container(
-                                width: 6,
-                                height: 6,
-                                decoration: const BoxDecoration(
-                                  color: AppColors.sky,
-                                  shape: BoxShape.circle,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-
-                  // ThreeUI AnimatedTopDock (Sable Dock variant)
-                  if (!isMobile)
-                    Expanded(
-                      child: Center(
-                        child: AnimatedTopDockWidget(
-                          width: 710,
-                          height: 56,
-                          onItemSelected: (id) {
-                            switch (id) {
-                              case 'home':
-                                _scrollController.animateTo(
-                                  0,
-                                  duration: const Duration(milliseconds: 500),
-                                  curve: Curves.easeOut,
-                                );
-                                break;
-                              case 'system':
-                                _scrollToSection(_howItWorksKey);
-                                break;
-                              case 'method':
-                                _scrollToSection(_worldGlobeKey);
-                                break;
-                              case 'work':
-                                _scrollToSection(_portalsKey);
-                                break;
-                              case 'access':
-                                _scrollToSection(_statsKey);
-                                break;
-                              case 'notes':
-                                Navigator.push(
-                                  context,
-                                  MaterialPageRoute(builder: (_) => const CitizenScreen()),
-                                );
-                                break;
-                            }
-                          },
-                        ),
-                      ),
-                    ),
-
-                  // Right Action: Frosted Glass Button for Hospital ER Portal
-                  Row(
-                    children: [
-                      GlassButton(
-                        onPressed: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(builder: (_) => const HospitalDashboard()),
-                          );
-                        },
-                        variant: GlassButtonVariant.primary,
-                        borderRadius: 50,
-                        padding: EdgeInsets.symmetric(
-                          horizontal: isMobile ? 14 : 20,
-                          vertical: 10,
-                        ),
-                        icon: const Icon(Icons.security_rounded, size: 14, color: AppColors.warmPeach),
-                        label: isMobile ? 'Hospital ER' : 'Hospital Portal',
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-
-  // ==========================================
-  // HERO SECTION (HAVEN AESTHETIC - EXACT FIRST IMAGE REFERENCE)
-  // ==========================================
-  Widget _buildHeroSection(BuildContext context) {
-    final bool isMobile = ResponsiveLayout.isMobile(context);
-    final tuning = DesignTuningController.instance;
-    final double heroHeight = math.max(
-      isMobile ? 700.0 : 860.0,
-      MediaQuery.of(context).size.height,
-    );
-
-    return SizedBox(
-      height: heroHeight,
-      width: double.infinity,
-      child: Stack(
-        fit: StackFit.expand,
-        children: [
-          // 1. Full-Bleed Scenic Alpine Meadow Landscape (Image 1 Haven Reference)
-          Image.asset(
-            'assets/images/haven_landscape_hero.jpg',
-            fit: BoxFit.cover,
-            alignment: Alignment.center,
-          ),
-
-          // 2. Subtle Lighting & Contrast Vignette (keeps text crisp without hiding nature)
-          Container(
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                begin: Alignment.topCenter,
-                end: Alignment.bottomCenter,
-                colors: [
-                  AppColors.navy.withValues(alpha: 0.10),
-                  Colors.white.withValues(alpha: 0.05),
-                  AppColors.cream.withValues(alpha: 0.40),
-                ],
-                stops: const [0.0, 0.45, 1.0],
-              ),
-            ),
-          ),
-
-          // 3. Foreground Content with Floating Pill Navbar, Centered Haven Typography, and Bottom Scroll
-          SafeArea(
-            child: Column(
-              children: [
-                // Floating Glassmorphic Pill Navbar pinned at top
-                _buildTopNavigation(context),
-
-                const Spacer(flex: 3),
-
-                // Centered Announcement Pill (Navy on Pale Cream)
-                Center(
-                  child: ClipRRect(
-                    borderRadius: BorderRadius.circular(50),
-                    child: BackdropFilter(
-                      filter: ui.ImageFilter.blur(sigmaX: tuning.glassBlur, sigmaY: tuning.glassBlur),
-                      child: Container(
-                        padding: EdgeInsets.symmetric(
-                          horizontal: isMobile ? 14 : 22,
-                          vertical: 10,
-                        ),
-                        decoration: BoxDecoration(
-                          gradient: LinearGradient(
-                            begin: Alignment.topLeft,
-                            end: Alignment.bottomRight,
-                            colors: [
-                              Colors.white.withValues(alpha: (tuning.glassSurfaceOpacity * 1.5).clamp(0.15, 0.60)),
-                              AppColors.cream.withValues(alpha: (tuning.glassSurfaceOpacity * 0.7).clamp(0.08, 0.35)),
-                            ],
-                          ),
-                          borderRadius: BorderRadius.circular(50),
-                          border: Border.all(
-                            color: Colors.white.withValues(alpha: tuning.glassBorderOpacity),
-                            width: 1.3 * tuning.tileHighlightIntensity,
-                          ),
-                          boxShadow: [
-                            BoxShadow(
-                              color: AppColors.navy.withValues(alpha: tuning.glassShadowOpacity * 1.4),
-                              blurRadius: 22,
-                              offset: const Offset(0, 8),
-                            ),
-                            BoxShadow(
-                              color: Colors.white.withValues(alpha: (tuning.glassBorderOpacity * 0.85).clamp(0.2, 0.85)),
-                              blurRadius: 1,
-                              offset: const Offset(0, 1),
-                              spreadRadius: 0,
-                            ),
-                          ],
-                        ),
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Container(
-                              width: 8,
-                              height: 8,
-                              decoration: const BoxDecoration(
-                                color: AppColors.navy,
-                                shape: BoxShape.circle,
-                              ),
-                            ),
-                            const SizedBox(width: 8),
-                            Text(
-                              '🇮🇳 National AI Green Corridor Active • Zero Intersection Delay',
-                              style: GoogleFonts.plusJakartaSans(
-                                color: AppColors.navy,
-                                fontWeight: FontWeight.w800,
-                                fontSize: isMobile ? 11 : 13,
-                                letterSpacing: 0.2,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 26),
-
-                // Centered Haven Typography ("Clear the way." in Navy Blue)
-                Padding(
-                  padding: EdgeInsets.symmetric(horizontal: isMobile ? 20 : 40),
-                  child: Text(
-                    'Clear the way.',
-                    textAlign: TextAlign.center,
-                    style: GoogleFonts.plusJakartaSans(
-                      fontSize: isMobile ? 44 : 76,
-                      fontWeight: FontWeight.w900,
-                      color: AppColors.navy,
-                      letterSpacing: -2.2,
-                      height: 1.05,
-                      shadows: [
-                        Shadow(
-                          color: Colors.white.withValues(alpha: 0.7),
-                          blurRadius: 16,
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 18),
-
-                // Centered Subtitle
-                Padding(
-                  padding: EdgeInsets.symmetric(horizontal: isMobile ? 24 : 60),
-                  child: ConstrainedBox(
-                    constraints: const BoxConstraints(maxWidth: 680),
-                    child: Text(
-                      'Preempt smarter with AI that clears traffic ahead.\nSo emergency responders save every breath.',
-                      textAlign: TextAlign.center,
-                      style: GoogleFonts.plusJakartaSans(
-                        fontSize: isMobile ? 15 : 19,
-                        color: AppColors.navyMuted,
-                        height: 1.45,
-                        fontWeight: FontWeight.w700,
-                        shadows: [
-                          Shadow(
-                            color: Colors.white.withValues(alpha: 0.8),
-                            blurRadius: 12,
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 28),
-
-                // Dual Centered Pill CTAs
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    // Primary Navy Pill Button (Get Started ->)
-                    // Primary Glass Pill Button (Get Started ->)
-                    GlassButton(
-                      onPressed: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(builder: (_) => const HospitalDashboard()),
-                        );
-                      },
-                      variant: GlassButtonVariant.primary,
-                      borderRadius: 50,
-                      padding: EdgeInsets.symmetric(
-                        horizontal: isMobile ? 24 : 34,
-                        vertical: 18,
-                      ),
-                      fontSize: 16,
-                      icon: const Icon(Icons.local_hospital_rounded, color: AppColors.warmPeach, size: 20),
-                      label: 'Get Started →',
-                    ),
-                    const SizedBox(width: 14),
-
-                    // Secondary Glass Pill Button (Watch Demo)
-                    GlassButton(
-                      onPressed: () => _scrollToSection(_howItWorksKey),
-                      variant: GlassButtonVariant.secondary,
-                      borderRadius: 50,
-                      padding: EdgeInsets.symmetric(
-                        horizontal: isMobile ? 20 : 30,
-                        vertical: 18,
-                      ),
-                      fontSize: 15,
-                      icon: const Icon(Icons.play_circle_fill_rounded, color: AppColors.deepViolet, size: 20),
-                      label: 'Watch Demo',
-                    ),
-                  ],
-                ),
-
-                const Spacer(flex: 4),
-
-                // Floating Bobbing Pill Scroll Indicator
-                AnimatedBuilder(
-                  animation: _scrollBounceController,
-                  builder: (context, child) {
-                    final double bobOffset = 6.0 * math.sin(_scrollBounceController.value * math.pi);
-                    return Transform.translate(
-                      offset: Offset(0, bobOffset),
-                      child: child,
-                    );
-                  },
-                  child: InkWell(
-                    onTap: () => _scrollToSection(_howItWorksKey),
-                    borderRadius: BorderRadius.circular(30),
-                    child: ClipRRect(
-                      borderRadius: BorderRadius.circular(30),
-                      child: BackdropFilter(
-                        filter: ui.ImageFilter.blur(sigmaX: 16, sigmaY: 16),
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 22, vertical: 10),
-                          decoration: BoxDecoration(
-                            gradient: LinearGradient(
-                              begin: Alignment.topLeft,
-                              end: Alignment.bottomRight,
-                              colors: [
-                                Colors.white.withValues(alpha: 0.40),
-                                AppColors.cream.withValues(alpha: 0.18),
-                              ],
-                            ),
-                            borderRadius: BorderRadius.circular(30),
-                            border: Border.all(
-                              color: Colors.white.withValues(alpha: 0.70),
-                              width: 1.2,
-                            ),
-                            boxShadow: [
-                              BoxShadow(
-                                color: AppColors.navy.withValues(alpha: 0.12),
-                                blurRadius: 16,
-                                offset: const Offset(0, 6),
-                              ),
-                              BoxShadow(
-                                color: Colors.white.withValues(alpha: 0.50),
-                                blurRadius: 1,
-                                offset: const Offset(0, 1),
-                                spreadRadius: 0,
-                              ),
-                            ],
-                          ),
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Text(
-                                'SCROLL',
-                                style: GoogleFonts.plusJakartaSans(
-                                  fontSize: 11,
-                                  fontWeight: FontWeight.w800,
-                                  color: AppColors.navy,
-                                  letterSpacing: 2.0,
-                                ),
-                              ),
-                              const SizedBox(width: 6),
-                              const Icon(
-                                Icons.arrow_downward_rounded,
-                                size: 14,
-                                color: AppColors.navy,
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 28),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  // ==========================================
-  // GLOBAL 3D INTERACTIVE WORLD GLOBE & PREMIER HOSPITAL TRAUMA MESH
-  // Real premier hospitals: Mayo Clinic, Cleveland Clinic, Charité,
-  // Singapore General, AIIMS, Toronto General, Karolinska, Tokyo Univ, etc.
-  // ==========================================
-  Widget _buildGlobalWorldGlobeSection(BuildContext context) {
-    final bool isMobile = ResponsiveLayout.isMobile(context);
-    final tuning = DesignTuningController.instance;
-
-    return Container(
-      width: double.infinity,
-      decoration: const BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topCenter,
-          end: Alignment.bottomCenter,
-          colors: [
-            AppColors.cream,
-            Color(0xFFF0F8FE),
-            AppColors.cream,
-          ],
-        ),
-      ),
-      padding: EdgeInsets.symmetric(
-        horizontal: isMobile ? 18 : 56,
-        vertical: tuning.layoutSectionSpacing,
+        horizontal: isMobile ? 16 : 28,
+        vertical: 14,
       ),
       child: Center(
         child: Container(
-          constraints: BoxConstraints(maxWidth: tuning.layoutContentWidth),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.center,
+          constraints: const BoxConstraints(maxWidth: 1180),
+          height: 58,
+          padding: const EdgeInsets.symmetric(horizontal: 18),
+          decoration: BoxDecoration(
+            color: Colors.white.withValues(alpha: 0.94),
+            borderRadius: BorderRadius.circular(14),
+            border: Border.all(
+              color: AppColors.grey.withValues(alpha: 0.40),
+              width: 1.1,
+            ),
+            boxShadow: [
+              BoxShadow(
+                color: AppColors.nearBlack.withValues(alpha: 0.05),
+                blurRadius: 18,
+                offset: const Offset(0, 4),
+              ),
+              const BoxShadow(
+                color: Colors.white,
+                blurRadius: 1,
+                offset: Offset(0, 1),
+              ),
+            ],
+          ),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              // Global Header Badge
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 7),
-                decoration: BoxDecoration(
-                  color: AppColors.skyLight,
-                  borderRadius: BorderRadius.circular(30),
-                  border: Border.all(color: AppColors.sky),
-                ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Container(
-                      width: 8,
-                      height: 8,
-                      decoration: const BoxDecoration(
-                        color: AppColors.navy,
-                        shape: BoxShape.circle,
-                      ),
-                    ),
-                    const SizedBox(width: 8),
-                    Text(
-                      'GLOBAL TRAUMA TRANSIT NETWORK • REAL PREMIER HOSPITAL NODES',
-                      style: GoogleFonts.plusJakartaSans(
-                        fontSize: 11,
-                        fontWeight: FontWeight.w800,
-                        color: AppColors.navy,
-                        letterSpacing: 1.3,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 18),
-              Text(
-                'Worldwide Emergency Preemption Grid',
-                textAlign: TextAlign.center,
-                style: GoogleFonts.plusJakartaSans(
-                  fontSize: isMobile ? 28 : 44,
-                  fontWeight: FontWeight.w900,
-                  color: AppColors.navy,
-                  letterSpacing: -1.0,
-                ),
-              ),
-              const SizedBox(height: 14),
-              ConstrainedBox(
-                constraints: const BoxConstraints(maxWidth: 720),
-                child: Text(
-                  'Explore our live cyber-physical transit mesh interconnecting premier hospital trauma bays across North America, Europe, and Asia. Touch and drag the 3D globe to inspect active green wave locks.',
-                  textAlign: TextAlign.center,
-                  style: GoogleFonts.plusJakartaSans(
-                    fontSize: 15,
-                    color: AppColors.navyMuted,
-                    height: 1.55,
-                  ),
-                ),
-              ),
-              const SizedBox(height: 40),
-              // Visual Holographic Global Overview Card
-              Container(
-                width: double.infinity,
-                constraints: const BoxConstraints(maxHeight: 280),
-                decoration: BoxDecoration(
-                  color: AppColors.cream,
-                  borderRadius: BorderRadius.circular(24),
-                  border: Border.all(
-                    color: AppColors.sky,
-                    width: 1.5,
-                  ),
-                  boxShadow: [
-                    BoxShadow(
-                      color: AppColors.navy.withValues(alpha: 0.08),
-                      blurRadius: 36,
-                      offset: const Offset(0, 12),
-                    ),
-                  ],
-                ),
-                child: ClipRRect(
-                  borderRadius: BorderRadius.circular(24),
-                  child: Stack(
-                    fit: StackFit.expand,
+              // 1. Brand Identity
+              InkWell(
+                onTap: () {
+                  _scrollController.animateTo(
+                    0,
+                    duration: const Duration(milliseconds: 400),
+                    curve: Curves.easeOut,
+                  );
+                },
+                borderRadius: BorderRadius.circular(8),
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 4, horizontal: 2),
+                  child: Row(
                     children: [
-                      Image.asset(
-                        'assets/images/world_3d_globe.jpg',
-                        fit: BoxFit.cover,
-                      ),
                       Container(
+                        width: 32,
+                        height: 32,
                         decoration: BoxDecoration(
-                          gradient: LinearGradient(
-                            begin: Alignment.topCenter,
-                            end: Alignment.bottomCenter,
-                            colors: [
-                              Colors.transparent,
-                              AppColors.cream.withValues(alpha: 0.85),
+                          color: AppColors.orange.withValues(alpha: 0.12),
+                          borderRadius: BorderRadius.circular(8),
+                          border: Border.all(
+                            color: AppColors.orange.withValues(alpha: 0.45),
+                            width: 1.0,
+                          ),
+                        ),
+                        child: const Icon(
+                          Icons.emergency_share_rounded,
+                          color: AppColors.orange,
+                          size: 18,
+                        ),
+                      ),
+                      const SizedBox(width: 10),
+                      const Text(
+                        'GREEN CORRIDOR',
+                        style: TextStyle(
+                          fontFamily: 'NeueMontreal',
+                          fontSize: 14.5,
+                          fontWeight: FontWeight.w600,
+                          color: AppColors.nearBlack,
+                          letterSpacing: 0.8,
+                        ),
+                      ),
+                      if (!isMobile) ...[
+                        const SizedBox(width: 8),
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                          decoration: BoxDecoration(
+                            color: AppColors.greyLight,
+                            borderRadius: BorderRadius.circular(4),
+                          ),
+                          child: Row(
+                            children: [
+                              Container(
+                                width: 5,
+                                height: 5,
+                                decoration: const BoxDecoration(
+                                  color: AppColors.emerald,
+                                  shape: BoxShape.circle,
+                                ),
+                              ),
+                              const SizedBox(width: 4),
+                              const Text(
+                                'ACTIVE',
+                                style: TextStyle(
+                                  fontFamily: 'NeueMontreal',
+                                  fontSize: 9.5,
+                                  fontWeight: FontWeight.w500,
+                                  color: AppColors.nearBlackMuted,
+                                  letterSpacing: 0.4,
+                                ),
+                              ),
                             ],
                           ),
                         ),
-                      ),
-                      Positioned(
-                        left: 20,
-                        bottom: 16,
-                        child: Row(
-                          children: [
-                            Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-                              decoration: BoxDecoration(
-                                color: AppColors.cream,
-                                borderRadius: BorderRadius.circular(8),
-                                border: Border.all(color: AppColors.sky),
-                              ),
-                              child: Row(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  const Icon(Icons.public_rounded, color: AppColors.navy, size: 14),
-                                  const SizedBox(width: 6),
-                                  Text(
-                                    '10 Premier Trauma Centers Synchronized',
-                                    style: GoogleFonts.plusJakartaSans(
-                                      fontSize: 11,
-                                      fontWeight: FontWeight.w800,
-                                      color: AppColors.navy,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
+                      ],
                     ],
                   ),
                 ),
               ),
-              const SizedBox(height: 36),
-              InteractiveWorldGlobeWidget(
-                scrollController: _scrollController,
-                onOpenHospitalDashboard: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (_) => const HospitalDashboard()),
-                  );
-                },
-              ),
-              const SizedBox(height: 48),
-              ClipRRect(
-                borderRadius: BorderRadius.circular(24),
-                child: BackdropFilter(
-                  filter: ui.ImageFilter.blur(sigmaX: 18, sigmaY: 18),
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 22),
-                    decoration: BoxDecoration(
-                      gradient: LinearGradient(
-                        begin: Alignment.topLeft,
-                        end: Alignment.bottomRight,
-                        colors: [
-                          Colors.white.withValues(alpha: 0.65),
-                          AppColors.cream.withValues(alpha: 0.30),
-                        ],
-                      ),
-                      borderRadius: BorderRadius.circular(24),
-                      border: Border.all(color: Colors.white.withValues(alpha: 0.85), width: 1.4),
-                      boxShadow: [
-                        BoxShadow(
-                          color: AppColors.navy.withValues(alpha: 0.08),
-                          blurRadius: 24,
-                          offset: const Offset(0, 8),
-                        ),
-                        BoxShadow(
-                          color: Colors.white.withValues(alpha: 0.65),
-                          blurRadius: 1,
-                          offset: const Offset(0, 1),
-                          spreadRadius: 0,
-                        ),
-                      ],
+
+              // 2. Desktop Navigation Links (balanced spacing, no oversized pills)
+              if (!isMobile)
+                Row(
+                  children: [
+                    _buildNavItem(
+                      label: 'Overview',
+                      onTap: () {
+                        _scrollController.animateTo(
+                          0,
+                          duration: const Duration(milliseconds: 400),
+                          curve: Curves.easeOut,
+                        );
+                      },
                     ),
-                    child: Wrap(
-                      spacing: 32,
-                      runSpacing: 18,
-                      alignment: WrapAlignment.spaceAround,
-                      children: [
-                        _buildWorldKpi(
-                          title: 'GLOBAL LATENCY',
-                          subtitle: 'Edge MQTT synchronization',
-                          metric: '0.0',
-                          unit: 'ms',
-                          color: AppColors.navy,
-                        ),
-                        _buildWorldKpi(
-                          title: 'PREEMPTION COMPLIANCE',
-                          subtitle: 'Zero municipal red lights',
-                          metric: '99.98',
-                          unit: '%',
-                          color: AppColors.navy,
-                        ),
-                        _buildWorldKpi(
-                          title: 'GOLDEN HOUR PRESERVATION',
-                          subtitle: 'Door-to-balloon time saved',
-                          metric: '-18.4',
-                          unit: 'min',
-                          color: AppColors.navy,
-                        ),
-                        _buildWorldKpi(
-                          title: 'GLOBAL TRAUMA NODES',
-                          subtitle: 'Mayo, Charité, AIIMS, SGH...',
-                          metric: '10',
-                          unit: 'centers',
-                          color: AppColors.navy,
-                        ),
-                      ],
+                    _buildNavItem(
+                      label: 'How It Works',
+                      onTap: () => _scrollToSection(_howItWorksKey),
                     ),
-                  ),
+                    _buildNavItem(
+                      label: 'Interfaces',
+                      onTap: () => _scrollToSection(_portalsKey),
+                    ),
+                    _buildNavItem(
+                      label: 'Telemetry',
+                      onTap: () => _scrollToSection(_statsKey),
+                    ),
+                    _buildNavItem(
+                      label: 'Citizen Siren',
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(builder: (_) => const CitizenScreen()),
+                        );
+                      },
+                    ),
+                  ],
                 ),
+
+              // 3. Right Actions: Sign In + Hospital Portal CTA
+              Row(
+                children: [
+                  if (!isMobile) ...[
+                    TextButton(
+                      onPressed: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(builder: (_) => const LoginScreen()),
+                        );
+                      },
+                      style: TextButton.styleFrom(
+                        foregroundColor: AppColors.nearBlack,
+                        textStyle: const TextStyle(
+                          fontFamily: 'NeueMontreal',
+                          fontSize: 13.5,
+                          fontWeight: FontWeight.w500,
+                        ),
+                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                      ),
+                      child: const Text('Sign In'),
+                    ),
+                    const SizedBox(width: 8),
+                  ],
+                  TactileButton(
+                    onPressed: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (_) => const HospitalDashboard()),
+                      );
+                    },
+                    variant: TactileButtonVariant.primary,
+                    borderRadius: 10,
+                    padding: EdgeInsets.symmetric(
+                      horizontal: isMobile ? 12 : 18,
+                      vertical: 10,
+                    ),
+                    fontSize: 13,
+                    fontWeight: FontWeight.w600,
+                    icon: const Icon(Icons.local_hospital_rounded, size: 15, color: Colors.white),
+                    label: isMobile ? 'Hospital ER' : 'Hospital Portal',
+                  ),
+                  if (isMobile) ...[
+                    const SizedBox(width: 6),
+                    IconButton(
+                      icon: const Icon(Icons.menu_rounded, color: AppColors.nearBlack, size: 22),
+                      onPressed: () => _showMobileNavDrawer(context),
+                      tooltip: 'Menu',
+                    ),
+                  ],
+                ],
               ),
             ],
           ),
@@ -1375,62 +835,442 @@ class _WelcomeScreenState extends State<WelcomeScreen>
     );
   }
 
-  Widget _buildWorldKpi({
-    required String title,
-    required String subtitle,
-    required String metric,
-    required String unit,
-    required Color color,
-  }) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Text(
-          title,
-          style: GoogleFonts.plusJakartaSans(
-            fontSize: 10,
-            fontWeight: FontWeight.w800,
-            color: AppColors.navyMuted,
-            letterSpacing: 1.0,
+  Widget _buildNavItem({required String label, required VoidCallback onTap}) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(6),
+      hoverColor: AppColors.orange.withValues(alpha: 0.06),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+        child: Text(
+          label,
+          style: const TextStyle(
+            fontFamily: 'NeueMontreal',
+            fontSize: 13.5,
+            fontWeight: FontWeight.w500,
+            color: AppColors.nearBlack,
+            letterSpacing: -0.1,
           ),
         ),
-        const SizedBox(height: 4),
-        Row(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.baseline,
-          textBaseline: TextBaseline.alphabetic,
-          children: [
-            Text(
-              metric,
-              style: GoogleFonts.jetBrainsMono(
-                fontSize: 26,
-                fontWeight: FontWeight.w900,
-                color: color,
-              ),
+      ),
+    );
+  }
+
+  void _showMobileNavDrawer(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.white,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (ctx) {
+        return SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    const Text(
+                      'GREEN CORRIDOR',
+                      style: TextStyle(
+                        fontFamily: 'NeueMontreal',
+                        fontSize: 15,
+                        fontWeight: FontWeight.w600,
+                        color: AppColors.nearBlack,
+                        letterSpacing: 0.8,
+                      ),
+                    ),
+                    IconButton(
+                      icon: const Icon(Icons.close_rounded, size: 20),
+                      onPressed: () => Navigator.pop(ctx),
+                    ),
+                  ],
+                ),
+                const Divider(height: 20),
+                ListTile(
+                  leading: const Icon(Icons.home_outlined, color: AppColors.nearBlack),
+                  title: const Text('Overview', style: TextStyle(fontFamily: 'NeueMontreal', fontWeight: FontWeight.w500)),
+                  onTap: () {
+                    Navigator.pop(ctx);
+                    _scrollController.animateTo(0, duration: const Duration(milliseconds: 400), curve: Curves.easeOut);
+                  },
+                ),
+                ListTile(
+                  leading: const Icon(Icons.alt_route_outlined, color: AppColors.nearBlack),
+                  title: const Text('How It Works', style: TextStyle(fontFamily: 'NeueMontreal', fontWeight: FontWeight.w500)),
+                  onTap: () {
+                    Navigator.pop(ctx);
+                    _scrollToSection(_howItWorksKey);
+                  },
+                ),
+                ListTile(
+                  leading: const Icon(Icons.dashboard_outlined, color: AppColors.nearBlack),
+                  title: const Text('Specialized Interfaces', style: TextStyle(fontFamily: 'NeueMontreal', fontWeight: FontWeight.w500)),
+                  onTap: () {
+                    Navigator.pop(ctx);
+                    _scrollToSection(_portalsKey);
+                  },
+                ),
+                ListTile(
+                  leading: const Icon(Icons.insights_outlined, color: AppColors.nearBlack),
+                  title: const Text('Clinical Telemetry', style: TextStyle(fontFamily: 'NeueMontreal', fontWeight: FontWeight.w500)),
+                  onTap: () {
+                    Navigator.pop(ctx);
+                    _scrollToSection(_statsKey);
+                  },
+                ),
+                ListTile(
+                  leading: const Icon(Icons.cell_tower_rounded, color: AppColors.orange),
+                  title: const Text('Citizen Siren App', style: TextStyle(fontFamily: 'NeueMontreal', fontWeight: FontWeight.w500)),
+                  onTap: () {
+                    Navigator.pop(ctx);
+                    Navigator.push(context, MaterialPageRoute(builder: (_) => const CitizenScreen()));
+                  },
+                ),
+                const SizedBox(height: 12),
+                TactileButton(
+                  onPressed: () {
+                    Navigator.pop(ctx);
+                    Navigator.push(context, MaterialPageRoute(builder: (_) => const LoginScreen()));
+                  },
+                  variant: TactileButtonVariant.secondary,
+                  borderRadius: 10,
+                  label: 'Sign In to Portal',
+                ),
+              ],
             ),
-            const SizedBox(width: 4),
-            Text(
-              unit,
-              style: GoogleFonts.plusJakartaSans(
-                fontSize: 12,
-                fontWeight: FontWeight.w700,
-                color: AppColors.navyLight,
+          ),
+        );
+      },
+    );
+  }
+
+  // ==========================================
+  // ==========================================
+  // HERO SECTION: TWO-COLUMN ARCHITECTURE (LEFT CONTENT + RIGHT 3D CITY DIORAMA)
+  // WITH SIMULTANEOUS INDEPENDENT 3D CADUCEUS BACKGROUND SCULPTURE
+  // ==========================================
+  Widget _buildHeroSection(BuildContext context) {
+    final bool isMobile = ResponsiveLayout.isMobile(context);
+    final double screenWidth = MediaQuery.of(context).size.width;
+    final bool isDesktop = screenWidth >= 1060;
+
+    return Container(
+      width: double.infinity,
+      padding: EdgeInsets.only(
+        top: 0,
+        bottom: isMobile ? 32 : 56,
+      ),
+      child: SafeArea(
+        child: Column(
+          children: [
+            // Compact Premium Navigation
+            _buildTopNavigation(context),
+
+            SizedBox(height: isMobile ? 12 : 24),
+
+            // Foreground Two-Column Hero Architecture
+            Padding(
+              padding: EdgeInsets.symmetric(
+                horizontal: isMobile ? 20 : (screenWidth >= 1440 ? 64 : 40),
+              ),
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 1400),
+                child: isDesktop
+                    ? Row(
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        children: [
+                          // Left Column: 40% (Headline, Copy, CTAs, Feature Cards)
+                          Expanded(
+                            flex: 40,
+                            child: _buildHeroLeftContent(context, isMobile: false),
+                          ),
+                          const SizedBox(width: 32),
+                          // Right Column: 60% (Dominant, Large Interactive 3D Emergency City Diorama)
+                          // Visible immediately in the first viewport!
+                          Expanded(
+                            flex: 60,
+                            child: CityDiorama3D(
+                              height: 660,
+                              scrollProgress: _scrollProgress,
+                            ),
+                          ),
+                        ],
+                      )
+                    : Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          _buildHeroLeftContent(context, isMobile: true),
+                          const SizedBox(height: 24),
+                          CityDiorama3D(
+                            height: isMobile ? 380 : 460,
+                            scrollProgress: _scrollProgress,
+                          ),
+                        ],
+                      ),
               ),
             ),
           ],
         ),
-        Text(
-          subtitle,
-          style: GoogleFonts.plusJakartaSans(
-            fontSize: 11,
-            fontWeight: FontWeight.w500,
-            color: AppColors.navyMuted,
+      ),
+    );
+  }
+
+  Widget _buildHeroLeftContent(BuildContext context, {required bool isMobile}) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        // Operational Status Indicator Well
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6.0),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(
+              color: AppColors.grey.withValues(alpha: 0.35),
+              width: 1.0,
+            ),
+            boxShadow: [
+              BoxShadow(
+                color: AppColors.nearBlack.withValues(alpha: 0.02),
+                blurRadius: 6,
+                offset: const Offset(0, 1),
+              ),
+            ],
           ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                width: 6.5,
+                height: 6.5,
+                decoration: const BoxDecoration(
+                  color: AppColors.emerald,
+                  shape: BoxShape.circle,
+                ),
+              ),
+              const SizedBox(width: 8),
+              const Text(
+                'LIVE MEDICAL TRANSIT NETWORK // ARTERIAL CORRIDOR COORDINATION',
+                style: TextStyle(
+                  fontFamily: 'NeueMontreal',
+                  fontSize: 10,
+                  fontWeight: FontWeight.w600,
+                  color: AppColors.nearBlackMuted,
+                  letterSpacing: 0.6,
+                ),
+              ),
+            ],
+          ),
+        ),
+
+        const SizedBox(height: 18),
+
+        // Uppercase Eyebrow
+        const Text(
+          'SEAMLESS EMERGENCY COORDINATION',
+          textAlign: TextAlign.left,
+          style: TextStyle(
+            fontFamily: 'NeueMontreal',
+            fontSize: 12,
+            fontWeight: FontWeight.w700,
+            color: AppColors.orange,
+            letterSpacing: 1.8,
+          ),
+        ),
+
+        const SizedBox(height: 12),
+
+        // Main Headline in Neue Montreal Semibold (Left-aligned, ~2-3 lines on desktop)
+        Text(
+          'Connecting Lives.\nAcross Every Mile.',
+          textAlign: TextAlign.left,
+          style: TextStyle(
+            fontFamily: 'NeueMontreal',
+            fontSize: isMobile ? 32 : 44,
+            fontWeight: FontWeight.w600,
+            color: AppColors.nearBlack,
+            letterSpacing: -0.9,
+            height: 1.15,
+          ),
+        ),
+
+        const SizedBox(height: 16),
+
+        // Concise Supporting Description (Left-aligned)
+        ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 520),
+          child: Text(
+            'Coordinating critical medical transportation through a connected platform for hospitals, ambulances, and authorized participants.',
+            textAlign: TextAlign.left,
+            style: TextStyle(
+              fontFamily: 'NeueMontreal',
+              fontSize: isMobile ? 15 : 16,
+              fontWeight: FontWeight.w400,
+              color: AppColors.nearBlackMuted,
+              height: 1.55,
+            ),
+          ),
+        ),
+
+        const SizedBox(height: 28),
+
+        // Dual Tactile Calls to Action (Left-aligned)
+        Wrap(
+          spacing: 14,
+          runSpacing: 12,
+          alignment: WrapAlignment.start,
+          children: [
+            // Primary Action: Orange Tactile CTA
+            TactileButton(
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => const HospitalDashboard()),
+                );
+              },
+              variant: TactileButtonVariant.primary,
+              icon: const Icon(Icons.local_hospital_rounded, size: 16, color: Colors.white),
+              label: 'Get Started',
+              borderRadius: 10,
+              padding: EdgeInsets.symmetric(
+                horizontal: isMobile ? 24 : 30,
+                vertical: 15,
+              ),
+              fontSize: 14,
+              fontWeight: FontWeight.w600,
+            ),
+
+            // Secondary Action: Clean White Surface
+            TactileButton(
+              onPressed: () => _scrollToSection(_howItWorksKey),
+              variant: TactileButtonVariant.secondary,
+              icon: const Icon(Icons.radar_rounded, size: 16, color: AppColors.brown),
+              label: 'Explore Platform',
+              borderRadius: 10,
+              padding: EdgeInsets.symmetric(
+                horizontal: isMobile ? 22 : 26,
+                vertical: 15,
+              ),
+              fontSize: 14,
+              fontWeight: FontWeight.w500,
+            ),
+          ],
+        ),
+
+        const SizedBox(height: 32),
+
+        // Compact, Lightweight Metric Cards
+        Wrap(
+          spacing: 12,
+          runSpacing: 10,
+          alignment: WrapAlignment.start,
+          children: [
+            _buildMetricCard(
+              icon: Icons.alt_route_rounded,
+              iconColor: AppColors.orange,
+              value: _activeCorridorsCount > 0 ? '$_activeCorridorsCount Active' : 'Transit Grid Ready',
+              label: 'Emergency Corridors',
+            ),
+            _buildMetricCard(
+              icon: Icons.local_hospital_rounded,
+              iconColor: AppColors.brown,
+              value: _hospitalsCount > 0 ? '$_hospitalsCount Facilities' : 'Multi-Facility Link',
+              label: 'Connected Trauma Hubs',
+            ),
+            _buildMetricCard(
+              icon: Icons.timer_outlined,
+              iconColor: AppColors.nearBlack,
+              value: 'Golden Hour Priority',
+              label: 'Transit Protocol',
+            ),
+          ],
         ),
       ],
     );
   }
+
+  // Refined, visually lightweight metric card
+  Widget _buildMetricCard({
+    required IconData icon,
+    required Color iconColor,
+    required String value,
+    required String label,
+    bool isFullWidth = false,
+  }) {
+    return Container(
+      width: isFullWidth ? double.infinity : 220,
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+      decoration: BoxDecoration(
+        color: Colors.white.withValues(alpha: 0.94),
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(
+          color: AppColors.grey.withValues(alpha: 0.28),
+          width: 1.0,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: AppColors.nearBlack.withValues(alpha: 0.02),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          Container(
+            width: 32,
+            height: 32,
+            decoration: BoxDecoration(
+              color: iconColor.withValues(alpha: 0.10),
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: Icon(icon, size: 15, color: iconColor),
+          ),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  value,
+                  style: const TextStyle(
+                    fontFamily: 'NeueMontreal',
+                    fontSize: 13,
+                    fontWeight: FontWeight.w600,
+                    color: AppColors.nearBlack,
+                    letterSpacing: -0.2,
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+                const SizedBox(height: 1.5),
+                Text(
+                  label,
+                  style: const TextStyle(
+                    fontFamily: 'NeueMontreal',
+                    fontSize: 10.5,
+                    fontWeight: FontWeight.w400,
+                    color: AppColors.nearBlackMuted,
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
 
 
 
@@ -1446,17 +1286,7 @@ class _WelcomeScreenState extends State<WelcomeScreen>
 
     return Container(
       width: double.infinity,
-      decoration: const BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topCenter,
-          end: Alignment.bottomCenter,
-          colors: [
-            AppColors.cream,
-            Color(0xFFF4F9FD),
-            AppColors.cream,
-          ],
-        ),
-      ),
+      color: Colors.transparent, // Seamless continuation of unified canvas
       padding: EdgeInsets.symmetric(
         horizontal: isMobile ? 18 : 48,
         vertical: tuning.layoutSectionSpacing,
@@ -1469,127 +1299,116 @@ class _WelcomeScreenState extends State<WelcomeScreen>
             children: [
               // Ecosystem pill banner
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 7),
+                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
                 decoration: BoxDecoration(
-                  color: AppColors.skyLight,
-                  borderRadius: BorderRadius.circular(30),
-                  border: Border.all(color: AppColors.sky),
+                  color: AppColors.greyFaint,
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(
+                    color: AppColors.grey.withValues(alpha: 0.40),
+                    width: 1.0,
+                  ),
                 ),
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     Container(
-                      width: 8,
-                      height: 8,
+                      width: 7,
+                      height: 7,
                       decoration: const BoxDecoration(
-                        color: AppColors.navy,
+                        color: AppColors.orange,
                         shape: BoxShape.circle,
                       ),
                     ),
                     const SizedBox(width: 8),
-                    Text(
+                    const Text(
                       'THREE-TIER SYSTEM ARCHITECTURE',
-                      style: GoogleFonts.plusJakartaSans(
-                        fontSize: 11,
-                        fontWeight: FontWeight.w800,
-                        color: AppColors.navy,
-                        letterSpacing: 1.4,
+                      style: TextStyle(
+                        fontFamily: 'NeueMontreal',
+                        fontSize: 10.5,
+                        fontWeight: FontWeight.w600,
+                        color: AppColors.nearBlackMuted,
+                        letterSpacing: 1.0,
                       ),
                     ),
                   ],
                 ),
               ),
               const SizedBox(height: 16),
-              Text(
+              const Text(
                 'One Unified Mission.\nThree Specialized Interfaces.',
                 textAlign: TextAlign.center,
-                style: GoogleFonts.plusJakartaSans(
-                  fontSize: isMobile ? 28 : 42,
-                  fontWeight: FontWeight.w900,
-                  color: AppColors.navy,
-                  letterSpacing: -1.0,
+                style: TextStyle(
+                  fontFamily: 'NeueMontreal',
+                  fontSize: 36,
+                  fontWeight: FontWeight.w600,
+                  color: AppColors.nearBlack,
+                  letterSpacing: -0.6,
+                  height: 1.15,
                 ),
               ),
-              const SizedBox(height: 12),
+              const SizedBox(height: 14),
               ConstrainedBox(
                 constraints: const BoxConstraints(maxWidth: 720),
-                child: Text(
+                child: const Text(
                   'Hospital resuscitation teams operate through this dedicated desktop web command center, while ambulance drivers and everyday commuters interact via native mobile apps with real-time acoustic and visual alerts.',
                   textAlign: TextAlign.center,
-                  style: GoogleFonts.plusJakartaSans(
-                    fontSize: 15,
-                    color: AppColors.navyMuted,
+                  style: TextStyle(
+                    fontFamily: 'NeueMontreal',
+                    fontSize: 15.5,
+                    fontWeight: FontWeight.w400,
+                    color: AppColors.nearBlackMuted,
                     height: 1.55,
                   ),
                 ),
               ),
-              const SizedBox(height: 44),
+              const SizedBox(height: 36),
 
-              // THE GLASSMORPHISM TAB BAR!
+              // THE SKEUOMORPHIC TAB BAR
               Center(
-                child: ClipRRect(
-                  borderRadius: BorderRadius.circular(50),
-                  child: BackdropFilter(
-                    filter: ui.ImageFilter.blur(sigmaX: 16, sigmaY: 16),
-                    child: Container(
-                      padding: const EdgeInsets.all(6),
-                      decoration: BoxDecoration(
-                        gradient: LinearGradient(
-                          begin: Alignment.topLeft,
-                          end: Alignment.bottomRight,
-                          colors: [
-                            Colors.white.withValues(alpha: 0.55),
-                            AppColors.cream.withValues(alpha: 0.25),
-                          ],
-                        ),
-                        borderRadius: BorderRadius.circular(50),
-                        border: Border.all(
-                          color: Colors.white.withValues(alpha: 0.80),
-                          width: 1.4,
-                        ),
-                        boxShadow: [
-                          BoxShadow(
-                            color: AppColors.navy.withValues(alpha: 0.08),
-                            blurRadius: 20,
-                            offset: const Offset(0, 6),
-                          ),
-                          BoxShadow(
-                            color: Colors.white.withValues(alpha: 0.60),
-                            blurRadius: 1,
-                            offset: const Offset(0, 1),
-                            spreadRadius: 0,
-                          ),
-                        ],
-                      ),
-                      child: Wrap(
-                        spacing: 8,
-                        runSpacing: 8,
-                        alignment: WrapAlignment.center,
-                        children: [
-                          _buildGlassTabButton(
-                            index: 0,
-                            icon: Icons.local_hospital_rounded,
-                            label: isMobile ? 'Hospital (Web)' : 'Hospital Level-1 Trauma Web Console',
-                          ),
-                          _buildGlassTabButton(
-                            index: 1,
-                            icon: Icons.navigation_rounded,
-                            label: isMobile ? 'Driver (App)' : 'Ambulance Pilot Cockpit App',
-                          ),
-                          _buildGlassTabButton(
-                            index: 2,
-                            icon: Icons.cell_tower_rounded,
-                            label: isMobile ? 'Citizen (App)' : 'Citizen Siren Radar App',
-                          ),
-                        ],
-                      ),
+                child: Container(
+                  padding: const EdgeInsets.all(5),
+                  decoration: BoxDecoration(
+                    color: AppColors.greyFaint,
+                    borderRadius: BorderRadius.circular(14),
+                    border: Border.all(
+                      color: AppColors.grey.withValues(alpha: 0.40),
+                      width: 1.1,
                     ),
+                    boxShadow: [
+                      BoxShadow(
+                        color: AppColors.nearBlack.withValues(alpha: 0.04),
+                        blurRadius: 10,
+                        offset: const Offset(0, 2),
+                      ),
+                    ],
+                  ),
+                  child: Wrap(
+                    spacing: 6,
+                    runSpacing: 6,
+                    alignment: WrapAlignment.center,
+                    children: [
+                      _buildGlassTabButton(
+                        index: 0,
+                        icon: Icons.local_hospital_rounded,
+                        label: isMobile ? 'Hospital (Web)' : 'Hospital Level-1 Trauma Web Console',
+                      ),
+                      _buildGlassTabButton(
+                        index: 1,
+                        icon: Icons.navigation_rounded,
+                        label: isMobile ? 'Driver (App)' : 'Ambulance Pilot Cockpit App',
+                      ),
+                      _buildGlassTabButton(
+                        index: 2,
+                        icon: Icons.cell_tower_rounded,
+                        label: isMobile ? 'Citizen (App)' : 'Citizen Siren Radar App',
+                      ),
+                    ],
                   ),
                 ),
               ),
-              const SizedBox(height: 40),
+              const SizedBox(height: 36),
 
-              // DYNAMIC GLASSMORPHIC SHOWCASE CARD FOR THE ACTIVE TAB
+              // DYNAMIC SKEUOMORPHIC SHOWCASE CARD FOR THE ACTIVE TAB
               _buildActiveTabGlassmorphismCard(context, isMobile),
             ],
           ),
@@ -1611,20 +1430,20 @@ class _WelcomeScreenState extends State<WelcomeScreen>
           _selectedEcosystemTab = index;
         });
       },
-      borderRadius: BorderRadius.circular(50),
+      borderRadius: BorderRadius.circular(10),
       child: AnimatedContainer(
-        duration: const Duration(milliseconds: 250),
+        duration: const Duration(milliseconds: 200),
         curve: Curves.easeOut,
-        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+        padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 10),
         decoration: BoxDecoration(
-          color: isSelected ? AppColors.navy : Colors.transparent,
-          borderRadius: BorderRadius.circular(50),
+          color: isSelected ? AppColors.nearBlack : Colors.transparent,
+          borderRadius: BorderRadius.circular(10),
           boxShadow: isSelected
               ? [
                   BoxShadow(
-                    color: AppColors.navy.withValues(alpha: 0.25),
-                    blurRadius: 14,
-                    offset: const Offset(0, 4),
+                    color: AppColors.nearBlack.withValues(alpha: 0.16),
+                    blurRadius: 8,
+                    offset: const Offset(0, 3),
                   ),
                 ]
               : null,
@@ -1634,16 +1453,17 @@ class _WelcomeScreenState extends State<WelcomeScreen>
           children: [
             Icon(
               icon,
-              size: 17,
-              color: isSelected ? AppColors.sky : AppColors.navyMuted,
+              size: 16,
+              color: isSelected ? AppColors.orange : AppColors.nearBlackMuted,
             ),
             const SizedBox(width: 8),
             Text(
               label,
-              style: GoogleFonts.plusJakartaSans(
+              style: TextStyle(
+                fontFamily: 'NeueMontreal',
                 fontSize: 13,
-                fontWeight: isSelected ? FontWeight.w800 : FontWeight.w600,
-                color: isSelected ? AppColors.cream : AppColors.navy,
+                fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
+                color: isSelected ? Colors.white : AppColors.nearBlack,
               ),
             ),
           ],
@@ -1742,43 +1562,13 @@ class _WelcomeScreenState extends State<WelcomeScreen>
     required VoidCallback onPressed,
     required Widget previewWidget,
   }) {
-    final tuning = DesignTuningController.instance;
-
-    return ClipRRect(
-      borderRadius: BorderRadius.circular(tuning.glassCornerRadius),
-      child: BackdropFilter(
-        filter: ui.ImageFilter.blur(sigmaX: tuning.glassBlur, sigmaY: tuning.glassBlur),
-        child: Container(
-          padding: EdgeInsets.all(isMobile ? 22 : 36),
-          decoration: BoxDecoration(
-            gradient: LinearGradient(
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-              colors: [
-                Colors.white.withValues(alpha: (tuning.glassSurfaceOpacity * 1.5).clamp(0.18, 0.70)),
-                AppColors.cream.withValues(alpha: (tuning.glassSurfaceOpacity * 0.8).clamp(0.10, 0.45)),
-              ],
-            ),
-            borderRadius: BorderRadius.circular(tuning.glassCornerRadius),
-            border: Border.all(
-              color: Colors.white.withValues(alpha: tuning.glassBorderOpacity),
-              width: 1.4 * tuning.tileHighlightIntensity,
-            ),
-            boxShadow: [
-              BoxShadow(
-                color: AppColors.navy.withValues(alpha: tuning.glassShadowOpacity * 1.5),
-                blurRadius: tuning.glassShadowBlur,
-                offset: Offset(0, tuning.tileShadowOffset * 1.5),
-              ),
-              BoxShadow(
-                color: Colors.white.withValues(alpha: (tuning.glassBorderOpacity * 0.85).clamp(0.2, 0.85)),
-                blurRadius: 1,
-                offset: const Offset(0, 1),
-                spreadRadius: 0,
-              ),
-            ],
-          ),
-          child: Flex(
+    return Container(
+      padding: EdgeInsets.all(isMobile ? 22 : 36),
+      decoration: AppDecorations.skeuomorphicRaised(
+        surfaceColor: Colors.white,
+        radius: 28,
+      ),
+      child: Flex(
             direction: isMobile ? Axis.vertical : Axis.horizontal,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -1789,18 +1579,14 @@ class _WelcomeScreenState extends State<WelcomeScreen>
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
-                      decoration: BoxDecoration(
-                        color: AppColors.skyLight,
-                        borderRadius: BorderRadius.circular(20),
-                        border: Border.all(color: AppColors.sky),
-                      ),
+                      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+                      decoration: AppDecorations.skeuomorphicInset(radius: 20),
                       child: Text(
                         badgeText,
-                        style: GoogleFonts.plusJakartaSans(
-                          fontSize: 10,
+                        style: AppFonts.neueMontreal(
+                          fontSize: 10.5,
                           fontWeight: FontWeight.w800,
-                          color: AppColors.navy,
+                          color: AppColors.deepViolet,
                           letterSpacing: 0.8,
                         ),
                       ),
@@ -1808,24 +1594,26 @@ class _WelcomeScreenState extends State<WelcomeScreen>
                     const SizedBox(height: 16),
                     Text(
                       title,
-                      style: GoogleFonts.plusJakartaSans(
-                        fontSize: isMobile ? 22 : 28,
+                      style: const TextStyle(
+                        fontFamily: 'NeueMontreal',
+                        fontSize: 26,
                         fontWeight: FontWeight.w900,
-                        color: AppColors.navy,
-                        letterSpacing: -0.5,
+                        color: AppColors.deepViolet,
+                        letterSpacing: -0.6,
                       ),
                     ),
                     const SizedBox(height: 12),
                     Text(
                       subtitle,
-                      style: GoogleFonts.plusJakartaSans(
+                      style: TextStyle(
+                        fontFamily: 'NeueMontreal',
                         fontSize: 14,
-                        color: AppColors.navyMuted,
+                        color: AppColors.deepViolet.withValues(alpha: 0.82),
                         height: 1.55,
                       ),
                     ),
                     const SizedBox(height: 24),
-                    Divider(color: AppColors.sky.withValues(alpha: 0.4), height: 1),
+                    Divider(color: AppColors.warmPeach.withValues(alpha: 0.6), height: 1),
                     const SizedBox(height: 20),
                     Column(
                       children: features.map((feat) {
@@ -1833,19 +1621,24 @@ class _WelcomeScreenState extends State<WelcomeScreen>
                           padding: const EdgeInsets.only(bottom: 12),
                           child: Row(
                             children: [
-                              const Icon(
-                                Icons.check_circle_rounded,
-                                color: AppColors.navy,
-                                size: 18,
+                              Container(
+                                padding: const EdgeInsets.all(4),
+                                decoration: AppDecorations.iconMedallion(radius: 8),
+                                child: const Icon(
+                                  Icons.check_rounded,
+                                  color: AppColors.deepViolet,
+                                  size: 14,
+                                ),
                               ),
                               const SizedBox(width: 10),
                               Expanded(
                                 child: Text(
                                   feat,
-                                  style: GoogleFonts.plusJakartaSans(
+                                  style: TextStyle(
+                                    fontFamily: 'NeueMontreal',
                                     fontSize: 14,
                                     fontWeight: FontWeight.w600,
-                                    color: AppColors.navy,
+                                    color: AppColors.deepViolet,
                                   ),
                                 ),
                               ),
@@ -1855,9 +1648,9 @@ class _WelcomeScreenState extends State<WelcomeScreen>
                       }).toList(),
                     ),
                     const SizedBox(height: 28),
-                    GlassButton(
+                    TactileButton(
                       onPressed: onPressed,
-                      variant: GlassButtonVariant.primary,
+                      variant: TactileButtonVariant.primary,
                       borderRadius: 50,
                       padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 16),
                       fontSize: 14,
@@ -1878,8 +1671,6 @@ class _WelcomeScreenState extends State<WelcomeScreen>
               ),
             ],
           ),
-        ),
-      ),
     );
   }
 
@@ -1919,7 +1710,7 @@ class _WelcomeScreenState extends State<WelcomeScreen>
                   const SizedBox(width: 8),
                   Text(
                     'LIVE CLINICAL TELEMETRY',
-                    style: GoogleFonts.plusJakartaSans(
+                    style: AppFonts.neueMontreal(
                       fontSize: 11,
                       fontWeight: FontWeight.w800,
                       color: AppColors.primaryLight,
@@ -1948,7 +1739,7 @@ class _WelcomeScreenState extends State<WelcomeScreen>
           const SizedBox(height: 16),
           Text(
             'Patient 1 • STEMI Code Red',
-            style: GoogleFonts.plusJakartaSans(
+            style: AppFonts.neueMontreal(
               fontSize: 15,
               fontWeight: FontWeight.w800,
               color: Colors.white,
@@ -2011,13 +1802,13 @@ class _WelcomeScreenState extends State<WelcomeScreen>
                     const SizedBox(width: 6),
                     Text(
                       'Trauma Bay 1:',
-                      style: GoogleFonts.plusJakartaSans(fontSize: 12, color: Colors.white),
+                      style: AppFonts.neueMontreal(fontSize: 12, color: Colors.white),
                     ),
                   ],
                 ),
                 Text(
                   'RESERVED & STERILE',
-                  style: GoogleFonts.plusJakartaSans(
+                  style: AppFonts.neueMontreal(
                     fontSize: 11,
                     fontWeight: FontWeight.w800,
                     color: AppColors.emerald,
@@ -2051,7 +1842,7 @@ class _WelcomeScreenState extends State<WelcomeScreen>
                   const SizedBox(width: 8),
                   Text(
                     'IN-CABIN PREEMPTION HUD',
-                    style: GoogleFonts.plusJakartaSans(
+                    style: AppFonts.neueMontreal(
                       fontSize: 11,
                       fontWeight: FontWeight.w800,
                       color: AppColors.emeraldLight,
@@ -2073,7 +1864,7 @@ class _WelcomeScreenState extends State<WelcomeScreen>
           const SizedBox(height: 16),
           Text(
             'Arterial Corridor 4 • West Sector',
-            style: GoogleFonts.plusJakartaSans(
+            style: AppFonts.neueMontreal(
               fontSize: 15,
               fontWeight: FontWeight.w800,
               color: Colors.white,
@@ -2081,7 +1872,7 @@ class _WelcomeScreenState extends State<WelcomeScreen>
           ),
           Text(
             '3 Intersections Automatically Overridden',
-            style: GoogleFonts.plusJakartaSans(
+            style: AppFonts.neueMontreal(
               fontSize: 12,
               color: AppColors.emerald,
               fontWeight: FontWeight.w600,
@@ -2104,7 +1895,7 @@ class _WelcomeScreenState extends State<WelcomeScreen>
                   children: [
                     Text(
                       'NEXT: SIGNAL 14B (MAIN CHOWK)',
-                      style: GoogleFonts.plusJakartaSans(
+                      style: AppFonts.neueMontreal(
                         fontSize: 11,
                         fontWeight: FontWeight.w800,
                         color: Colors.white,
@@ -2148,7 +1939,7 @@ class _WelcomeScreenState extends State<WelcomeScreen>
                   const SizedBox(width: 8),
                   Text(
                     'ACOUSTIC SIREN RADAR',
-                    style: GoogleFonts.plusJakartaSans(
+                    style: AppFonts.neueMontreal(
                       fontSize: 11,
                       fontWeight: FontWeight.w800,
                       color: AppColors.infoLight,
@@ -2177,7 +1968,7 @@ class _WelcomeScreenState extends State<WelcomeScreen>
           const SizedBox(height: 16),
           Text(
             'Emergency Vehicle Approaching',
-            style: GoogleFonts.plusJakartaSans(
+            style: AppFonts.neueMontreal(
               fontSize: 15,
               fontWeight: FontWeight.w800,
               color: Colors.white,
@@ -2208,7 +1999,7 @@ class _WelcomeScreenState extends State<WelcomeScreen>
                   children: [
                     Text(
                       'ACTION: YIELD RIGHT LANE SAFELY',
-                      style: GoogleFonts.plusJakartaSans(
+                      style: AppFonts.neueMontreal(
                         fontSize: 11,
                         fontWeight: FontWeight.w800,
                         color: Colors.white,
@@ -2216,7 +2007,7 @@ class _WelcomeScreenState extends State<WelcomeScreen>
                     ),
                     Text(
                       'Civic Karma: +50 Points upon clearance',
-                      style: GoogleFonts.plusJakartaSans(
+                      style: AppFonts.neueMontreal(
                         fontSize: 11,
                         color: AppColors.infoLight,
                       ),
@@ -2248,7 +2039,7 @@ class _WelcomeScreenState extends State<WelcomeScreen>
         children: [
           Text(
             title,
-            style: GoogleFonts.plusJakartaSans(
+            style: AppFonts.neueMontreal(
               fontSize: 8.5,
               fontWeight: FontWeight.w700,
               color: AppColors.slate400,
@@ -2265,7 +2056,7 @@ class _WelcomeScreenState extends State<WelcomeScreen>
           ),
           Text(
             unit,
-            style: GoogleFonts.plusJakartaSans(
+            style: AppFonts.neueMontreal(
               fontSize: 8.5,
               color: AppColors.slate400,
               fontWeight: FontWeight.w600,
@@ -2290,7 +2081,7 @@ class _WelcomeScreenState extends State<WelcomeScreen>
         'desc':
             'Citizen initiates SOS via radar or hospital ER alerts dynamic dispatch. Nearest optimized ambulance is deployed instantly.',
         'icon': Icons.notifications_active_rounded,
-        'color': AppColors.navy,
+        'color': AppColors.orange,
       },
       {
         'num': '02',
@@ -2298,7 +2089,7 @@ class _WelcomeScreenState extends State<WelcomeScreen>
         'desc':
             'Smart cloud calculates optimal route and synchronizes with municipal traffic light controllers to establish green corridor.',
         'icon': Icons.alt_route_rounded,
-        'color': AppColors.navy,
+        'color': AppColors.orange,
       },
       {
         'num': '03',
@@ -2306,7 +2097,7 @@ class _WelcomeScreenState extends State<WelcomeScreen>
         'desc':
             'Commuters in the ambulance route receive geo-fenced siren warnings, guiding lanes clear before vehicle arrival.',
         'icon': Icons.broadcast_on_personal_rounded,
-        'color': AppColors.navy,
+        'color': AppColors.brown,
       },
       {
         'num': '04',
@@ -2314,23 +2105,13 @@ class _WelcomeScreenState extends State<WelcomeScreen>
         'desc':
             'Ambulance pulls directly into reserved trauma bay with zero pre-admission delay and ER medical teams fully briefed.',
         'icon': Icons.local_hospital_rounded,
-        'color': AppColors.navy,
+        'color': AppColors.nearBlack,
       },
     ];
 
     return Container(
       width: double.infinity,
-      decoration: const BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topCenter,
-          end: Alignment.bottomCenter,
-          colors: [
-            AppColors.cream,
-            Color(0xFFF0F8FE),
-            AppColors.cream,
-          ],
-        ),
-      ),
+      color: Colors.transparent, // Seamless continuation of unified canvas and background 3D sculpture
       padding: EdgeInsets.symmetric(
         horizontal: isMobile ? 20 : 64,
         vertical: tuning.layoutSectionSpacing,
@@ -2340,13 +2121,16 @@ class _WelcomeScreenState extends State<WelcomeScreen>
           constraints: BoxConstraints(maxWidth: tuning.layoutContentWidth),
           child: Column(
             children: [
-              // Glowing pill badge
+              // Clean brand status badge
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 7),
                 decoration: BoxDecoration(
-                  color: AppColors.skyLight,
+                  color: AppColors.greyFaint,
                   borderRadius: BorderRadius.circular(30),
-                  border: Border.all(color: AppColors.sky),
+                  border: Border.all(
+                    color: AppColors.grey.withValues(alpha: 0.40),
+                    width: 1.0,
+                  ),
                 ),
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
@@ -2355,17 +2139,18 @@ class _WelcomeScreenState extends State<WelcomeScreen>
                       width: 8,
                       height: 8,
                       decoration: const BoxDecoration(
-                        color: AppColors.navy,
+                        color: AppColors.orange,
                         shape: BoxShape.circle,
                       ),
                     ),
                     const SizedBox(width: 8),
-                    Text(
+                    const Text(
                       'SEAMLESS AUTONOMOUS PIPELINE',
-                      style: GoogleFonts.plusJakartaSans(
+                      style: TextStyle(
+                        fontFamily: 'NeueMontreal',
                         fontSize: 11,
-                        fontWeight: FontWeight.w800,
-                        color: AppColors.navy,
+                        fontWeight: FontWeight.w700,
+                        color: AppColors.nearBlack,
                         letterSpacing: 1.4,
                       ),
                     ),
@@ -2373,69 +2158,52 @@ class _WelcomeScreenState extends State<WelcomeScreen>
                 ),
               ),
               const SizedBox(height: 16),
-              Text(
+              const Text(
                 'How the Green Corridor Operates',
                 textAlign: TextAlign.center,
-                style: GoogleFonts.plusJakartaSans(
-                  fontSize: isMobile ? 28 : 42,
-                  fontWeight: FontWeight.w900,
-                  color: AppColors.navy,
-                  letterSpacing: -1.0,
+                style: TextStyle(
+                  fontFamily: 'NeueMontreal',
+                  fontSize: 38,
+                  fontWeight: FontWeight.w700,
+                  color: AppColors.nearBlack,
+                  letterSpacing: -0.8,
                 ),
               ),
               const SizedBox(height: 14),
               ConstrainedBox(
                 constraints: const BoxConstraints(maxWidth: 680),
-                child: Text(
+                child: const Text(
                   'A cyber-physical AI pipeline synchronizing emergency vehicles, municipal signals, and civilian motorists with zero latency.',
                   textAlign: TextAlign.center,
-                  style: GoogleFonts.plusJakartaSans(
-                    fontSize: 15,
-                    color: AppColors.navyMuted,
+                  style: TextStyle(
+                    fontFamily: 'NeueMontreal',
+                    fontSize: 15.5,
+                    color: AppColors.nearBlackMuted,
                     height: 1.55,
                   ),
                 ),
               ),
-              const SizedBox(height: 52),
+              const SizedBox(height: 48),
 
               // LIVE SATELLITE RADAR SIMULATION HERO
-              ClipRRect(
-                borderRadius: BorderRadius.circular(28),
-                child: BackdropFilter(
-                  filter: ui.ImageFilter.blur(sigmaX: 20, sigmaY: 20),
-                  child: Container(
-                    constraints: const BoxConstraints(maxWidth: 1040),
-                    decoration: BoxDecoration(
-                      gradient: LinearGradient(
-                        begin: Alignment.topLeft,
-                        end: Alignment.bottomRight,
-                        colors: [
-                          Colors.white.withValues(alpha: 0.65),
-                          AppColors.cream.withValues(alpha: 0.30),
-                        ],
-                      ),
-                      borderRadius: BorderRadius.circular(28),
-                      border: Border.all(
-                        color: Colors.white.withValues(alpha: 0.85),
-                        width: 1.5,
-                      ),
-                      boxShadow: [
-                        BoxShadow(
-                          color: AppColors.navy.withValues(alpha: 0.10),
-                          blurRadius: 40,
-                          offset: const Offset(0, 16),
-                        ),
-                        BoxShadow(
-                          color: Colors.white.withValues(alpha: 0.65),
-                          blurRadius: 1,
-                          offset: const Offset(0, 1),
-                          spreadRadius: 0,
-                        ),
-                      ],
-                    ),
-                    child: const GreenCorridorSimulationHero(),
+              Container(
+                constraints: const BoxConstraints(maxWidth: 1040),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(24),
+                  border: Border.all(
+                    color: AppColors.grey.withValues(alpha: 0.35),
+                    width: 1.2,
                   ),
+                  boxShadow: [
+                    BoxShadow(
+                      color: AppColors.nearBlack.withValues(alpha: 0.05),
+                      blurRadius: 28,
+                      offset: const Offset(0, 10),
+                    ),
+                  ],
                 ),
+                child: const GreenCorridorSimulationHero(),
               ),
 
               const SizedBox(height: 60),
@@ -2483,7 +2251,7 @@ class _WelcomeScreenState extends State<WelcomeScreen>
   }
 
   // ==========================================
-  // TELEMETRY & STATS SECTION
+  // TELEMETRY & STATS SECTION (DELIBERATE DEEP VIOLET FEATURE SECTION)
   // ==========================================
   Widget _buildTelemetryStatsSection(BuildContext context) {
     final bool isMobile = ResponsiveLayout.isMobile(context);
@@ -2491,17 +2259,7 @@ class _WelcomeScreenState extends State<WelcomeScreen>
 
     return Container(
       width: double.infinity,
-      decoration: const BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topCenter,
-          end: Alignment.bottomCenter,
-          colors: [
-            AppColors.cream,
-            Color(0xFFF0F8FE),
-            AppColors.cream,
-          ],
-        ),
-      ),
+      color: AppColors.deepViolet, // Deliberate Deep Violet Feature Section
       padding: EdgeInsets.symmetric(
         horizontal: isMobile ? 20 : 64,
         vertical: tuning.layoutSectionSpacing,
@@ -2511,10 +2269,10 @@ class _WelcomeScreenState extends State<WelcomeScreen>
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
             decoration: BoxDecoration(
-              color: AppColors.skyLight,
+              color: AppColors.deepVioletLight,
               borderRadius: BorderRadius.circular(20),
               border: Border.all(
-                color: AppColors.sky,
+                color: AppColors.warmPeach.withValues(alpha: 0.45),
                 width: 1.1,
               ),
             ),
@@ -2525,17 +2283,17 @@ class _WelcomeScreenState extends State<WelcomeScreen>
                   width: 7,
                   height: 7,
                   decoration: const BoxDecoration(
-                    color: AppColors.navy,
+                    color: AppColors.warmPeach,
                     shape: BoxShape.circle,
                   ),
                 ),
                 const SizedBox(width: 8),
                 Text(
                   'MEASURABLE CLINICAL IMPACT',
-                  style: GoogleFonts.plusJakartaSans(
+                  style: AppFonts.neueMontreal(
                     fontSize: 11,
                     fontWeight: FontWeight.w800,
-                    color: AppColors.navy,
+                    color: AppColors.softIvory,
                     letterSpacing: 1.2,
                   ),
                 ),
@@ -2546,10 +2304,11 @@ class _WelcomeScreenState extends State<WelcomeScreen>
           Text(
             'Engineered for Golden Hour Preservation',
             textAlign: TextAlign.center,
-            style: GoogleFonts.plusJakartaSans(
-              fontSize: isMobile ? 28 : 38,
+            style: const TextStyle(
+              fontFamily: 'NeueMontreal',
+              fontSize: 38,
               fontWeight: FontWeight.w900,
-              color: AppColors.navy,
+              color: AppColors.softIvory,
               letterSpacing: -0.8,
             ),
           ),
@@ -2559,9 +2318,10 @@ class _WelcomeScreenState extends State<WelcomeScreen>
             child: Text(
               'Real-time urban transit metrics verified across municipal emergency deployments.',
               textAlign: TextAlign.center,
-              style: GoogleFonts.plusJakartaSans(
-                fontSize: 14,
-                color: AppColors.navyMuted,
+              style: TextStyle(
+                fontFamily: 'NeueMontreal',
+                fontSize: 15,
+                color: AppColors.softIvory.withValues(alpha: 0.85),
                 height: 1.5,
               ),
             ),
@@ -2573,10 +2333,10 @@ class _WelcomeScreenState extends State<WelcomeScreen>
             runSpacing: 24,
             alignment: WrapAlignment.center,
             children: [
-              _buildStatCard('48%', 'Faster Response Time', 'Average reduction in urban transit delay', AppColors.navy),
-              _buildStatCard('0.0s', 'Cloud Signal Latency', 'Sub-second edge MQTT synchronization', AppColors.navy),
-              _buildStatCard('100%', 'Green Wave Clearance', 'Automated traffic intersection preemptions', AppColors.navy),
-              _buildStatCard('24/7', 'Autonomous Availability', 'Redundant fail-over cloud architecture', AppColors.navy),
+              _buildStatCard('48%', 'Faster Response Time', 'Average reduction in urban transit delay', AppColors.warmPeach),
+              _buildStatCard('0.0s', 'Cloud Signal Latency', 'Sub-second edge MQTT synchronization', AppColors.warmPeach),
+              _buildStatCard('100%', 'Green Wave Clearance', 'Automated traffic intersection preemptions', AppColors.warmPeach),
+              _buildStatCard('24/7', 'Autonomous Availability', 'Redundant fail-over cloud architecture', AppColors.warmPeach),
             ],
           ),
         ],
@@ -2585,75 +2345,48 @@ class _WelcomeScreenState extends State<WelcomeScreen>
   }
 
   Widget _buildStatCard(String value, String title, String subtitle, Color metricColor) {
-    return ClipRRect(
-      borderRadius: BorderRadius.circular(20),
-      child: BackdropFilter(
-        filter: ui.ImageFilter.blur(sigmaX: 18, sigmaY: 18),
-        child: Container(
-          width: 260,
-          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 32),
-          decoration: BoxDecoration(
-            gradient: LinearGradient(
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-              colors: [
-                Colors.white.withValues(alpha: 0.65),
-                AppColors.cream.withValues(alpha: 0.30),
-              ],
+    return Container(
+      width: 260,
+      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 32),
+      decoration: AppDecorations.skeuomorphicRaised(
+        isDarkSurface: true,
+        radius: 20,
+      ),
+      child: Column(
+        children: [
+          Text(
+            value,
+            style: const TextStyle(
+              fontFamily: 'NeueMontreal',
+              fontSize: 44,
+              fontWeight: FontWeight.w900,
+              color: AppColors.warmPeach,
+              letterSpacing: -1.5,
             ),
-            borderRadius: BorderRadius.circular(20),
-            border: Border.all(
-              color: Colors.white.withValues(alpha: 0.85),
-              width: 1.4,
+          ),
+          const SizedBox(height: 8),
+          Text(
+            title,
+            textAlign: TextAlign.center,
+            style: const TextStyle(
+              fontFamily: 'NeueMontreal',
+              fontSize: 15,
+              fontWeight: FontWeight.w800,
+              color: AppColors.softIvory,
             ),
-            boxShadow: [
-              BoxShadow(
-                color: AppColors.navy.withValues(alpha: 0.08),
-                blurRadius: 24,
-                offset: const Offset(0, 8),
-              ),
-              BoxShadow(
-                color: Colors.white.withValues(alpha: 0.65),
-                blurRadius: 1,
-                offset: const Offset(0, 1),
-                spreadRadius: 0,
-              ),
-            ],
           ),
-          child: Column(
-            children: [
-              Text(
-                value,
-                style: GoogleFonts.plusJakartaSans(
-                  fontSize: 44,
-                  fontWeight: FontWeight.w900,
-                  color: AppColors.navy,
-                  letterSpacing: -1.5,
-                ),
-              ),
-              const SizedBox(height: 8),
-              Text(
-                title,
-                textAlign: TextAlign.center,
-                style: GoogleFonts.plusJakartaSans(
-                  fontSize: 15,
-                  fontWeight: FontWeight.w800,
-                  color: AppColors.navy,
-                ),
-              ),
-              const SizedBox(height: 6),
-              Text(
-                subtitle,
-                textAlign: TextAlign.center,
-                style: GoogleFonts.plusJakartaSans(
-                  fontSize: 12,
-                  color: AppColors.navyMuted,
-                  height: 1.4,
-                ),
-              ),
-            ],
+          const SizedBox(height: 6),
+          Text(
+            subtitle,
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              fontFamily: 'NeueMontreal',
+              fontSize: 12,
+              color: AppColors.softIvory.withValues(alpha: 0.75),
+              height: 1.4,
+            ),
           ),
-        ),
+        ],
       ),
     );
   }
@@ -2678,17 +2411,7 @@ class _WelcomeScreenState extends State<WelcomeScreen>
 
     return Container(
       width: double.infinity,
-      decoration: const BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topCenter,
-          end: Alignment.bottomCenter,
-          colors: [
-            AppColors.cream,
-            Color(0xFFF4F9FD),
-            AppColors.cream,
-          ],
-        ),
-      ),
+      color: Colors.transparent, // Seamless continuation of unified canvas
       padding: EdgeInsets.symmetric(
         horizontal: isMobile ? 20 : 64,
         vertical: tuning.layoutSectionSpacing,
@@ -2707,20 +2430,13 @@ class _WelcomeScreenState extends State<WelcomeScreen>
                   children: [
                     Container(
                       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
-                      decoration: BoxDecoration(
-                        color: AppColors.skyLight,
-                        borderRadius: BorderRadius.circular(20),
-                        border: Border.all(
-                          color: AppColors.sky,
-                          width: 1.1,
-                        ),
-                      ),
+                      decoration: AppDecorations.skeuomorphicInset(radius: 20),
                       child: Text(
                         'MISSION RELIABILITY',
-                        style: GoogleFonts.plusJakartaSans(
+                        style: AppFonts.neueMontreal(
                           fontSize: 11,
                           fontWeight: FontWeight.w800,
-                          color: AppColors.navy,
+                          color: AppColors.deepViolet,
                           letterSpacing: 1.2,
                         ),
                       ),
@@ -2728,10 +2444,11 @@ class _WelcomeScreenState extends State<WelcomeScreen>
                     const SizedBox(height: 16),
                     Text(
                       'Why Municipalities & Healthcare Systems Adopt Green Corridor',
-                      style: GoogleFonts.plusJakartaSans(
-                        fontSize: isMobile ? 26 : 34,
+                      style: const TextStyle(
+                        fontFamily: 'NeueMontreal',
+                        fontSize: 32,
                         fontWeight: FontWeight.w900,
-                        color: AppColors.navy,
+                        color: AppColors.deepViolet,
                         letterSpacing: -0.8,
                         height: 1.2,
                       ),
@@ -2739,23 +2456,24 @@ class _WelcomeScreenState extends State<WelcomeScreen>
                     const SizedBox(height: 16),
                     Text(
                       'Traditional emergency services operate in silos—ambulances fight traffic manually while emergency rooms scramble with zero advance notice. Green Corridor synthesizes every link into an automated live grid.',
-                      style: GoogleFonts.plusJakartaSans(
+                      style: TextStyle(
+                        fontFamily: 'NeueMontreal',
                         fontSize: 15,
-                        color: AppColors.navyMuted,
+                        color: AppColors.deepViolet.withValues(alpha: 0.82),
                         height: 1.6,
                       ),
                     ),
                     const SizedBox(height: 32),
-                    GlassButton(
+                    TactileButton(
                       onPressed: () {
                         Navigator.push(
                           context,
                           MaterialPageRoute(builder: (_) => const RegisterScreen()),
                         );
                       },
-                      variant: GlassButtonVariant.primary,
-                      borderRadius: 14,
-                      padding: const EdgeInsets.symmetric(horizontal: 26, vertical: 16),
+                      variant: TactileButtonVariant.primary,
+                      borderRadius: 50,
+                      padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 16),
                       fontSize: 14,
                       icon: const Icon(Icons.arrow_forward_rounded, size: 16, color: AppColors.warmPeach),
                       label: 'Request City Onboarding',
@@ -2779,74 +2497,39 @@ class _WelcomeScreenState extends State<WelcomeScreen>
   }
 
   Widget _buildBenefitRow(String text) {
-    return ClipRRect(
-      borderRadius: BorderRadius.circular(16),
-      child: BackdropFilter(
-        filter: ui.ImageFilter.blur(sigmaX: 16, sigmaY: 16),
-        child: Container(
-          margin: const EdgeInsets.only(bottom: 14),
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-          decoration: BoxDecoration(
-            gradient: LinearGradient(
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-              colors: [
-                Colors.white.withValues(alpha: 0.65),
-                AppColors.cream.withValues(alpha: 0.30),
-              ],
+    return Container(
+      margin: const EdgeInsets.only(bottom: 14),
+      padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 16),
+      decoration: AppDecorations.skeuomorphicRaised(
+        surfaceColor: Colors.white,
+        radius: 16,
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          Container(
+            padding: const EdgeInsets.all(5),
+            decoration: AppDecorations.iconMedallion(radius: 8),
+            child: const Icon(
+              Icons.check_rounded,
+              color: AppColors.deepViolet,
+              size: 14,
             ),
-            borderRadius: BorderRadius.circular(16),
-            border: Border.all(
-              color: Colors.white.withValues(alpha: 0.85),
-              width: 1.2,
+          ),
+          const SizedBox(width: 14),
+          Expanded(
+            child: Text(
+              text,
+              style: const TextStyle(
+                fontFamily: 'NeueMontreal',
+                fontSize: 14.5,
+                fontWeight: FontWeight.w600,
+                color: AppColors.deepViolet,
+                height: 1.4,
+              ),
             ),
-            boxShadow: [
-              BoxShadow(
-                color: AppColors.navy.withValues(alpha: 0.05),
-                blurRadius: 12,
-                offset: const Offset(0, 4),
-              ),
-              BoxShadow(
-                color: Colors.white.withValues(alpha: 0.6),
-                blurRadius: 1,
-                offset: const Offset(0, 1),
-                spreadRadius: 0,
-              ),
-            ],
           ),
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              Container(
-                padding: const EdgeInsets.all(5),
-                decoration: BoxDecoration(
-                  color: AppColors.skyLight,
-                  shape: BoxShape.circle,
-                  border: Border.all(
-                    color: AppColors.sky,
-                  ),
-                ),
-                child: const Icon(
-                  Icons.check_rounded,
-                  color: AppColors.navy,
-                  size: 16,
-                ),
-              ),
-              const SizedBox(width: 14),
-              Expanded(
-                child: Text(
-                  text,
-                  style: GoogleFonts.plusJakartaSans(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w700,
-                    color: AppColors.navy,
-                    height: 1.4,
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ),
+        ],
       ),
     );
   }
@@ -2884,17 +2567,7 @@ class _WelcomeScreenState extends State<WelcomeScreen>
 
     return Container(
       width: double.infinity,
-      decoration: const BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topCenter,
-          end: Alignment.bottomCenter,
-          colors: [
-            AppColors.cream,
-            Color(0xFFF0F8FE),
-            AppColors.cream,
-          ],
-        ),
-      ),
+      color: Colors.transparent, // Seamless continuation of unified canvas
       padding: EdgeInsets.symmetric(
         horizontal: isMobile ? 20 : 64,
         vertical: tuning.layoutSectionSpacing,
@@ -2913,7 +2586,7 @@ class _WelcomeScreenState extends State<WelcomeScreen>
             ),
             child: Text(
               'TESTED IN REAL-WORLD CONDITIONS',
-              style: GoogleFonts.plusJakartaSans(
+              style: AppFonts.neueMontreal(
                 fontSize: 11,
                 fontWeight: FontWeight.w800,
                 color: AppColors.navy,
@@ -2925,7 +2598,7 @@ class _WelcomeScreenState extends State<WelcomeScreen>
           Text(
             'Endorsed by First Responders',
             textAlign: TextAlign.center,
-            style: GoogleFonts.plusJakartaSans(
+            style: AppFonts.neueMontreal(
               fontSize: isMobile ? 28 : 38,
               fontWeight: FontWeight.w900,
               color: AppColors.navy,
@@ -2938,7 +2611,7 @@ class _WelcomeScreenState extends State<WelcomeScreen>
             child: Text(
               'Feedback from emergency physicians, fleet dispatchers, and smart traffic engineers.',
               textAlign: TextAlign.center,
-              style: GoogleFonts.plusJakartaSans(
+              style: AppFonts.neueMontreal(
                 fontSize: 14,
                 color: AppColors.navyMuted,
                 height: 1.5,
@@ -3027,7 +2700,7 @@ class _WelcomeScreenState extends State<WelcomeScreen>
           const SizedBox(height: 16),
           Text(
             item['quote']!,
-            style: GoogleFonts.plusJakartaSans(
+            style: AppFonts.neueMontreal(
               fontSize: 14,
               color: AppColors.navy,
               fontStyle: FontStyle.italic,
@@ -3043,7 +2716,7 @@ class _WelcomeScreenState extends State<WelcomeScreen>
                 backgroundColor: AppColors.skyLight,
                 child: Text(
                   item['name']!.substring(0, 1),
-                  style: GoogleFonts.plusJakartaSans(
+                  style: AppFonts.neueMontreal(
                     fontWeight: FontWeight.w800,
                     color: AppColors.navy,
                   ),
@@ -3056,7 +2729,7 @@ class _WelcomeScreenState extends State<WelcomeScreen>
                   children: [
                     Text(
                       item['name']!,
-                      style: GoogleFonts.plusJakartaSans(
+                      style: AppFonts.neueMontreal(
                         fontSize: 14,
                         fontWeight: FontWeight.w800,
                         color: AppColors.navy,
@@ -3064,7 +2737,7 @@ class _WelcomeScreenState extends State<WelcomeScreen>
                     ),
                     Text(
                       '${item['role']} • ${item['hospital']}',
-                      style: GoogleFonts.plusJakartaSans(
+                      style: AppFonts.neueMontreal(
                         fontSize: 11,
                         color: AppColors.navyMuted,
                       ),
@@ -3144,7 +2817,7 @@ class _WelcomeScreenState extends State<WelcomeScreen>
                       const SizedBox(width: 8),
                       Text(
                         'LIVE OPERATIONS GRID',
-                        style: GoogleFonts.plusJakartaSans(
+                        style: AppFonts.neueMontreal(
                           fontSize: 11,
                           fontWeight: FontWeight.w800,
                           color: AppColors.navy,
@@ -3158,7 +2831,7 @@ class _WelcomeScreenState extends State<WelcomeScreen>
                 Text(
                   'Live Network Map & Corridor Operations',
                   textAlign: TextAlign.center,
-                  style: GoogleFonts.plusJakartaSans(
+                  style: AppFonts.neueMontreal(
                     fontSize: isMobile ? 24 : 34,
                     fontWeight: FontWeight.w900,
                     color: AppColors.navy,
@@ -3171,7 +2844,7 @@ class _WelcomeScreenState extends State<WelcomeScreen>
                   child: Text(
                     'Real-time geospatial mesh showing verified green corridor transit lines, registered hospital trauma centers, and live ambulance telemetry.',
                     textAlign: TextAlign.center,
-                    style: GoogleFonts.plusJakartaSans(
+                    style: AppFonts.neueMontreal(
                       fontSize: 14,
                       color: AppColors.navyMuted,
                       height: 1.5,
@@ -3306,7 +2979,7 @@ class _WelcomeScreenState extends State<WelcomeScreen>
                           const SizedBox(width: 8),
                           Text(
                             'LIVE CORRIDOR RADAR • ${!_isLoadingCorridorStats ? '$_totalCorridorsCreated DISPATCHES' : 'SYNCHRONIZING'}',
-                            style: GoogleFonts.plusJakartaSans(
+                            style: AppFonts.neueMontreal(
                               fontSize: 10,
                               fontWeight: FontWeight.w800,
                               color: AppColors.navy,
@@ -3401,7 +3074,7 @@ class _WelcomeScreenState extends State<WelcomeScreen>
                       Text(
                         'Ambulance Driver Station & FCM Push Token Sync',
                         textAlign: isMobile ? TextAlign.center : TextAlign.start,
-                        style: GoogleFonts.plusJakartaSans(
+                        style: AppFonts.neueMontreal(
                           fontSize: 15,
                           fontWeight: FontWeight.w800,
                           color: AppColors.navy,
@@ -3411,7 +3084,7 @@ class _WelcomeScreenState extends State<WelcomeScreen>
                       Text(
                         'Ambulance drivers are registered exclusively by their hospital authority. Once provisioned by your hospital, sign in here to link your device FCM token for live sirens and green wave navigation.',
                         textAlign: isMobile ? TextAlign.center : TextAlign.start,
-                        style: GoogleFonts.plusJakartaSans(
+                        style: AppFonts.neueMontreal(
                           fontSize: 13,
                           color: AppColors.navyMuted,
                           height: 1.4,
@@ -3484,7 +3157,7 @@ class _WelcomeScreenState extends State<WelcomeScreen>
                 ),
                 child: Text(
                   badgeText,
-                  style: GoogleFonts.plusJakartaSans(
+                  style: AppFonts.neueMontreal(
                     fontSize: 10,
                     fontWeight: FontWeight.w800,
                     color: AppColors.navy,
@@ -3496,7 +3169,7 @@ class _WelcomeScreenState extends State<WelcomeScreen>
           const SizedBox(height: 16),
           Text(
             value,
-            style: GoogleFonts.plusJakartaSans(
+            style: AppFonts.neueMontreal(
               fontSize: 34,
               fontWeight: FontWeight.w900,
               color: AppColors.navy,
@@ -3506,7 +3179,7 @@ class _WelcomeScreenState extends State<WelcomeScreen>
           const SizedBox(height: 4),
           Text(
             title,
-            style: GoogleFonts.plusJakartaSans(
+            style: AppFonts.neueMontreal(
               fontSize: 14,
               fontWeight: FontWeight.w800,
               color: AppColors.navy,
@@ -3515,7 +3188,7 @@ class _WelcomeScreenState extends State<WelcomeScreen>
           const SizedBox(height: 2),
           Text(
             subtitle,
-            style: GoogleFonts.plusJakartaSans(
+            style: AppFonts.neueMontreal(
               fontSize: 12,
               color: AppColors.navyMuted,
             ),
@@ -3533,9 +3206,9 @@ class _WelcomeScreenState extends State<WelcomeScreen>
 
     return Container(
       decoration: BoxDecoration(
-        color: AppColors.navy,
+        color: AppColors.deepViolet,
         border: Border(
-          top: BorderSide(color: AppColors.sky.withValues(alpha: 0.35), width: 1.5),
+          top: BorderSide(color: AppColors.warmPeach.withValues(alpha: 0.35), width: 1.5),
         ),
       ),
       padding: EdgeInsets.symmetric(
@@ -3557,26 +3230,21 @@ class _WelcomeScreenState extends State<WelcomeScreen>
                     children: [
                       Container(
                         padding: const EdgeInsets.all(7),
-                        decoration: BoxDecoration(
-                          color: AppColors.cream.withValues(alpha: 0.15),
-                          borderRadius: BorderRadius.circular(10),
-                          border: Border.all(
-                            color: AppColors.sky.withValues(alpha: 0.5),
-                          ),
-                        ),
+                        decoration: AppDecorations.iconMedallion(isDark: true, radius: 10),
                         child: const Icon(
                           Icons.emergency_share_rounded,
-                          color: AppColors.cream,
+                          color: AppColors.warmPeach,
                           size: 18,
                         ),
                       ),
                       const SizedBox(width: 10),
-                      Text(
+                      const Text(
                         'GREEN CORRIDOR',
-                        style: GoogleFonts.plusJakartaSans(
+                        style: TextStyle(
+                          fontFamily: 'NeueMontreal',
                           fontSize: 16,
                           fontWeight: FontWeight.w900,
-                          color: AppColors.cream,
+                          color: AppColors.softIvory,
                           letterSpacing: 0.3,
                         ),
                       ),
@@ -3585,9 +3253,10 @@ class _WelcomeScreenState extends State<WelcomeScreen>
                   const SizedBox(height: 8),
                   Text(
                     'Precision Emergency Transit Optimization Platform for Hospital Administrations.',
-                    style: GoogleFonts.plusJakartaSans(
+                    style: TextStyle(
+                      fontFamily: 'NeueMontreal',
                       fontSize: 13,
-                      color: AppColors.sky,
+                      color: AppColors.softIvory.withValues(alpha: 0.8),
                     ),
                   ),
                 ],
@@ -3597,9 +3266,9 @@ class _WelcomeScreenState extends State<WelcomeScreen>
                 children: [
                   _footerLink('Protocol Flow', () => _scrollToSection(_howItWorksKey)),
                   const SizedBox(width: 16),
-                  _footerLink('Global 3D Globe', () => _scrollToSection(_worldGlobeKey)),
-                  const SizedBox(width: 16),
                   _footerLink('Trauma Portals', () => _scrollToSection(_portalsKey)),
+                  const SizedBox(width: 16),
+                  _footerLink('Corridor Telemetry', () => _scrollToSection(_statsKey)),
                   const SizedBox(width: 16),
                   _footerLink('Live Radar', () {
                     Navigator.push(
@@ -3612,16 +3281,17 @@ class _WelcomeScreenState extends State<WelcomeScreen>
             ],
           ),
           const SizedBox(height: 32),
-          Divider(color: AppColors.sky.withValues(alpha: 0.25), height: 1),
+          Divider(color: AppColors.warmPeach.withValues(alpha: 0.25), height: 1),
           const SizedBox(height: 24),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
                 '© 2026 Green Corridor. All operational rights reserved.',
-                style: GoogleFonts.plusJakartaSans(
+                style: TextStyle(
+                  fontFamily: 'NeueMontreal',
                   fontSize: 12,
-                  color: AppColors.cream.withValues(alpha: 0.8),
+                  color: AppColors.softIvory.withValues(alpha: 0.75),
                 ),
               ),
               Row(
@@ -3630,23 +3300,24 @@ class _WelcomeScreenState extends State<WelcomeScreen>
                     width: 8,
                     height: 8,
                     decoration: BoxDecoration(
-                      color: AppColors.sky,
+                      color: AppColors.warmPeach,
                       shape: BoxShape.circle,
                       boxShadow: [
                         BoxShadow(
-                          color: AppColors.sky.withValues(alpha: 0.8),
+                          color: AppColors.warmPeach.withValues(alpha: 0.8),
                           blurRadius: 6,
                         ),
                       ],
                     ),
                   ),
                   const SizedBox(width: 6),
-                  Text(
+                  const Text(
                     'All Nodes Operational',
-                    style: GoogleFonts.plusJakartaSans(
+                    style: TextStyle(
+                      fontFamily: 'NeueMontreal',
                       fontSize: 12,
                       fontWeight: FontWeight.w700,
-                      color: AppColors.cream,
+                      color: AppColors.softIvory,
                     ),
                   ),
                 ],
@@ -3663,10 +3334,11 @@ class _WelcomeScreenState extends State<WelcomeScreen>
       onTap: onTap,
       child: Text(
         title,
-        style: GoogleFonts.plusJakartaSans(
+        style: TextStyle(
+          fontFamily: 'NeueMontreal',
           fontSize: 13,
           fontWeight: FontWeight.w600,
-          color: AppColors.cream,
+          color: AppColors.softIvory.withValues(alpha: 0.9),
         ),
       ),
     );
@@ -3697,56 +3369,23 @@ class _AnimatedWorkflowStepTileState extends State<AnimatedWorkflowStepTile> {
   @override
   Widget build(BuildContext context) {
     final step = widget.step;
-    final tuning = DesignTuningController.instance;
 
     return MouseRegion(
       onEnter: (_) => setState(() => _isHovered = true),
       onExit: (_) => setState(() => _isHovered = false),
       child: AnimatedContainer(
-        duration: const Duration(milliseconds: 280),
+        duration: const Duration(milliseconds: 220),
         curve: Curves.easeOutCubic,
-        transform: Matrix4.diagonal3Values(
-          _isHovered ? tuning.tileHoverScale : 1.0,
-          _isHovered ? tuning.tileHoverScale : 1.0,
-          1.0,
-        )..setTranslationRaw(0.0, _isHovered ? -tuning.tileElevation : 0.0, 0.0),
-        padding: EdgeInsets.all(tuning.tileCardPadding),
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: _isHovered
-                ? [
-                    Colors.white.withValues(alpha: 0.92),
-                    AppColors.creamLight.withValues(alpha: 0.86),
-                  ]
-                : [
-                    Colors.white.withValues(alpha: (tuning.glassSurfaceOpacity * 1.5).clamp(0.20, 0.70)),
-                    AppColors.cream.withValues(alpha: (tuning.glassSurfaceOpacity * 0.8).clamp(0.10, 0.45)),
-                  ],
-          ),
-          borderRadius: BorderRadius.circular(tuning.tileRadius),
-          border: Border.all(
-            color: _isHovered
-                ? AppColors.navy
-                : Colors.white.withValues(alpha: tuning.glassBorderOpacity),
-            width: (_isHovered ? 2.0 : 1.3) * tuning.tileHighlightIntensity,
-          ),
-          boxShadow: [
-            BoxShadow(
-              color: AppColors.navy.withValues(
-                alpha: _isHovered ? 0.22 : tuning.glassShadowOpacity * 1.3,
-              ),
-              blurRadius: _isHovered ? 36 : tuning.glassShadowBlur,
-              offset: Offset(0, _isHovered ? tuning.tileElevation * 1.8 : tuning.tileShadowOffset),
-            ),
-            BoxShadow(
-              color: Colors.white.withValues(alpha: _isHovered ? 0.85 : 0.55),
-              blurRadius: 1,
-              offset: const Offset(0, 1),
-              spreadRadius: 0,
-            ),
-          ],
+        transform: Matrix4.translationValues(
+          0.0,
+          _isHovered ? -6.0 : 0.0,
+          0.0,
+        ),
+        padding: const EdgeInsets.all(22),
+        decoration: AppDecorations.skeuomorphicRaised(
+          surfaceColor: Colors.white,
+          isHovered: _isHovered,
+          radius: 22,
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -3759,49 +3398,35 @@ class _AnimatedWorkflowStepTileState extends State<AnimatedWorkflowStepTile> {
                   children: [
                     Container(
                       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                      decoration: BoxDecoration(
-                        color: _isHovered ? AppColors.navy : AppColors.skyLight,
-                        borderRadius: BorderRadius.circular(20),
-                        border: Border.all(
-                          color: _isHovered ? AppColors.navy : AppColors.sky,
-                          width: 1.2,
-                        ),
-                      ),
+                      decoration: AppDecorations.skeuomorphicInset(radius: 20),
                       child: Text(
                         'STAGE ${step['num']}',
                         style: GoogleFonts.jetBrainsMono(
                           fontSize: 10,
                           fontWeight: FontWeight.w900,
-                          color: _isHovered ? AppColors.cream : AppColors.navy,
+                          color: AppColors.deepViolet,
                           letterSpacing: 0.8,
                         ),
                       ),
                     ),
                     const SizedBox(width: 8),
-                    AnimatedContainer(
-                      duration: const Duration(milliseconds: 250),
+                    Container(
                       width: 8,
                       height: 8,
                       decoration: BoxDecoration(
-                        color: _isHovered ? AppColors.navy : AppColors.sky,
+                        color: _isHovered ? AppColors.mutedBerry : AppColors.warmPeach,
                         shape: BoxShape.circle,
                       ),
                     ),
                   ],
                 ),
                 Container(
-                  padding: const EdgeInsets.all(10),
-                  decoration: BoxDecoration(
-                    color: _isHovered
-                        ? AppColors.navy
-                        : AppColors.skyLight,
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: AppColors.sky),
-                  ),
+                  padding: const EdgeInsets.all(9),
+                  decoration: AppDecorations.iconMedallion(radius: 12),
                   child: Icon(
                     step['icon'] as IconData,
-                    color: _isHovered ? AppColors.cream : AppColors.navy,
-                    size: 20,
+                    color: AppColors.deepViolet,
+                    size: 19,
                   ),
                 ),
               ],
@@ -3809,26 +3434,28 @@ class _AnimatedWorkflowStepTileState extends State<AnimatedWorkflowStepTile> {
             const SizedBox(height: 18),
             Text(
               step['title'] as String,
-              style: GoogleFonts.plusJakartaSans(
-                fontSize: 17,
+              style: const TextStyle(
+                fontFamily: 'NeueMontreal',
+                fontSize: 16.5,
                 fontWeight: FontWeight.w900,
-                color: AppColors.navy,
-                letterSpacing: -0.2,
+                color: AppColors.deepViolet,
+                letterSpacing: -0.3,
               ),
             ),
             const SizedBox(height: 8),
             Text(
               step['desc'] as String,
-              style: GoogleFonts.plusJakartaSans(
+              style: TextStyle(
+                fontFamily: 'NeueMontreal',
                 fontSize: 13,
-                color: AppColors.navyMuted,
+                color: AppColors.deepViolet.withValues(alpha: 0.80),
                 height: 1.5,
               ),
             ),
             // Live Interactive Telemetry Console for this workflow stage
             WorkflowStepConsole(
               stepNum: step['num'] as String,
-              accentColor: AppColors.navy,
+              accentColor: AppColors.deepViolet,
             ),
           ],
         ),
@@ -4015,8 +3642,8 @@ class _GreenCorridorSimulationHeroState
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       decoration: BoxDecoration(
-        color: AppColors.background,
-        border: const Border(bottom: BorderSide(color: AppColors.slate200)),
+        color: AppColors.greyFaint,
+        border: Border(bottom: BorderSide(color: AppColors.grey.withValues(alpha: 0.30))),
       ),
       child: Column(
         children: [
@@ -4026,20 +3653,21 @@ class _GreenCorridorSimulationHeroState
               Row(
                 children: [
                   Container(
-                    width: 9,
-                    height: 9,
+                    width: 8,
+                    height: 8,
                     decoration: const BoxDecoration(
-                      color: AppColors.emerald,
+                      color: AppColors.orange,
                       shape: BoxShape.circle,
                     ),
                   ),
                   const SizedBox(width: 8),
-                  Text(
+                  const Text(
                     'LIVE SATELLITE RADAR • HOW IT WORKS',
-                    style: GoogleFonts.plusJakartaSans(
+                    style: TextStyle(
+                      fontFamily: 'NeueMontreal',
                       fontSize: 11,
-                      fontWeight: FontWeight.w800,
-                      color: AppColors.slate800,
+                      fontWeight: FontWeight.w700,
+                      color: AppColors.nearBlack,
                       letterSpacing: 0.8,
                     ),
                   ),
@@ -4054,7 +3682,7 @@ class _GreenCorridorSimulationHeroState
                   decoration: BoxDecoration(
                     color: Colors.white,
                     borderRadius: BorderRadius.circular(8),
-                    border: Border.all(color: AppColors.slate200),
+                    border: Border.all(color: AppColors.grey.withValues(alpha: 0.40)),
                   ),
                   child: Row(
                     mainAxisSize: MainAxisSize.min,
@@ -4064,15 +3692,16 @@ class _GreenCorridorSimulationHeroState
                             ? Icons.pause_rounded
                             : Icons.play_arrow_rounded,
                         size: 14,
-                        color: AppColors.slate700,
+                        color: AppColors.nearBlack,
                       ),
                       const SizedBox(width: 4),
                       Text(
                         _isPlaying ? 'Pause' : 'Play',
-                        style: GoogleFonts.plusJakartaSans(
-                          fontSize: 10,
-                          fontWeight: FontWeight.w700,
-                          color: AppColors.slate700,
+                        style: const TextStyle(
+                          fontFamily: 'NeueMontreal',
+                          fontSize: 10.5,
+                          fontWeight: FontWeight.w600,
+                          color: AppColors.nearBlack,
                         ),
                       ),
                     ],
@@ -4112,19 +3741,20 @@ class _GreenCorridorSimulationHeroState
         duration: const Duration(milliseconds: 250),
         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
         decoration: BoxDecoration(
-          color: isActive ? AppColors.emerald : Colors.white,
+          color: isActive ? AppColors.orange : Colors.white,
           borderRadius: BorderRadius.circular(8),
           border: Border.all(
-            color: isActive ? AppColors.emerald : AppColors.slate200,
+            color: isActive ? AppColors.orange : AppColors.grey.withValues(alpha: 0.40),
             width: 1,
           ),
         ),
         child: Text(
           label,
-          style: GoogleFonts.plusJakartaSans(
+          style: TextStyle(
+            fontFamily: 'NeueMontreal',
             fontSize: 10,
-            fontWeight: FontWeight.w800,
-            color: isActive ? Colors.white : AppColors.slate600,
+            fontWeight: FontWeight.w700,
+            color: isActive ? Colors.white : AppColors.nearBlackMuted,
           ),
         ),
       ),
@@ -4343,7 +3973,7 @@ class _GreenCorridorSimulationHeroState
             children: [
               Text(
                 label,
-                style: GoogleFonts.plusJakartaSans(
+                style: AppFonts.neueMontreal(
                   fontSize: 10,
                   fontWeight: FontWeight.w800,
                   color: color,
@@ -4351,7 +3981,7 @@ class _GreenCorridorSimulationHeroState
               ),
               Text(
                 subLabel,
-                style: GoogleFonts.plusJakartaSans(
+                style: AppFonts.neueMontreal(
                   fontSize: 8,
                   fontWeight: FontWeight.w600,
                   color: AppColors.slate500,
@@ -4418,7 +4048,7 @@ class _GreenCorridorSimulationHeroState
           const SizedBox(height: 3),
           Text(
             isGreen ? 'GREEN' : 'RED',
-            style: GoogleFonts.plusJakartaSans(
+            style: AppFonts.neueMontreal(
               fontSize: 8,
               fontWeight: FontWeight.w900,
               color: activeColor,
@@ -4485,7 +4115,7 @@ class _GreenCorridorSimulationHeroState
           ),
           child: Text(
             isPulledOver ? '✓ Yielded' : 'Commuter',
-            style: GoogleFonts.plusJakartaSans(
+            style: AppFonts.neueMontreal(
               fontSize: 8,
               fontWeight: FontWeight.w700,
               color: statusColor,
@@ -4544,7 +4174,7 @@ class _GreenCorridorSimulationHeroState
                     Expanded(
                       child: Text(
                         title,
-                        style: GoogleFonts.plusJakartaSans(
+                        style: AppFonts.neueMontreal(
                           fontSize: 8.5,
                           fontWeight: FontWeight.w900,
                           color: AppColors.primaryDark,
@@ -4561,7 +4191,7 @@ class _GreenCorridorSimulationHeroState
                       ),
                       child: Text(
                         status,
-                        style: GoogleFonts.plusJakartaSans(
+                        style: AppFonts.neueMontreal(
                           fontSize: 7,
                           fontWeight: FontWeight.w800,
                           color: AppColors.emeraldDark,
@@ -4573,7 +4203,7 @@ class _GreenCorridorSimulationHeroState
                 const SizedBox(height: 2),
                 Text(
                   message,
-                  style: GoogleFonts.plusJakartaSans(
+                  style: AppFonts.neueMontreal(
                     fontSize: 8,
                     fontWeight: FontWeight.w600,
                     color: AppColors.slate700,
@@ -4681,7 +4311,7 @@ class _GreenCorridorSimulationHeroState
             children: [
               Text(
                 'TRAUMA ER ADMISSION SUCCESS',
-                style: GoogleFonts.plusJakartaSans(
+                style: AppFonts.neueMontreal(
                   fontSize: 10,
                   fontWeight: FontWeight.w900,
                   color: Colors.white,
@@ -4689,7 +4319,7 @@ class _GreenCorridorSimulationHeroState
               ),
               Text(
                 'Zero delays • 4.2 minutes preserved',
-                style: GoogleFonts.plusJakartaSans(
+                style: AppFonts.neueMontreal(
                   fontSize: 8.5,
                   fontWeight: FontWeight.w600,
                   color: Colors.white.withValues(alpha: 0.9),
@@ -4760,7 +4390,7 @@ class _GreenCorridorSimulationHeroState
             ),
             child: Text(
               stepNumber,
-              style: GoogleFonts.plusJakartaSans(
+              style: AppFonts.neueMontreal(
                 fontSize: 9,
                 fontWeight: FontWeight.w900,
                 color: accentColor,
@@ -4775,7 +4405,7 @@ class _GreenCorridorSimulationHeroState
               children: [
                 Text(
                   motiveTitle,
-                  style: GoogleFonts.plusJakartaSans(
+                  style: AppFonts.neueMontreal(
                     fontSize: 11,
                     fontWeight: FontWeight.w800,
                     color: AppColors.slate900,
@@ -4783,7 +4413,7 @@ class _GreenCorridorSimulationHeroState
                 ),
                 Text(
                   motiveDesc,
-                  style: GoogleFonts.plusJakartaSans(
+                  style: AppFonts.neueMontreal(
                     fontSize: 9.5,
                     color: AppColors.slate600,
                   ),
@@ -4990,3 +4620,57 @@ class _CityMapSimulationPainter extends CustomPainter {
     return oldDelegate.progress != progress || oldDelegate.pulse != pulse;
   }
 }
+
+/// Extremely subtle, calm medical background system painter
+/// Paints a gentle warm radial glow and a faint coordinate grid on white canvas.
+class _MedicalGridBackgroundPainter extends CustomPainter {
+  @override
+  void paint(Canvas canvas, Size size) {
+    final w = size.width;
+    final h = size.height;
+
+    // 1. Soft warm radial glow directly behind the centered 3D caduceus
+    final glowCenter = Offset(w / 2, 340);
+    final glowPaint = Paint()
+      ..shader = RadialGradient(
+        center: Alignment.center,
+        radius: 0.85,
+        colors: [
+          AppColors.orange.withValues(alpha: 0.04),
+          AppColors.brown.withValues(alpha: 0.015),
+          Colors.white.withValues(alpha: 0.0),
+        ],
+        stops: const [0.0, 0.45, 1.0],
+      ).createShader(Rect.fromCircle(center: glowCenter, radius: math.min(w * 0.7, 560)));
+    canvas.drawCircle(glowCenter, math.min(w * 0.7, 560), glowPaint);
+
+    // 2. Extremely subtle coordinate grid (calm, non-distracting)
+    final gridPaint = Paint()
+      ..color = AppColors.grey.withValues(alpha: 0.04)
+      ..strokeWidth = 0.6;
+
+    const double step = 72.0;
+
+    for (double x = 0; x <= w; x += step) {
+      canvas.drawLine(Offset(x, 0), Offset(x, h), gridPaint);
+    }
+    for (double y = 0; y <= h; y += step) {
+      canvas.drawLine(Offset(0, y), Offset(w, y), gridPaint);
+    }
+
+    // Subtle technical coordinate crosshairs at grid intersections
+    final tickPaint = Paint()
+      ..color = AppColors.grey.withValues(alpha: 0.08)
+      ..strokeWidth = 0.8;
+    for (double x = step * 2; x < w; x += step * 2) {
+      for (double y = step * 2; y < h; y += step * 2) {
+        canvas.drawLine(Offset(x - 3, y), Offset(x + 3, y), tickPaint);
+        canvas.drawLine(Offset(x, y - 3), Offset(x, y + 3), tickPaint);
+      }
+    }
+  }
+
+  @override
+  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
+}
+

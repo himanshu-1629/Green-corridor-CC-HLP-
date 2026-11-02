@@ -4,7 +4,6 @@ import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:http/http.dart' as http;
 import 'package:supabase_flutter/supabase_flutter.dart';
-import 'package:google_fonts/google_fonts.dart';
 import '../theme/app_theme.dart';
 
 class MissionDetailsScreen extends StatefulWidget {
@@ -540,7 +539,7 @@ class _MissionDetailsScreenState extends State<MissionDetailsScreen> {
               children: [
                 Text(
                   isIncoming ? "Incoming Transfer Corridor" : "Mission Dispatch Details",
-                  style: GoogleFonts.plusJakartaSans(
+                  style: AppFonts.neueMontreal(
                     fontSize: 16,
                     fontWeight: FontWeight.w800,
                     color: AppColors.slate900,
@@ -549,7 +548,7 @@ class _MissionDetailsScreenState extends State<MissionDetailsScreen> {
                 ),
                 Text(
                   "Real-Time Telemetry & Route Preemption",
-                  style: GoogleFonts.plusJakartaSans(
+                  style: AppFonts.neueMontreal(
                     fontSize: 11,
                     fontWeight: FontWeight.w600,
                     color: AppColors.slate500,

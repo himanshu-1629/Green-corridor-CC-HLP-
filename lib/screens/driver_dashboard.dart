@@ -6,7 +6,6 @@ import 'package:geolocator/geolocator.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'dart:async';
 import 'dart:convert';
-import 'package:google_fonts/google_fonts.dart';
 import '../services/citizen_alert_service.dart';
 import '../services/push_notification_service.dart';
 import '../theme/app_theme.dart';
@@ -1519,7 +1518,7 @@ class _DriverDashboardState extends State<DriverDashboard> {
                 const SizedBox(width: 6),
                 Text(
                   "FCM Synced",
-                  style: GoogleFonts.plusJakartaSans(
+                  style: AppFonts.neueMontreal(
                     fontSize: 11,
                     fontWeight: FontWeight.w700,
                     color: AppColors.emeraldDark,
@@ -1573,7 +1572,7 @@ class _DriverDashboardState extends State<DriverDashboard> {
                     const SizedBox(height: 20),
                     Text(
                       "Fleet Unit On Standby",
-                      style: GoogleFonts.plusJakartaSans(
+                      style: AppFonts.neueMontreal(
                         fontSize: 22,
                         fontWeight: FontWeight.w800,
                         color: AppColors.slate900,
@@ -1584,7 +1583,7 @@ class _DriverDashboardState extends State<DriverDashboard> {
                     Text(
                       "Your unit is parked at base and Available for fast-track dispatches. Keep GPS enabled to receive instant alerts.",
                       textAlign: TextAlign.center,
-                      style: GoogleFonts.plusJakartaSans(
+                      style: AppFonts.neueMontreal(
                         fontSize: 14,
                         color: AppColors.slate500,
                         height: 1.4,

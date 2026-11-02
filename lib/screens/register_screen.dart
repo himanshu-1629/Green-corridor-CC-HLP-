@@ -1,10 +1,10 @@
 import 'dart:math';
-import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../theme/app_theme.dart';
+import '../widgets/tactile_button.dart';
 import 'login_screen.dart';
 
 class RegisterScreen extends StatefulWidget {
@@ -360,23 +360,25 @@ class _RegisterScreenState extends State<RegisterScreen> {
     final isHospital = selectedRole == "Hospital Admin";
 
     return Scaffold(
-      backgroundColor: AppColors.cream,
+      backgroundColor: Colors.white,
       body: Stack(
         children: [
-          // Ambient soft lighting
+          // Ambient soft lighting (Warm Peach & Soft Ivory over white)
           Positioned(
             top: -100,
             right: -80,
             child: Container(
-              width: 500,
-              height: 500,
+              width: 580,
+              height: 580,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
                 gradient: RadialGradient(
                   colors: [
-                    AppColors.sky.withValues(alpha: 0.25),
-                    AppColors.cream.withValues(alpha: 0.0),
+                    AppColors.warmPeach.withValues(alpha: 0.22),
+                    AppColors.softIvory.withValues(alpha: 0.35),
+                    Colors.white.withValues(alpha: 0.0),
                   ],
+                  stops: const [0.0, 0.45, 1.0],
                 ),
               ),
             ),
@@ -391,8 +393,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 shape: BoxShape.circle,
                 gradient: RadialGradient(
                   colors: [
-                    AppColors.navy.withValues(alpha: 0.1),
-                    AppColors.cream.withValues(alpha: 0.0),
+                    AppColors.mutedBerry.withValues(alpha: 0.10),
+                    Colors.white.withValues(alpha: 0.0),
                   ],
                 ),
               ),
@@ -506,17 +508,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
   Widget _buildBrandingPanel() {
     return Container(
       padding: const EdgeInsets.all(36),
-      decoration: BoxDecoration(
-        color: AppColors.cream.withValues(alpha: 0.9),
-        borderRadius: BorderRadius.circular(28),
-        border: Border.all(color: AppColors.sky, width: 1.5),
-        boxShadow: [
-          BoxShadow(
-            color: AppColors.navy.withValues(alpha: 0.08),
-            blurRadius: 28,
-            offset: const Offset(0, 10),
-          ),
-        ],
+      decoration: AppDecorations.skeuomorphicRaised(
+        isDarkSurface: false,
+        radius: 28,
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -539,7 +533,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
               child: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Icon(Icons.arrow_back_rounded, size: 18, color: AppColors.navy),
+                  Icon(Icons.arrow_back_rounded, size: 18, color: AppColors.mutedBerry),
                   SizedBox(width: 6),
                   Text(
                     "Back to Sign In",
@@ -547,7 +541,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       fontFamily: AppTypography.fontBody,
                       fontSize: 13,
                       fontWeight: FontWeight.w700,
-                      color: AppColors.navy,
+                      color: AppColors.deepViolet,
                     ),
                   ),
                 ],
@@ -561,11 +555,11 @@ class _RegisterScreenState extends State<RegisterScreen> {
             children: [
               Container(
                 padding: const EdgeInsets.all(12),
-                decoration: AppDecorations.iconMedallion(size: 52),
+                decoration: AppDecorations.iconMedallion(size: 48, isDark: true),
                 child: const Icon(
                   Icons.emergency_share_rounded,
-                  color: AppColors.sky,
-                  size: 26,
+                  color: AppColors.warmPeach,
+                  size: 24,
                 ),
               ),
               const SizedBox(width: 14),
@@ -578,7 +572,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       fontFamily: AppTypography.fontHeading,
                       fontSize: 22,
                       fontWeight: FontWeight.w900,
-                      color: AppColors.navy,
+                      color: AppColors.deepViolet,
                       letterSpacing: 0.4,
                     ),
                   ),
@@ -588,7 +582,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       fontFamily: AppTypography.fontBody,
                       fontSize: 11,
                       fontWeight: FontWeight.w700,
-                      color: AppColors.navyLight,
+                      color: AppColors.mutedBerry,
                       letterSpacing: 1.1,
                     ),
                   ),
@@ -604,7 +598,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
               fontFamily: AppTypography.fontHeading,
               fontSize: 26,
               fontWeight: FontWeight.w900,
-              color: AppColors.navy,
+              color: AppColors.deepViolet,
               letterSpacing: -0.4,
               height: 1.25,
             ),
@@ -615,7 +609,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
             style: TextStyle(
               fontFamily: AppTypography.fontBody,
               fontSize: 14,
-              color: AppColors.navyMuted,
+              color: AppColors.deepViolet.withValues(alpha: 0.78),
               height: 1.55,
             ),
           ),
@@ -640,7 +634,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
           ),
 
           const SizedBox(height: 32),
-          Divider(color: AppColors.sky.withValues(alpha: 0.5), height: 1),
+          Divider(color: AppColors.warmPeach.withValues(alpha: 0.6), height: 1),
           const SizedBox(height: 20),
 
           Row(
@@ -649,7 +643,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 width: 10,
                 height: 10,
                 decoration: const BoxDecoration(
-                  color: AppColors.sky,
+                  color: AppColors.mutedBerry,
                   shape: BoxShape.circle,
                 ),
               ),
@@ -660,7 +654,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   fontFamily: AppTypography.fontBody,
                   fontSize: 12,
                   fontWeight: FontWeight.w700,
-                  color: AppColors.navyMuted,
+                  color: AppColors.deepViolet.withValues(alpha: 0.65),
                 ),
               ),
             ],
@@ -680,12 +674,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
       children: [
         Container(
           padding: const EdgeInsets.all(10),
-          decoration: BoxDecoration(
-            color: AppColors.navy,
-            borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: AppColors.sky, width: 1.0),
-          ),
-          child: Icon(icon, color: AppColors.sky, size: 20),
+          decoration: AppDecorations.iconMedallion(size: 40, isDark: true),
+          child: Icon(icon, color: AppColors.warmPeach, size: 20),
         ),
         const SizedBox(width: 14),
         Expanded(
@@ -698,7 +688,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   fontFamily: AppTypography.fontHeading,
                   fontSize: 14,
                   fontWeight: FontWeight.w700,
-                  color: AppColors.navy,
+                  color: AppColors.deepViolet,
                 ),
               ),
               const SizedBox(height: 3),
@@ -707,7 +697,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 style: TextStyle(
                   fontFamily: AppTypography.fontBody,
                   fontSize: 12,
-                  color: AppColors.navyMuted,
+                  color: AppColors.deepViolet.withValues(alpha: 0.72),
                   height: 1.4,
                 ),
               ),
@@ -719,459 +709,371 @@ class _RegisterScreenState extends State<RegisterScreen> {
   }
 
   Widget _buildRegistrationCard(bool isHospital) {
-    return ClipRRect(
-      borderRadius: BorderRadius.circular(28),
-      child: BackdropFilter(
-        filter: ImageFilter.blur(sigmaX: 16, sigmaY: 16),
-        child: Container(
-          padding: const EdgeInsets.all(36),
-          decoration: BoxDecoration(
-            color: AppColors.cream.withValues(alpha: 0.92),
-            borderRadius: BorderRadius.circular(28),
-            border: Border.all(color: AppColors.sky, width: 1.8),
-            boxShadow: [
-              BoxShadow(
-                color: AppColors.navy.withValues(alpha: 0.12),
-                blurRadius: 32,
-                offset: const Offset(0, 14),
+    return Container(
+      padding: const EdgeInsets.all(36),
+      decoration: AppDecorations.skeuomorphicRaised(
+        isDarkSurface: false,
+        radius: 28,
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          const Text(
+            "Create Account",
+            style: TextStyle(
+              fontFamily: AppTypography.fontHeading,
+              fontSize: 24,
+              fontWeight: FontWeight.w900,
+              color: AppColors.deepViolet,
+              letterSpacing: -0.3,
+            ),
+          ),
+          const SizedBox(height: 6),
+          Text(
+            "Select your role to join the coordinated emergency corridor grid.",
+            style: TextStyle(
+              fontFamily: AppTypography.fontBody,
+              fontSize: 13,
+              color: AppColors.deepViolet.withValues(alpha: 0.75),
+            ),
+          ),
+          const SizedBox(height: 24),
+
+          // Role selection 3D cards
+          Row(
+            children: [
+              Expanded(
+                child: _roleCard(
+                  title: "Hospital Admin",
+                  subtitle: "Dispatch fleet & trauma triage",
+                  icon: Icons.local_hospital_rounded,
+                  isSelected: isHospital,
+                  onTap: () => setState(() => selectedRole = "Hospital Admin"),
+                ),
+              ),
+              const SizedBox(width: 14),
+              Expanded(
+                child: _roleCard(
+                  title: "Citizen",
+                  subtitle: "Radar siren & yield routing",
+                  icon: Icons.person_rounded,
+                  isSelected: !isHospital,
+                  onTap: () => setState(() => selectedRole = "Citizen"),
+                ),
               ),
             ],
           ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
+          const SizedBox(height: 14),
+
+          // Driver notice
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+            decoration: AppDecorations.skeuomorphicInset(radius: 12),
+            child: Row(
+              children: [
+                const Icon(Icons.shield_outlined, size: 16, color: AppColors.mutedBerry),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: Text(
+                    "Ambulance drivers are provisioned directly by hospital facilities. Drivers do not self-register.",
+                    style: TextStyle(
+                      fontFamily: AppTypography.fontBody,
+                      fontSize: 12,
+                      color: AppColors.deepViolet.withValues(alpha: 0.75),
+                      height: 1.3,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 22),
+
+          // Name field
+          _inputField(
+            controller: nameController,
+            label: isHospital ? "HOSPITAL / FACILITY NAME" : "FULL NAME",
+            hint: isHospital ? "e.g. Apollo Multi-Speciality Hospital" : "e.g. Rahul Sharma",
+            icon: isHospital ? Icons.domain_rounded : Icons.person_outline_rounded,
+          ),
+          const SizedBox(height: 16),
+
+          // Email field
+          _inputField(
+            controller: emailController,
+            label: "EMAIL ADDRESS",
+            hint: isHospital ? "dispatch@apollo.org" : "user@domain.com",
+            icon: Icons.alternate_email_rounded,
+            keyboardType: TextInputType.emailAddress,
+          ),
+          const SizedBox(height: 16),
+
+          // Phone field
+          _inputField(
+            controller: phoneController,
+            label: "CONTACT PHONE NUMBER",
+            hint: "+91 98765 43210",
+            icon: Icons.phone_outlined,
+            keyboardType: TextInputType.phone,
+          ),
+          const SizedBox(height: 16),
+
+          // Password field
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               const Text(
-                "Create Account",
+                "PASSWORD",
                 style: TextStyle(
-                  fontFamily: AppTypography.fontHeading,
-                  fontSize: 24,
-                  fontWeight: FontWeight.w900,
-                  color: AppColors.navy,
-                  letterSpacing: -0.3,
+                  fontFamily: AppTypography.fontBody,
+                  fontSize: 11,
+                  fontWeight: FontWeight.w700,
+                  color: AppColors.deepViolet,
+                  letterSpacing: 0.8,
                 ),
               ),
               const SizedBox(height: 6),
-              Text(
-                "Select your role to join the coordinated emergency corridor grid.",
-                style: TextStyle(
+              TextField(
+                controller: passwordController,
+                obscureText: obscurePassword,
+                style: const TextStyle(
                   fontFamily: AppTypography.fontBody,
-                  fontSize: 13,
-                  color: AppColors.navyMuted,
+                  fontSize: 14,
+                  fontWeight: FontWeight.w600,
+                  color: AppColors.deepViolet,
                 ),
-              ),
-              const SizedBox(height: 24),
-
-              // Role selection 3D cards
-              Row(
-                children: [
-                  Expanded(
-                    child: _roleCard(
-                      title: "Hospital Admin",
-                      subtitle: "Dispatch fleet & trauma triage",
-                      icon: Icons.local_hospital_rounded,
-                      isSelected: isHospital,
-                      onTap: () => setState(() => selectedRole = "Hospital Admin"),
-                    ),
+                decoration: InputDecoration(
+                  filled: true,
+                  fillColor: const Color(0xFFFAF7F0),
+                  hintText: "••••••••••••",
+                  hintStyle: TextStyle(
+                    fontFamily: AppTypography.fontBody,
+                    color: AppColors.deepViolet.withValues(alpha: 0.45),
+                    fontSize: 13,
                   ),
-                  const SizedBox(width: 14),
-                  Expanded(
-                    child: _roleCard(
-                      title: "Citizen",
-                      subtitle: "Radar siren & yield routing",
-                      icon: Icons.person_rounded,
-                      isSelected: !isHospital,
-                      onTap: () => setState(() => selectedRole = "Citizen"),
-                    ),
+                  prefixIcon: const Icon(
+                    Icons.lock_outline_rounded,
+                    color: AppColors.mutedBerry,
+                    size: 20,
                   ),
-                ],
-              ),
-              const SizedBox(height: 14),
-
-              // Driver notice
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-                decoration: BoxDecoration(
-                  color: AppColors.creamLight,
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: AppColors.sky.withValues(alpha: 0.5)),
-                ),
-                child: Row(
-                  children: [
-                    const Icon(Icons.shield_outlined, size: 16, color: AppColors.navyLight),
-                    const SizedBox(width: 10),
-                    Expanded(
-                      child: Text(
-                        "Ambulance drivers are provisioned directly by hospital facilities. Drivers do not self-register.",
-                        style: TextStyle(
-                          fontFamily: AppTypography.fontBody,
-                          fontSize: 12,
-                          color: AppColors.navyMuted,
-                          height: 1.3,
-                        ),
-                      ),
+                  suffixIcon: IconButton(
+                    icon: Icon(
+                      obscurePassword ? Icons.visibility_outlined : Icons.visibility_off_outlined,
+                      color: AppColors.mutedBerry,
+                      size: 20,
                     ),
-                  ],
+                    onPressed: () => setState(() => obscurePassword = !obscurePassword),
+                  ),
+                  contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(14),
+                    borderSide: BorderSide(color: AppColors.warmPeach.withValues(alpha: 0.6), width: 1.2),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(14),
+                    borderSide: const BorderSide(color: AppColors.deepViolet, width: 2.0),
+                  ),
                 ),
               ),
-              const SizedBox(height: 22),
+            ],
+          ),
 
-              // Name field
-              _inputField(
-                controller: nameController,
-                label: isHospital ? "HOSPITAL / FACILITY NAME" : "FULL NAME",
-                hint: isHospital ? "e.g. Apollo Multi-Speciality Hospital" : "e.g. Rahul Sharma",
-                icon: isHospital ? Icons.domain_rounded : Icons.person_outline_rounded,
-              ),
-              const SizedBox(height: 16),
-
-              // Email field
-              _inputField(
-                controller: emailController,
-                label: "EMAIL ADDRESS",
-                hint: isHospital ? "dispatch@apollo.org" : "user@domain.com",
-                icon: Icons.alternate_email_rounded,
-                keyboardType: TextInputType.emailAddress,
-              ),
-              const SizedBox(height: 16),
-
-              // Phone field
-              _inputField(
-                controller: phoneController,
-                label: "CONTACT PHONE NUMBER",
-                hint: "+91 98765 43210",
-                icon: Icons.phone_outlined,
-                keyboardType: TextInputType.phone,
-              ),
-              const SizedBox(height: 16),
-
-              // Password field
-              Column(
+          // Hospital-specific fields
+          if (isHospital) ...[
+            const SizedBox(height: 24),
+            Container(
+              padding: const EdgeInsets.all(20),
+              decoration: AppDecorations.skeuomorphicInset(radius: 18),
+              child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text(
-                    "PASSWORD",
-                    style: TextStyle(
-                      fontFamily: AppTypography.fontBody,
-                      fontSize: 11,
-                      fontWeight: FontWeight.w700,
-                      color: AppColors.navy,
-                      letterSpacing: 0.8,
-                    ),
+                  const Row(
+                    children: [
+                      Icon(Icons.pin_drop_rounded, size: 20, color: AppColors.deepViolet),
+                      SizedBox(width: 8),
+                      Text(
+                        "Facility Geolocation Coordinates",
+                        style: TextStyle(
+                          fontFamily: AppTypography.fontHeading,
+                          fontSize: 14,
+                          fontWeight: FontWeight.w800,
+                          color: AppColors.deepViolet,
+                        ),
+                      ),
+                    ],
                   ),
                   const SizedBox(height: 6),
+                  Text(
+                    "Accurate coordinates enable routing green waves directly to your emergency trauma bay.",
+                    style: TextStyle(
+                      fontFamily: AppTypography.fontBody,
+                      fontSize: 12,
+                      color: AppColors.deepViolet.withValues(alpha: 0.75),
+                    ),
+                  ),
+                  const SizedBox(height: 14),
+
                   TextField(
-                    controller: passwordController,
-                    obscureText: obscurePassword,
+                    controller: addressController,
                     style: const TextStyle(
                       fontFamily: AppTypography.fontBody,
                       fontSize: 14,
                       fontWeight: FontWeight.w600,
-                      color: AppColors.navy,
+                      color: AppColors.deepViolet,
                     ),
                     decoration: InputDecoration(
                       filled: true,
-                      fillColor: AppColors.creamLight,
-                      hintText: "••••••••••••",
-                      hintStyle: TextStyle(
+                      fillColor: Colors.white,
+                      hintText: "Street, Area, City, PIN code",
+                      labelText: "Complete Hospital Address",
+                      labelStyle: const TextStyle(
                         fontFamily: AppTypography.fontBody,
-                        color: AppColors.navyMuted.withValues(alpha: 0.6),
-                        fontSize: 13,
+                        color: AppColors.deepViolet,
+                        fontSize: 12,
                       ),
-                      prefixIcon: const Icon(
-                        Icons.lock_outline_rounded,
-                        color: AppColors.navyLight,
-                        size: 20,
-                      ),
-                      suffixIcon: IconButton(
-                        icon: Icon(
-                          obscurePassword ? Icons.visibility_outlined : Icons.visibility_off_outlined,
-                          color: AppColors.navyLight,
-                          size: 20,
-                        ),
-                        onPressed: () => setState(() => obscurePassword = !obscurePassword),
-                      ),
-                      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+                      prefixIcon: const Icon(Icons.place_outlined, color: AppColors.mutedBerry, size: 20),
                       enabledBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(14),
-                        borderSide: BorderSide(color: AppColors.sky.withValues(alpha: 0.6), width: 1.4),
+                        borderSide: BorderSide(color: AppColors.warmPeach.withValues(alpha: 0.6), width: 1.2),
                       ),
                       focusedBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(14),
-                        borderSide: const BorderSide(color: AppColors.navy, width: 2.0),
+                        borderSide: const BorderSide(color: AppColors.deepViolet, width: 2.0),
                       ),
                     ),
                   ),
-                ],
-              ),
+                  const SizedBox(height: 14),
 
-              // Hospital-specific fields
-              if (isHospital) ...[
-                const SizedBox(height: 24),
-                Container(
-                  padding: const EdgeInsets.all(20),
-                  decoration: BoxDecoration(
-                    color: AppColors.creamLight,
-                    borderRadius: BorderRadius.circular(18),
-                    border: Border.all(color: AppColors.sky, width: 1.4),
+                  TactileButton(
+                    text: isLocating ? "Acquiring GPS Position..." : "Fetch Current GPS Coordinates",
+                    icon: Icons.my_location_rounded,
+                    variant: TactileButtonVariant.secondary,
+                    isLoading: isLocating,
+                    height: 48,
+                    onPressed: isLocating ? null : getCurrentLocation,
                   ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
+                  const SizedBox(height: 14),
+
+                  Row(
                     children: [
-                      const Row(
-                        children: [
-                          Icon(Icons.pin_drop_rounded, size: 20, color: AppColors.navy),
-                          SizedBox(width: 8),
-                          Text(
-                            "Facility Geolocation Coordinates",
-                            style: TextStyle(
-                              fontFamily: AppTypography.fontHeading,
-                              fontSize: 14,
-                              fontWeight: FontWeight.w800,
-                              color: AppColors.navy,
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 6),
-                      Text(
-                        "Accurate coordinates enable routing green waves directly to your emergency trauma bay.",
-                        style: TextStyle(
-                          fontFamily: AppTypography.fontBody,
-                          fontSize: 12,
-                          color: AppColors.navyMuted,
-                        ),
-                      ),
-                      const SizedBox(height: 14),
-
-                      TextField(
-                        controller: addressController,
-                        style: const TextStyle(
-                          fontFamily: AppTypography.fontBody,
-                          fontSize: 14,
-                          fontWeight: FontWeight.w600,
-                          color: AppColors.navy,
-                        ),
-                        decoration: InputDecoration(
-                          filled: true,
-                          fillColor: AppColors.cream,
-                          hintText: "Street, Area, City, PIN code",
-                          labelText: "Complete Hospital Address",
-                          labelStyle: const TextStyle(
+                      Expanded(
+                        child: TextField(
+                          controller: latitudeController,
+                          readOnly: true,
+                          style: const TextStyle(
                             fontFamily: AppTypography.fontBody,
-                            color: AppColors.navy,
-                            fontSize: 12,
+                            fontSize: 13,
+                            fontWeight: FontWeight.w600,
+                            color: AppColors.deepViolet,
                           ),
-                          prefixIcon: const Icon(Icons.place_outlined, color: AppColors.navyLight, size: 20),
-                          enabledBorder: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(14),
-                            borderSide: BorderSide(color: AppColors.sky.withValues(alpha: 0.6), width: 1.2),
-                          ),
-                          focusedBorder: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(14),
-                            borderSide: const BorderSide(color: AppColors.navy, width: 2.0),
+                          decoration: InputDecoration(
+                            filled: true,
+                            fillColor: Colors.white,
+                            labelText: "Latitude",
+                            labelStyle: const TextStyle(
+                              fontFamily: AppTypography.fontBody,
+                              color: AppColors.deepViolet,
+                              fontSize: 11,
+                            ),
+                            prefixIcon: const Icon(Icons.north_rounded, size: 16, color: AppColors.mutedBerry),
+                            enabledBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(12),
+                              borderSide: BorderSide(color: AppColors.warmPeach.withValues(alpha: 0.6), width: 1.2),
+                            ),
+                            focusedBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(12),
+                              borderSide: const BorderSide(color: AppColors.deepViolet, width: 2.0),
+                            ),
                           ),
                         ),
                       ),
-                      const SizedBox(height: 14),
-
-                      InkWell(
-                        onTap: isLocating ? null : getCurrentLocation,
-                        borderRadius: BorderRadius.circular(14),
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-                          decoration: BoxDecoration(
-                            color: AppColors.navy,
-                            borderRadius: BorderRadius.circular(14),
-                            border: Border.all(color: AppColors.sky, width: 1.2),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: TextField(
+                          controller: longitudeController,
+                          readOnly: true,
+                          style: const TextStyle(
+                            fontFamily: AppTypography.fontBody,
+                            fontSize: 13,
+                            fontWeight: FontWeight.w600,
+                            color: AppColors.deepViolet,
                           ),
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              if (isLocating)
-                                const SizedBox(
-                                  width: 18,
-                                  height: 18,
-                                  child: CircularProgressIndicator(
-                                    strokeWidth: 2,
-                                    valueColor: AlwaysStoppedAnimation(AppColors.sky),
-                                  ),
-                                )
-                              else
-                                const Icon(Icons.my_location_rounded, size: 18, color: AppColors.sky),
-                              const SizedBox(width: 8),
-                              Text(
-                                isLocating ? "Acquiring GPS Position..." : "Fetch Current GPS Coordinates",
-                                style: const TextStyle(
-                                  fontFamily: AppTypography.fontHeading,
-                                  color: AppColors.cream,
-                                  fontSize: 13,
-                                  fontWeight: FontWeight.w700,
-                                ),
-                              ),
-                            ],
+                          decoration: InputDecoration(
+                            filled: true,
+                            fillColor: Colors.white,
+                            labelText: "Longitude",
+                            labelStyle: const TextStyle(
+                              fontFamily: AppTypography.fontBody,
+                              color: AppColors.deepViolet,
+                              fontSize: 11,
+                            ),
+                            prefixIcon: const Icon(Icons.east_rounded, size: 16, color: AppColors.mutedBerry),
+                            enabledBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(12),
+                              borderSide: BorderSide(color: AppColors.warmPeach.withValues(alpha: 0.6), width: 1.2),
+                            ),
+                            focusedBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(12),
+                              borderSide: const BorderSide(color: AppColors.deepViolet, width: 2.0),
+                            ),
                           ),
                         ),
-                      ),
-                      const SizedBox(height: 14),
-
-                      Row(
-                        children: [
-                          Expanded(
-                            child: TextField(
-                              controller: latitudeController,
-                              readOnly: true,
-                              style: const TextStyle(
-                                fontFamily: AppTypography.fontBody,
-                                fontSize: 13,
-                                fontWeight: FontWeight.w600,
-                                color: AppColors.navy,
-                              ),
-                              decoration: InputDecoration(
-                                filled: true,
-                                fillColor: AppColors.cream,
-                                labelText: "Latitude",
-                                labelStyle: const TextStyle(
-                                  fontFamily: AppTypography.fontBody,
-                                  color: AppColors.navy,
-                                  fontSize: 11,
-                                ),
-                                prefixIcon: const Icon(Icons.north_rounded, size: 16, color: AppColors.navyLight),
-                                enabledBorder: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(12),
-                                  borderSide: BorderSide(color: AppColors.sky.withValues(alpha: 0.6), width: 1.2),
-                                ),
-                                focusedBorder: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(12),
-                                  borderSide: const BorderSide(color: AppColors.navy, width: 2.0),
-                                ),
-                              ),
-                            ),
-                          ),
-                          const SizedBox(width: 12),
-                          Expanded(
-                            child: TextField(
-                              controller: longitudeController,
-                              readOnly: true,
-                              style: const TextStyle(
-                                fontFamily: AppTypography.fontBody,
-                                fontSize: 13,
-                                fontWeight: FontWeight.w600,
-                                color: AppColors.navy,
-                              ),
-                              decoration: InputDecoration(
-                                filled: true,
-                                fillColor: AppColors.cream,
-                                labelText: "Longitude",
-                                labelStyle: const TextStyle(
-                                  fontFamily: AppTypography.fontBody,
-                                  color: AppColors.navy,
-                                  fontSize: 11,
-                                ),
-                                prefixIcon: const Icon(Icons.east_rounded, size: 16, color: AppColors.navyLight),
-                                enabledBorder: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(12),
-                                  borderSide: BorderSide(color: AppColors.sky.withValues(alpha: 0.6), width: 1.2),
-                                ),
-                                focusedBorder: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(12),
-                                  borderSide: const BorderSide(color: AppColors.navy, width: 2.0),
-                                ),
-                              ),
-                            ),
-                          ),
-                        ],
                       ),
                     ],
                   ),
-                ),
-              ],
+                ],
+              ),
+            ),
+          ],
 
-              const SizedBox(height: 28),
+          const SizedBox(height: 28),
 
-              // Submit 3D button
-              Container(
-                height: 54,
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(16),
-                  boxShadow: [
-                    BoxShadow(
-                      color: AppColors.navy.withValues(alpha: 0.35),
-                      blurRadius: 18,
-                      offset: const Offset(0, 8),
-                    ),
-                  ],
-                ),
-                child: ElevatedButton(
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: AppColors.navy,
-                    foregroundColor: AppColors.cream,
-                    elevation: 0,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(16),
-                      side: const BorderSide(color: AppColors.sky, width: 1.5),
-                    ),
-                  ),
-                  onPressed: isLoading ? null : registerUser,
-                  child: isLoading
-                      ? const SizedBox(
-                          width: 22,
-                          height: 22,
-                          child: CircularProgressIndicator(
-                            strokeWidth: 2.5,
-                            valueColor: AlwaysStoppedAnimation<Color>(AppColors.sky),
-                          ),
-                        )
-                      : Text(
-                          isHospital ? "REGISTER HOSPITAL FACILITY" : "JOIN AS CITIZEN",
-                          style: const TextStyle(
-                            fontFamily: AppTypography.fontHeading,
-                            color: AppColors.cream,
-                            fontSize: 14,
-                            fontWeight: FontWeight.w800,
-                            letterSpacing: 0.5,
-                          ),
-                        ),
+          // Submit tactile button
+          TactileButton(
+            text: isHospital ? "REGISTER HOSPITAL FACILITY" : "JOIN AS CITIZEN",
+            icon: Icons.arrow_forward_rounded,
+            variant: TactileButtonVariant.primary,
+            isLoading: isLoading,
+            height: 52,
+            onPressed: isLoading ? null : registerUser,
+          ),
+          const SizedBox(height: 22),
+
+          // Sign In Link
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Text(
+                "Already registered on the network?",
+                style: TextStyle(
+                  fontFamily: AppTypography.fontBody,
+                  fontSize: 13,
+                  color: AppColors.deepViolet.withValues(alpha: 0.75),
                 ),
               ),
-              const SizedBox(height: 22),
-
-              // Sign In Link
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Text(
-                    "Already registered on the network?",
-                    style: TextStyle(
-                      fontFamily: AppTypography.fontBody,
-                      fontSize: 13,
-                      color: AppColors.navyMuted,
-                    ),
+              const SizedBox(width: 6),
+              GestureDetector(
+                onTap: () {
+                  Navigator.pushReplacement(
+                    context,
+                    MaterialPageRoute(builder: (_) => const LoginScreen()),
+                  );
+                },
+                child: const Text(
+                  "Sign In",
+                  style: TextStyle(
+                    fontFamily: AppTypography.fontBody,
+                    fontSize: 13,
+                    fontWeight: FontWeight.w800,
+                    color: AppColors.deepViolet,
+                    decoration: TextDecoration.underline,
+                    decorationColor: AppColors.deepViolet,
                   ),
-                  const SizedBox(width: 6),
-                  GestureDetector(
-                    onTap: () {
-                      Navigator.pushReplacement(
-                        context,
-                        MaterialPageRoute(builder: (_) => const LoginScreen()),
-                      );
-                    },
-                    child: const Text(
-                      "Sign In",
-                      style: TextStyle(
-                        fontFamily: AppTypography.fontBody,
-                        fontSize: 13,
-                        fontWeight: FontWeight.w800,
-                        color: AppColors.navy,
-                        decoration: TextDecoration.underline,
-                        decorationColor: AppColors.navy,
-                      ),
-                    ),
-                  ),
-                ],
+                ),
               ),
             ],
           ),
-        ),
+        ],
       ),
     );
   }
@@ -1192,7 +1094,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
             fontFamily: AppTypography.fontBody,
             fontSize: 11,
             fontWeight: FontWeight.w700,
-            color: AppColors.navy,
+            color: AppColors.deepViolet,
             letterSpacing: 0.8,
           ),
         ),
@@ -1204,26 +1106,26 @@ class _RegisterScreenState extends State<RegisterScreen> {
             fontFamily: AppTypography.fontBody,
             fontSize: 14,
             fontWeight: FontWeight.w600,
-            color: AppColors.navy,
+            color: AppColors.deepViolet,
           ),
           decoration: InputDecoration(
             filled: true,
-            fillColor: AppColors.creamLight,
+            fillColor: const Color(0xFFFAF7F0),
             hintText: hint,
             hintStyle: TextStyle(
               fontFamily: AppTypography.fontBody,
-              color: AppColors.navyMuted.withValues(alpha: 0.6),
+              color: AppColors.deepViolet.withValues(alpha: 0.45),
               fontSize: 13,
             ),
-            prefixIcon: Icon(icon, color: AppColors.navyLight, size: 20),
+            prefixIcon: Icon(icon, color: AppColors.mutedBerry, size: 20),
             contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
             enabledBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(14),
-              borderSide: BorderSide(color: AppColors.sky.withValues(alpha: 0.6), width: 1.4),
+              borderSide: BorderSide(color: AppColors.warmPeach.withValues(alpha: 0.6), width: 1.2),
             ),
             focusedBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(14),
-              borderSide: const BorderSide(color: AppColors.navy, width: 2.0),
+              borderSide: const BorderSide(color: AppColors.deepViolet, width: 2.0),
             ),
           ),
         ),
@@ -1243,29 +1145,15 @@ class _RegisterScreenState extends State<RegisterScreen> {
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 200),
         padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          color: isSelected ? AppColors.navy : AppColors.creamLight,
-          borderRadius: BorderRadius.circular(18),
-          border: Border.all(
-            color: isSelected ? AppColors.sky : AppColors.sky.withValues(alpha: 0.4),
-            width: isSelected ? 2 : 1.2,
-          ),
-          boxShadow: isSelected
-              ? [
-                  BoxShadow(
-                    color: AppColors.navy.withValues(alpha: 0.25),
-                    blurRadius: 14,
-                    offset: const Offset(0, 6),
-                  ),
-                ]
-              : [
-                  BoxShadow(
-                    color: AppColors.navy.withValues(alpha: 0.04),
-                    blurRadius: 8,
-                    offset: const Offset(0, 2),
-                  ),
-                ],
-        ),
+        decoration: isSelected
+            ? AppDecorations.skeuomorphicRaised(
+                isDarkSurface: true,
+                radius: 18,
+              )
+            : AppDecorations.skeuomorphicRaised(
+                isDarkSurface: false,
+                radius: 18,
+              ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -1275,27 +1163,27 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 Container(
                   padding: const EdgeInsets.all(8),
                   decoration: BoxDecoration(
-                    color: isSelected ? AppColors.navyDark : AppColors.cream,
+                    color: isSelected ? AppColors.deepVioletDark : const Color(0xFFF3ECE0),
                     borderRadius: BorderRadius.circular(10),
                     border: Border.all(
-                      color: isSelected ? AppColors.sky : AppColors.sky.withValues(alpha: 0.5),
+                      color: isSelected ? AppColors.warmPeach.withValues(alpha: 0.6) : AppColors.warmPeach.withValues(alpha: 0.5),
                     ),
                   ),
                   child: Icon(
                     icon,
                     size: 20,
-                    color: isSelected ? AppColors.sky : AppColors.navy,
+                    color: isSelected ? AppColors.warmPeach : AppColors.deepViolet,
                   ),
                 ),
                 if (isSelected)
-                  const Icon(Icons.check_circle_rounded, size: 20, color: AppColors.sky)
+                  const Icon(Icons.check_circle_rounded, size: 20, color: AppColors.warmPeach)
                 else
                   Container(
                     width: 16,
                     height: 16,
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
-                      border: Border.all(color: AppColors.sky, width: 1.5),
+                      border: Border.all(color: AppColors.warmPeach, width: 1.5),
                     ),
                   ),
               ],
@@ -1307,7 +1195,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 fontFamily: AppTypography.fontHeading,
                 fontSize: 14,
                 fontWeight: FontWeight.w800,
-                color: isSelected ? AppColors.cream : AppColors.navy,
+                color: isSelected ? AppColors.softIvory : AppColors.deepViolet,
               ),
             ),
             const SizedBox(height: 3),
@@ -1316,7 +1204,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
               style: TextStyle(
                 fontFamily: AppTypography.fontBody,
                 fontSize: 11,
-                color: isSelected ? AppColors.sky : AppColors.navyMuted,
+                color: isSelected ? AppColors.warmPeach : AppColors.deepViolet.withValues(alpha: 0.7),
                 height: 1.3,
               ),
             ),

@@ -394,7 +394,7 @@ class _InteractiveWorldGlobeWidgetState extends State<InteractiveWorldGlobeWidge
                         const SizedBox(width: 8),
                         Text(
                           h.name,
-                          style: GoogleFonts.plusJakartaSans(
+                          style: AppFonts.neueMontreal(
                             fontSize: 12,
                             fontWeight: isSelected ? FontWeight.w800 : FontWeight.w600,
                             color: isSelected ? AppColors.cream : AppColors.navy,
@@ -528,7 +528,7 @@ class _InteractiveWorldGlobeWidgetState extends State<InteractiveWorldGlobeWidge
                         const SizedBox(width: 6),
                         Text(
                           '${h.city.toUpperCase()}, ${h.country.toUpperCase()}',
-                          style: GoogleFonts.plusJakartaSans(
+                          style: AppFonts.neueMontreal(
                             fontSize: 10,
                             fontWeight: FontWeight.w800,
                             color: AppColors.navy,
@@ -566,7 +566,7 @@ class _InteractiveWorldGlobeWidgetState extends State<InteractiveWorldGlobeWidge
               // Hospital Name
               Text(
                 h.name,
-                style: GoogleFonts.plusJakartaSans(
+                style: AppFonts.neueMontreal(
                   fontSize: 24,
                   fontWeight: FontWeight.w900,
                   color: AppColors.navy,
@@ -576,7 +576,7 @@ class _InteractiveWorldGlobeWidgetState extends State<InteractiveWorldGlobeWidge
               const SizedBox(height: 6),
               Text(
                 h.traumaRank,
-                style: GoogleFonts.plusJakartaSans(
+                style: AppFonts.neueMontreal(
                   fontSize: 13,
                   fontWeight: FontWeight.w700,
                   color: AppColors.navyLight,
@@ -585,7 +585,7 @@ class _InteractiveWorldGlobeWidgetState extends State<InteractiveWorldGlobeWidge
               const SizedBox(height: 10),
               Text(
                 h.specialty,
-                style: GoogleFonts.plusJakartaSans(
+                style: AppFonts.neueMontreal(
                   fontSize: 13,
                   color: AppColors.navyMuted,
                   height: 1.5,
@@ -660,7 +660,7 @@ class _InteractiveWorldGlobeWidgetState extends State<InteractiveWorldGlobeWidge
                   icon: const Icon(Icons.monitor_heart_rounded, size: 18, color: AppColors.sky),
                   label: Text(
                     'Open Level-1 Hospital Console',
-                    style: GoogleFonts.plusJakartaSans(
+                    style: AppFonts.neueMontreal(
                       fontSize: 14,
                       fontWeight: FontWeight.w800,
                       color: AppColors.cream,
@@ -698,7 +698,7 @@ class _InteractiveWorldGlobeWidgetState extends State<InteractiveWorldGlobeWidge
               Expanded(
                 child: Text(
                   label,
-                  style: GoogleFonts.plusJakartaSans(
+                  style: AppFonts.neueMontreal(
                     fontSize: 9.5,
                     fontWeight: FontWeight.w800,
                     color: AppColors.navyMuted,
@@ -712,7 +712,7 @@ class _InteractiveWorldGlobeWidgetState extends State<InteractiveWorldGlobeWidge
           const SizedBox(height: 6),
           Text(
             value,
-            style: GoogleFonts.plusJakartaSans(
+            style: AppFonts.neueMontreal(
               fontSize: 12,
               fontWeight: FontWeight.w800,
               color: AppColors.navy,
@@ -902,7 +902,7 @@ class _GlobePainter extends CustomPainter {
     final labelText = '${h.flag} ${h.name}';
     final textSpan = TextSpan(
       text: labelText,
-      style: GoogleFonts.plusJakartaSans(
+      style: AppFonts.neueMontreal(
         fontSize: 11,
         fontWeight: FontWeight.w800,
         color: AppColors.navy,

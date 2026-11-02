@@ -4,28 +4,29 @@ import 'package:green_corridor/theme/app_theme.dart';
 
 void main() {
   group('Green Corridor Design System & Brand Palette Tests', () {
-    test('Core Palette contains exact Violet Dusk mandated hex values', () {
-      // Violet Dusk 4-color mandate
-      expect(AppColors.deepViolet.toARGB32(), equals(const Color(0xFF502D55).toARGB32()));
-      expect(AppColors.mutedBerry.toARGB32(), equals(const Color(0xFF935073).toARGB32()));
-      expect(AppColors.warmPeach.toARGB32(),  equals(const Color(0xFFF6DBC0).toARGB32()));
-      expect(AppColors.softIvory.toARGB32(),  equals(const Color(0xFFF8F4E9).toARGB32()));
-      // Legacy aliases still resolve to Violet Dusk colors
-      expect(AppColors.navy.toARGB32(),  equals(AppColors.deepViolet.toARGB32()));
-      expect(AppColors.cream.toARGB32(), equals(AppColors.softIvory.toARGB32()));
-      expect(AppColors.sky.toARGB32(),   equals(AppColors.mutedBerry.toARGB32()));
+    test('Core Palette contains exact Neue Montreal 5-color mandated hex values', () {
+      // 5-color Neue Montreal mandate
+      expect(AppColors.orange.toARGB32(),    equals(const Color(0xFFFF6D29).toARGB32()));
+      expect(AppColors.brown.toARGB32(),     equals(const Color(0xFF453027).toARGB32()));
+      expect(AppColors.nearBlack.toARGB32(), equals(const Color(0xFF161316).toARGB32()));
+      expect(AppColors.grey.toARGB32(),      equals(const Color(0xFFBABABA).toARGB32()));
+      expect(AppColors.white.toARGB32(),     equals(const Color(0xFFFFFFFF).toARGB32()));
+
+      // Backwards compatibility mappings
+      expect(AppColors.navy.toARGB32(),  equals(AppColors.nearBlack.toARGB32()));
+      expect(AppColors.cream.toARGB32(), equals(AppColors.white.toARGB32()));
+      expect(AppColors.sky.toARGB32(),   equals(AppColors.orange.toARGB32()));
     });
 
-    test('Default background is never black and uses Violet Dusk canvas', () {
+    test('Default background is never black and uses clean light canvas', () {
       expect(AppColors.background, isNot(equals(Colors.black)));
       expect(AppColors.background.toARGB32(), isNot(equals(0xFF000000)));
-      // background maps to Soft Ivory — never pitch black
-      expect(AppColors.background.toARGB32(), equals(AppColors.softIvory.toARGB32()));
+      expect(AppColors.background.toARGB32(), equals(AppColors.white.toARGB32()));
     });
 
-    test('Two-font system families are defined', () {
-      expect(AppTypography.fontHeading, equals('OpenSauceSans'));
-      expect(AppTypography.fontBody, equals('PeaceSans'));
+    test('Neue Montreal font family is defined throughout typography', () {
+      expect(AppTypography.fontHeading, equals('NeueMontreal'));
+      expect(AppTypography.fontBody, equals('NeueMontreal'));
     });
 
     test('3D tile decoration provides physical elevation and lighting', () {

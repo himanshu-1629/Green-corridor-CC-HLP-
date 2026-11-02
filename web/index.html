@@ -9,7 +9,7 @@
   <meta content="IE=Edge" http-equiv="X-UA-Compatible">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <meta name="description" content="Green Corridor — Precision Emergency Medical Logistics and Transit Coordination Platform">
-  <meta name="theme-color" content="#FFFEDF">
+  <meta name="theme-color" content="#FFFFFF">
 
   <!-- iOS meta tags & icons -->
   <meta name="mobile-web-app-capable" content="yes">
@@ -23,63 +23,62 @@
   <title>Green Corridor — Emergency Medical Logistics</title>
   <link rel="manifest" href="manifest.json">
 
-  <!-- Core Two-Font System: Open Sauce Sans (Headings) & Peace Sans (Body/Labels) -->
+  <!-- Neue Montreal Brand Font System -->
+  <link rel="stylesheet" href="fonts/NeueMontreal.css">
   <style>
     @font-face {
-      font-family: 'OpenSauceSans';
-      src: url('fonts/OpenSauceSans-Regular.ttf') format('truetype');
+      font-family: 'Neue Montreal';
+      src: url('fonts/NeueMontreal-Regular.woff2') format('woff2'),
+           url('fonts/NeueMontreal-Regular.ttf') format('truetype');
       font-weight: 400;
       font-style: normal;
     }
     @font-face {
-      font-family: 'OpenSauceSans';
-      src: url('fonts/OpenSauceSans-Medium.ttf') format('truetype');
+      font-family: 'Neue Montreal';
+      src: url('fonts/NeueMontreal-Medium.woff2') format('woff2'),
+           url('fonts/NeueMontreal-Medium.ttf') format('truetype');
       font-weight: 500;
       font-style: normal;
     }
     @font-face {
-      font-family: 'OpenSauceSans';
-      src: url('fonts/OpenSauceSans-SemiBold.ttf') format('truetype');
-      font-weight: 600;
-      font-style: normal;
-    }
-    @font-face {
-      font-family: 'OpenSauceSans';
-      src: url('fonts/OpenSauceSans-Bold.ttf') format('truetype');
+      font-family: 'Neue Montreal';
+      src: url('fonts/NeueMontreal-Bold.woff2') format('woff2'),
+           url('fonts/NeueMontreal-Bold.ttf') format('truetype');
       font-weight: 700;
       font-style: normal;
     }
     @font-face {
-      font-family: 'OpenSauceSans';
-      src: url('fonts/OpenSauceSans-ExtraBold.ttf') format('truetype');
-      font-weight: 800;
-      font-style: normal;
-    }
-    @font-face {
-      font-family: 'OpenSauceSans';
-      src: url('fonts/OpenSauceSans-Black.ttf') format('truetype');
-      font-weight: 900;
-      font-style: normal;
-    }
-    @font-face {
-      font-family: 'PeaceSans';
-      src: url('fonts/PeaceSans-Regular.otf') format('opentype');
+      font-family: 'NeueMontreal';
+      src: url('fonts/NeueMontreal-Regular.ttf') format('truetype');
       font-weight: 400;
       font-style: normal;
     }
+    @font-face {
+      font-family: 'NeueMontreal';
+      src: url('fonts/NeueMontreal-Medium.ttf') format('truetype');
+      font-weight: 500;
+      font-style: normal;
+    }
+    @font-face {
+      font-family: 'NeueMontreal';
+      src: url('fonts/NeueMontreal-Bold.ttf') format('truetype');
+      font-weight: 700;
+      font-style: normal;
+    }
 
-    /* Zero Black Guarantee: Pale Cream base canvas #FFFEDF */
+    /* Clean White base canvas #FFFFFF */
     html, body {
       margin: 0;
       padding: 0;
       width: 100%;
       height: 100%;
-      background-color: #FFFEDF;
-      font-family: 'PeaceSans', system-ui, -apple-system, sans-serif;
-      overflow: hidden;
+      background-color: #FFFFFF;
+      font-family: 'NeueMontreal', 'Neue Montreal', -apple-system, sans-serif;
+      overflow-x: hidden;
+      overflow-y: auto;
     }
 
-    /* Executive Brand Pre-Loader: Visible while Flutter bootstrap and CanvasKit download */
+    /* Green Corridor Custom 3D Dimensional Loading Orb Pre-Loader */
     #gc-preloader {
       position: fixed;
       top: 0;
@@ -90,37 +89,112 @@
       flex-direction: column;
       align-items: center;
       justify-content: center;
-      background: radial-gradient(circle at 50% 40%, #FFFDF5 0%, #FFFEDF 100%);
+      background: radial-gradient(circle at 50% 45%, #FFFFFF 0%, #FAFAFA 50%, #F5F5F5 100%);
       z-index: 99999;
-      transition: opacity 0.5s ease-out;
+      transition: opacity 0.4s ease-out;
     }
 
-    .gc-loader-ring {
-      width: 64px;
-      height: 64px;
-      border: 4px solid #86CAF3;
-      border-top-color: #0F357C;
+    .gc-orb-stage {
+      position: relative;
+      width: 96px;
+      height: 96px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 24px;
+    }
+
+    /* Ambient Warm Radiant Halo */
+    .gc-orb-glow {
+      position: absolute;
+      width: 96px;
+      height: 96px;
       border-radius: 50%;
-      animation: gc-spin 1s cubic-bezier(0.55, 0.15, 0.45, 0.85) infinite;
-      box-shadow: 0 0 24px rgba(134, 202, 243, 0.4);
+      background: radial-gradient(circle at 50% 50%, rgba(255, 109, 41, 0.22) 0%, rgba(69, 48, 39, 0.08) 45%, transparent 70%);
+      pointer-events: none;
+    }
+
+    /* Grounding Contact Shadow */
+    .gc-orb-shadow {
+      position: absolute;
+      bottom: 2px;
+      width: 68px;
+      height: 12px;
+      border-radius: 50%;
+      background: radial-gradient(ellipse at 50% 50%, rgba(22, 19, 22, 0.16) 0%, transparent 75%);
+    }
+
+    /* 3D Dimensional Spherical Core */
+    .gc-orb-sphere {
+      position: relative;
+      width: 74px;
+      height: 74px;
+      border-radius: 50%;
+      background: radial-gradient(circle at 35% 32%, #FFFFFF 0%, #EBEBEB 28%, #453027 72%, #161316 100%);
+      box-shadow:
+        0 8px 24px rgba(22, 19, 22, 0.14),
+        inset -3px -3px 8px rgba(22, 19, 22, 0.6),
+        inset 3px 3px 8px rgba(255, 255, 255, 0.85);
+      overflow: hidden;
+    }
+
+    /* Rotating 3D Internal Transit Grid Rings (Brand Orange #FF6D29) */
+    .gc-orb-ring-1 {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      width: 66px;
+      height: 66px;
+      margin: -33px 0 0 -33px;
+      border-radius: 50%;
+      border: 1.4px solid rgba(255, 109, 41, 0.35);
+      border-top-color: #FF6D29;
+      transform: rotateX(68deg) rotateY(20deg);
+      animation: gc-orb-rot-1 3.4s linear infinite;
+    }
+
+    .gc-orb-ring-2 {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      width: 60px;
+      height: 60px;
+      margin: -30px 0 0 -30px;
+      border-radius: 50%;
+      border: 1.4px solid rgba(255, 109, 41, 0.40);
+      border-bottom-color: #FF6D29;
+      transform: rotateX(-58deg) rotateY(32deg);
+      animation: gc-orb-rot-2 4.6s linear infinite reverse;
+    }
+
+    /* Surface Specular Gloss Crescent */
+    .gc-orb-gloss {
+      position: absolute;
+      top: 6px;
+      left: 10px;
+      width: 32px;
+      height: 20px;
+      border-radius: 50%;
+      background: radial-gradient(ellipse at 50% 50%, rgba(255, 255, 255, 0.82) 0%, rgba(255, 255, 255, 0) 80%);
+      transform: rotate(-30deg);
+      pointer-events: none;
     }
 
     .gc-brand-title {
-      margin-top: 24px;
-      font-family: 'OpenSauceSans', sans-serif;
-      font-weight: 900;
-      font-size: 20px;
-      letter-spacing: 1.5px;
-      color: #0F357C;
+      font-family: 'NeueMontreal', 'Neue Montreal', sans-serif;
+      font-weight: 600;
+      font-size: 16px;
+      letter-spacing: 1.4px;
+      color: #161316;
       text-transform: uppercase;
     }
 
     .gc-brand-sub {
-      margin-top: 8px;
-      font-size: 13px;
-      font-weight: 500;
-      letter-spacing: 0.4px;
-      color: #334A6F;
+      margin-top: 6px;
+      font-size: 12.5px;
+      font-weight: 400;
+      letter-spacing: 0.2px;
+      color: #5A525A;
     }
 
     .gc-pulse-badge {
@@ -128,43 +202,59 @@
       display: inline-flex;
       align-items: center;
       gap: 8px;
-      padding: 6px 14px;
-      background: rgba(134, 202, 243, 0.35);
-      border: 1px solid #86CAF3;
+      padding: 5px 14px;
+      background: #FFFFFF;
+      border: 1.1px solid #BABABA;
       border-radius: 20px;
-      font-size: 11px;
-      font-weight: 700;
-      color: #0F357C;
-      letter-spacing: 0.8px;
+      font-size: 10.5px;
+      font-weight: 500;
+      color: #453027;
+      letter-spacing: 0.6px;
+      box-shadow: 0 2px 8px rgba(22, 19, 22, 0.05);
     }
 
     .gc-pulse-dot {
-      width: 8px;
-      height: 8px;
-      background: #0F357C;
+      width: 7px;
+      height: 7px;
+      background: #FF6D29;
       border-radius: 50%;
-      animation: gc-pulse 1.4s ease-in-out infinite;
+      animation: gc-pulse 1.6s ease-in-out infinite;
+      box-shadow: 0 0 6px rgba(255, 109, 41, 0.6);
     }
 
-    @keyframes gc-spin {
-      to { transform: rotate(360deg); }
+    @keyframes gc-orb-rot-1 {
+      0% { transform: rotateX(68deg) rotateY(20deg) rotateZ(0deg); }
+      100% { transform: rotateX(68deg) rotateY(20deg) rotateZ(360deg); }
+    }
+
+    @keyframes gc-orb-rot-2 {
+      0% { transform: rotateX(-58deg) rotateY(32deg) rotateZ(0deg); }
+      100% { transform: rotateX(-58deg) rotateY(32deg) rotateZ(360deg); }
     }
 
     @keyframes gc-pulse {
       0%, 100% { opacity: 1; transform: scale(1); }
-      50% { opacity: 0.4; transform: scale(0.8); }
+      50% { opacity: 0.4; transform: scale(0.85); }
     }
   </style>
 </head>
 <body>
-  <!-- Brand Pre-Loader prevents blank white screens -->
+  <!-- Brand Pre-Loader: Custom Animated Medical Loading Orb -->
   <div id="gc-preloader">
-    <div class="gc-loader-ring"></div>
+    <div class="gc-orb-stage">
+      <div class="gc-orb-glow"></div>
+      <div class="gc-orb-shadow"></div>
+      <div class="gc-orb-sphere">
+        <div class="gc-orb-ring-1"></div>
+        <div class="gc-orb-ring-2"></div>
+        <div class="gc-orb-gloss"></div>
+      </div>
+    </div>
     <div class="gc-brand-title">GREEN CORRIDOR</div>
     <div class="gc-brand-sub">Emergency Medical Logistics Platform</div>
     <div class="gc-pulse-badge">
       <span class="gc-pulse-dot"></span>
-      CONNECTING LIVES • ACROSS EVERY MILE
+      SYNCHRONIZING TRANSIT ARTERIES
     </div>
   </div>
 
@@ -215,6 +305,13 @@
         console.warn('Emergency siren audio context notice:', e);
       }
     };
+
+    // Ensure wheel/touch events forwarded from 3D canvas iframes smoothly scroll the window
+    window.addEventListener('message', function(e) {
+      if (e.data && e.data.type === 'GC_FORWARD_WHEEL') {
+        window.scrollBy({ top: e.data.deltaY, behavior: 'auto' });
+      }
+    });
 
     // Remove pre-loader when Flutter first mounts
     window.addEventListener('flutter-first-frame', function() {

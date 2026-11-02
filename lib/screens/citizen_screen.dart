@@ -6,7 +6,6 @@ import 'package:geolocator/geolocator.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:http/http.dart' as http;
 import 'package:supabase_flutter/supabase_flutter.dart';
-import 'package:google_fonts/google_fonts.dart';
 import '../services/citizen_alert_service.dart';
 import '../services/push_notification_service.dart';
 import '../theme/app_theme.dart';
@@ -710,7 +709,7 @@ class _CitizenScreenState extends State<CitizenScreen> with SingleTickerProvider
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
                     content: Text(
                       _isMuted ? "Siren audio muted" : "Emergency siren audio active",
-                      style: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.w600),
+                      style: AppFonts.neueMontreal(fontWeight: FontWeight.w600),
                     ),
                   ),
                 );
@@ -748,7 +747,7 @@ class _CitizenScreenState extends State<CitizenScreen> with SingleTickerProvider
                   const SizedBox(height: 16),
                   Text(
                     "Calibrating Geofence Radar...",
-                    style: GoogleFonts.plusJakartaSans(color: AppColors.slate600, fontWeight: FontWeight.w600),
+                    style: AppFonts.neueMontreal(color: AppColors.slate600, fontWeight: FontWeight.w600),
                   ),
                 ],
               ),
@@ -789,7 +788,7 @@ class _CitizenScreenState extends State<CitizenScreen> with SingleTickerProvider
                       // 4. CITIZEN FAST-TRACK CLEARANCE PROTOCOLS
                       Text(
                         "Citizen Fast-Track Protocol",
-                        style: GoogleFonts.plusJakartaSans(
+                        style: AppFonts.neueMontreal(
                           fontSize: 18,
                           fontWeight: FontWeight.w800,
                           color: AppColors.slate900,
@@ -897,7 +896,7 @@ class _CitizenScreenState extends State<CitizenScreen> with SingleTickerProvider
                     children: [
                       Text(
                         "EMERGENCY CORRIDOR ON YOUR PATH (<500M)",
-                        style: GoogleFonts.plusJakartaSans(
+                        style: AppFonts.neueMontreal(
                           color: Colors.white,
                           fontSize: 16,
                           fontWeight: FontWeight.w900,
@@ -907,7 +906,7 @@ class _CitizenScreenState extends State<CitizenScreen> with SingleTickerProvider
                       const SizedBox(height: 3),
                       Text(
                         "Ambulance ${activeAmbulancePlate()} is ${_distanceToAmbulance!.toStringAsFixed(0)} meters away on your road!",
-                        style: GoogleFonts.plusJakartaSans(
+                        style: AppFonts.neueMontreal(
                           color: Colors.white,
                           fontSize: 14,
                           fontWeight: FontWeight.w600,
@@ -933,7 +932,7 @@ class _CitizenScreenState extends State<CitizenScreen> with SingleTickerProvider
                   Expanded(
                     child: Text(
                       "IMMEDIATE ACTION: Safely pull over to the extreme left lane. Do NOT enter upcoming junctions.",
-                      style: GoogleFonts.plusJakartaSans(
+                      style: AppFonts.neueMontreal(
                         color: Colors.white,
                         fontSize: 13,
                         fontWeight: FontWeight.w700,
@@ -982,7 +981,7 @@ class _CitizenScreenState extends State<CitizenScreen> with SingleTickerProvider
               children: [
                 Text(
                   "AMBULANCE WITHIN 1 KM • ON YOUR ROUTE",
-                  style: GoogleFonts.plusJakartaSans(
+                  style: AppFonts.neueMontreal(
                     color: Colors.white,
                     fontSize: 15,
                     fontWeight: FontWeight.w900,
@@ -992,7 +991,7 @@ class _CitizenScreenState extends State<CitizenScreen> with SingleTickerProvider
                 const SizedBox(height: 3),
                 Text(
                   "Ambulance ${activeAmbulancePlate()} is approaching along your road (${(_distanceToAmbulance! / 1000).toStringAsFixed(2)} km away). Prepare to yield.",
-                  style: GoogleFonts.plusJakartaSans(color: Colors.white.withValues(alpha: 0.9), fontSize: 13, height: 1.3),
+                  style: AppFonts.neueMontreal(color: Colors.white.withValues(alpha: 0.9), fontSize: 13, height: 1.3),
                 ),
               ],
             ),
@@ -1034,7 +1033,7 @@ class _CitizenScreenState extends State<CitizenScreen> with SingleTickerProvider
               children: [
                 Text(
                   "ACTIVE GREEN CORRIDOR IN PROGRESS",
-                  style: GoogleFonts.plusJakartaSans(
+                  style: AppFonts.neueMontreal(
                     color: Colors.white,
                     fontSize: 15,
                     fontWeight: FontWeight.w900,
@@ -1044,7 +1043,7 @@ class _CitizenScreenState extends State<CitizenScreen> with SingleTickerProvider
                 const SizedBox(height: 3),
                 Text(
                   "An active emergency ambulance is en route along your road (${(_distanceToAmbulance! / 1000).toStringAsFixed(1)} km away). Live GPS unlocked. Stay alert.",
-                  style: GoogleFonts.plusJakartaSans(color: Colors.white.withValues(alpha: 0.9), fontSize: 13, height: 1.3),
+                  style: AppFonts.neueMontreal(color: Colors.white.withValues(alpha: 0.9), fontSize: 13, height: 1.3),
                 ),
               ],
             ),
@@ -1109,7 +1108,7 @@ class _CitizenScreenState extends State<CitizenScreen> with SingleTickerProvider
                     const SizedBox(width: 8),
                     Text(
                       "DRIVER STARTED MISSION",
-                      style: GoogleFonts.plusJakartaSans(
+                      style: AppFonts.neueMontreal(
                         color: Colors.white,
                         fontSize: 13,
                         fontWeight: FontWeight.w900,
@@ -1121,7 +1120,7 @@ class _CitizenScreenState extends State<CitizenScreen> with SingleTickerProvider
                 const SizedBox(height: 6),
                 Text(
                   "Ambulance ${activeAmbulancePlate()} has departed from ${_sourceHospital?['name'] ?? 'Hospital'} and is en route to ${_destinationHospital?['name'] ?? 'Destination'}.${_distanceToAmbulance != null ? ' (${(_distanceToAmbulance! / 1000).toStringAsFixed(1)} km away)' : ''} Keep roads clear.",
-                  style: GoogleFonts.plusJakartaSans(
+                  style: AppFonts.neueMontreal(
                     color: Colors.white.withValues(alpha: 0.95),
                     fontSize: 13,
                     height: 1.35,
@@ -1167,7 +1166,7 @@ class _CitizenScreenState extends State<CitizenScreen> with SingleTickerProvider
               children: [
                 Text(
                   "All Corridors Clear In Your Area",
-                  style: GoogleFonts.plusJakartaSans(
+                  style: AppFonts.neueMontreal(
                     color: Colors.white,
                     fontSize: 16,
                     fontWeight: FontWeight.w800,
@@ -1179,7 +1178,7 @@ class _CitizenScreenState extends State<CitizenScreen> with SingleTickerProvider
                   isCorridorActive && _distanceToRoute != null && _distanceToRoute != double.infinity
                       ? "An emergency corridor is active elsewhere in the city (${(_distanceToRoute! / 1000).toStringAsFixed(1)} km from your road). You are outside the corridor path. Traffic normal."
                       : "Geofence active. You will only be alerted and shown live ambulance GPS if an emergency convoy is routed directly through your street.",
-                  style: GoogleFonts.plusJakartaSans(color: Colors.white.withValues(alpha: 0.9), fontSize: 13, height: 1.35),
+                  style: AppFonts.neueMontreal(color: Colors.white.withValues(alpha: 0.9), fontSize: 13, height: 1.35),
                 ),
               ],
             ),

@@ -1,12 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import '../theme/app_theme.dart';
 
+import '../widgets/medical_loading_orb.dart';
 import 'hospital_dashboard.dart';
 import 'driver_dashboard.dart';
 import 'super_admin_dashboard.dart';
 import 'citizen_screen.dart';
 import 'set_new_password_screen.dart';
 import 'welcome_screen.dart';
+
 class AuthGate extends StatefulWidget {
   const AuthGate({super.key});
 
@@ -15,19 +18,17 @@ class AuthGate extends StatefulWidget {
 }
 
 class _AuthGateState extends State<AuthGate> {
-  
- @override
-void initState() {
-  super.initState();
-
-  WidgetsBinding.instance.addPostFrameCallback((_) {
-    checkUser();
-  });
-}
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      checkUser();
+    });
+  }
 
   Future<void> checkUser() async {
-    // Quick micro-pause to allow browser session to settle without unnecessary lag
-    await Future.delayed(const Duration(milliseconds: 250));
+    // Brief settling delay to verify session without unnecessary wait
+    await Future.delayed(const Duration(milliseconds: 200));
 
     try {
       final session = Supabase.instance.client.auth.currentSession;
@@ -115,52 +116,35 @@ void initState() {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: const Color(0xFFF8F4E9),
+    return const Scaffold(
+      backgroundColor: AppColors.white,
       body: Center(
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Container(
-              padding: const EdgeInsets.all(18),
-              decoration: BoxDecoration(
-                color: const Color(0xFF502D55).withValues(alpha: 0.10),
-                shape: BoxShape.circle,
-                border: Border.all(color: const Color(0xFF935073), width: 1.5),
-              ),
-              child: const Icon(
-                Icons.emergency_share_rounded,
-                color: Color(0xFF0F357C),
-                size: 34,
-              ),
+            MedicalLoadingOrb(
+              size: 88,
             ),
-            const SizedBox(height: 20),
-            const SizedBox(
-              width: 28,
-              height: 28,
-              child: CircularProgressIndicator(
-                strokeWidth: 2.5,
-                valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF0F357C)),
-              ),
-            ),
-            const SizedBox(height: 16),
-            const Text(
+            SizedBox(height: 24),
+            Text(
               "GREEN CORRIDOR",
               style: TextStyle(
-                fontFamily: 'OpenSauceSans',
-                fontSize: 16,
-                fontWeight: FontWeight.w900,
-                color: Color(0xFF0F357C),
-                letterSpacing: 1.2,
+                fontFamily: 'NeueMontreal',
+                fontSize: 15,
+                fontWeight: FontWeight.w600,
+                color: AppColors.nearBlack,
+                letterSpacing: 1.4,
               ),
             ),
-            const SizedBox(height: 6),
-            const Text(
-              "Synchronizing Emergency Transit Grid...",
+            SizedBox(height: 8),
+            Text(
+              "Connecting Critical Transit Network...",
               style: TextStyle(
-                fontFamily: 'PeaceSans',
-                fontSize: 12,
-                color: Color(0xFF334A6F),
+                fontFamily: 'NeueMontreal',
+                fontSize: 13,
+                fontWeight: FontWeight.w400,
+                color: AppColors.nearBlackMuted,
+                letterSpacing: 0.2,
               ),
             ),
           ],

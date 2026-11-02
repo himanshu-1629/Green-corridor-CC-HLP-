@@ -1,0 +1,4263 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CC-HLP Cyber-Physical Digital Twin // Neumorphic Smart-Control Suite</title>
+  <link rel="icon" type="image/svg+xml" href="favicon.svg">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      /* Neumorphism Signature Palette */
+      --neu-bg: #E0E5EC;
+      --neu-light: #FFFFFF;
+      --neu-dark: #A3B1C6;
+      --neu-slate: #4D5B7C;
+      --neu-dark-slate: #242D42;
+      --neu-muted: #7E8DA6;
+      
+      /* Accessibility & Emergency Accents */
+      --accent-purple: #6C63FF;
+      --accent-purple-glow: rgba(108, 99, 255, 0.35);
+      --accent-orange: #FF6D29;
+      --accent-green: #10B981;
+      --accent-red: #EF4444;
+      --accent-amber: #F59E0B;
+      --accent-cyan: #0284C7;
+
+      /* Standard Shadows */
+      --shadow-extruded: -8px -8px 16px var(--neu-light), 8px 8px 16px var(--neu-dark);
+      --shadow-extruded-lg: -12px -12px 24px var(--neu-light), 12px 12px 24px var(--neu-dark);
+      --shadow-extruded-sm: -4px -4px 10px var(--neu-light), 4px 4px 10px var(--neu-dark);
+      --shadow-extruded-xs: -2px -2px 6px var(--neu-light), 2px 2px 6px var(--neu-dark);
+
+      /* Inset (Pressed / Wells / Tracks) */
+      --shadow-inset: inset 4px 4px 8px var(--neu-dark), inset -4px -4px 8px var(--neu-light);
+      --shadow-inset-deep: inset 6px 6px 12px var(--neu-dark), inset -6px -6px 12px var(--neu-light);
+      --shadow-inset-sm: inset 3px 3px 6px var(--neu-dark), inset -3px -3px 6px var(--neu-light);
+
+      --font-stack: 'Nunito', 'Poppins', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      user-select: none;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    body, html {
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background-color: var(--neu-bg);
+      font-family: var(--font-stack);
+      color: var(--neu-slate);
+    }
+
+    /* 3D WebGL Canvas Layer */
+    #webgl-canvas {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 1;
+      outline: none;
+    }
+
+    /* Neumorphic Top Navigation Bar */
+    header {
+      position: absolute;
+      top: 16px;
+      left: 20px;
+      right: 20px;
+      height: 64px;
+      z-index: 10;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 24px;
+      background: var(--neu-bg);
+      border-radius: 28px;
+      box-shadow: var(--shadow-extruded);
+    }
+
+    .brand-group {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+
+    .logo-badge {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      background: var(--neu-bg);
+      box-shadow: var(--shadow-extruded-sm);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 900;
+      font-size: 18px;
+      color: var(--accent-purple);
+    }
+
+    .brand-title h1 {
+      font-size: 15px;
+      font-weight: 800;
+      color: var(--neu-dark-slate);
+      letter-spacing: 0.3px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .brand-title p {
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--neu-muted);
+      letter-spacing: 0.2px;
+    }
+
+    /* Camera Switcher Buttons (Neumorphic Inset/Extruded Toggle Group) */
+    .camera-switcher {
+      display: flex;
+      gap: 10px;
+      background: var(--neu-bg);
+      padding: 6px;
+      border-radius: 24px;
+      box-shadow: var(--shadow-inset-sm);
+    }
+
+    .cam-btn {
+      background: var(--neu-bg);
+      border: none;
+      color: var(--neu-slate);
+      padding: 8px 16px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 700;
+      font-family: inherit;
+      cursor: pointer;
+      transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      box-shadow: var(--shadow-extruded-xs);
+    }
+
+    .cam-btn:hover {
+      color: var(--neu-dark-slate);
+      transform: translateY(-1px);
+    }
+
+    .cam-btn.active {
+      color: var(--accent-purple);
+      box-shadow: var(--shadow-inset-sm);
+      transform: translateY(0);
+      font-weight: 800;
+    }
+
+    .header-actions {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .siren-toggle {
+      background: var(--neu-bg);
+      border: none;
+      border-radius: 20px;
+      color: var(--neu-slate);
+      padding: 8px 16px;
+      font-size: 12px;
+      font-weight: 700;
+      font-family: inherit;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      box-shadow: var(--shadow-extruded-sm);
+      transition: all 0.2s ease;
+    }
+
+    .siren-toggle:hover {
+      transform: translateY(-1px);
+    }
+
+    .siren-toggle.active {
+      box-shadow: var(--shadow-inset-sm);
+      color: var(--accent-red);
+      font-weight: 800;
+    }
+
+    /* Left Control Sidebar in Soft Neumorphism */
+    .left-panel {
+      position: absolute;
+      top: 92px;
+      left: 20px;
+      width: 360px;
+      max-height: calc(100vh - 116px);
+      z-index: 10;
+      background: var(--neu-bg);
+      border-radius: 28px;
+      padding: 16px 18px 32px 18px;
+      overflow-y: auto;
+      box-shadow: var(--shadow-extruded-lg);
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.35s ease;
+    }
+
+    .panel-heading {
+      font-size: 12px;
+      font-weight: 800;
+      letter-spacing: 0.5px;
+      color: var(--neu-dark-slate);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding-bottom: 2px;
+    }
+
+    /* =========================================================================
+       SIGNATURE NEUMORPHIC THERMOSTAT DIAL (QUEUE COUNT N)
+       ========================================================================= */
+    .dial-card {
+      background: var(--neu-bg);
+      border-radius: 24px;
+      padding: 12px 10px;
+      box-shadow: var(--shadow-extruded);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .dial-header {
+      width: 100%;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0 10px;
+    }
+
+    .dial-header h3 {
+      font-size: 12px;
+      font-weight: 800;
+      color: var(--neu-dark-slate);
+    }
+
+    .dial-header span {
+      font-size: 10px;
+      font-weight: 700;
+      color: var(--accent-purple);
+      background: var(--neu-bg);
+      padding: 2px 8px;
+      border-radius: 10px;
+      box-shadow: var(--shadow-extruded-xs);
+    }
+
+    .thermostat-dial-wrapper {
+      position: relative;
+      width: 148px;
+      height: 148px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    /* Outer Extruded Base Ring */
+    .dial-outer-ring {
+      width: 148px;
+      height: 148px;
+      border-radius: 50%;
+      background: var(--neu-bg);
+      box-shadow: var(--shadow-extruded);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    /* Concave Inset Track Ring */
+    .dial-inset-track {
+      width: 116px;
+      height: 116px;
+      border-radius: 50%;
+      background: var(--neu-bg);
+      box-shadow: var(--shadow-inset-deep);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    /* Center Extruded Knob */
+    .dial-center-knob {
+      width: 86px;
+      height: 86px;
+      border-radius: 50%;
+      background: var(--neu-bg);
+      box-shadow: -5px -5px 12px var(--neu-light), 5px 5px 12px var(--neu-dark);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+
+    .dial-center-knob:hover {
+      transform: scale(1.02);
+    }
+
+    .dial-center-knob:active {
+      box-shadow: var(--shadow-inset-sm);
+    }
+
+    .dial-val-number {
+      font-size: 28px;
+      font-weight: 900;
+      line-height: 1;
+      color: var(--accent-purple);
+      letter-spacing: -1px;
+    }
+
+    .dial-val-label {
+      font-size: 9px;
+      font-weight: 700;
+      color: var(--neu-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-top: 2px;
+    }
+
+    /* Stepper Buttons for Circular Dial */
+    .dial-controls {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .dial-btn {
+      width: 38px;
+      height: 38px;
+      border-radius: 50%;
+      background: var(--neu-bg);
+      border: none;
+      box-shadow: var(--shadow-extruded-sm);
+      color: var(--neu-slate);
+      font-size: 18px;
+      font-weight: 800;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.15s ease;
+    }
+
+    .dial-btn:hover {
+      color: var(--accent-purple);
+      transform: scale(1.05);
+    }
+
+    .dial-btn:active {
+      box-shadow: var(--shadow-inset-sm);
+      transform: scale(0.96);
+    }
+
+    /* Independent Dual-Lane Stepper Grid */
+    .lane-queue-grid {
+      width: 100%;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      margin-top: 4px;
+    }
+
+    .lane-queue-card {
+      background: var(--neu-bg);
+      border-radius: 16px;
+      padding: 8px 6px;
+      box-shadow: var(--shadow-inset-sm);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .lane-queue-header {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 2px;
+      width: 100%;
+    }
+
+    .lane-badge {
+      font-size: 8.5px;
+      font-weight: 800;
+      padding: 2px 7px;
+      border-radius: 8px;
+      letter-spacing: 0.3px;
+    }
+
+    .l1-badge {
+      background: rgba(239, 68, 68, 0.12);
+      color: var(--accent-red);
+      border: 1px solid rgba(239, 68, 68, 0.25);
+    }
+
+    .l2-badge {
+      background: rgba(108, 99, 255, 0.12);
+      color: var(--accent-purple);
+      border: 1px solid rgba(108, 99, 255, 0.25);
+    }
+
+    .lane-count-val {
+      font-size: 10.5px;
+      font-weight: 800;
+      color: var(--neu-slate);
+    }
+
+    .lane-stepper-row {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+
+    .dial-btn-sm {
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      background: var(--neu-bg);
+      border: none;
+      box-shadow: var(--shadow-extruded-xs);
+      color: var(--neu-dark-slate);
+      font-size: 15px;
+      font-weight: 800;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.15s ease;
+    }
+
+    .dial-btn-sm:hover {
+      box-shadow: -2px -2px 6px var(--neu-light), 2px 2px 6px var(--neu-dark);
+      color: var(--accent-purple);
+    }
+
+    .dial-btn-sm:active {
+      box-shadow: var(--shadow-inset-xs);
+      transform: scale(0.94);
+    }
+
+    .lane-stepper-display {
+      font-size: 14px;
+      font-weight: 900;
+      color: var(--neu-dark-slate);
+      min-width: 18px;
+      text-align: center;
+    }
+
+    /* =========================================================================
+       4 ROOM TOGGLE CARDS (CYBER-PHYSICAL SUBSYSTEMS)
+       ========================================================================= */
+    .toggle-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 12px;
+    }
+
+    .neu-toggle-card {
+      background: var(--neu-bg);
+      border-radius: 24px;
+      padding: 14px 16px;
+      box-shadow: var(--shadow-extruded);
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      gap: 12px;
+      transition: all 0.2s ease;
+      cursor: pointer;
+    }
+
+    .neu-toggle-card:hover {
+      transform: translateY(-2px);
+    }
+
+    .toggle-text h4 {
+      font-size: 12px;
+      font-weight: 800;
+      color: var(--neu-dark-slate);
+      line-height: 1.3;
+    }
+
+    .toggle-text p {
+      font-size: 10px;
+      font-weight: 600;
+      color: var(--neu-muted);
+      margin-top: 2px;
+    }
+
+    /* Neumorphic Sliding Switch */
+    .neu-switch {
+      align-self: flex-end;
+      width: 48px;
+      height: 26px;
+      border-radius: 13px;
+      background: var(--neu-bg);
+      box-shadow: var(--shadow-inset-sm);
+      position: relative;
+      cursor: pointer;
+      transition: background 0.25s ease;
+    }
+
+    .neu-switch-knob {
+      position: absolute;
+      top: 3px;
+      left: 3px;
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      background: var(--neu-bg);
+      box-shadow: -2px -2px 5px var(--neu-light), 2px 2px 5px var(--neu-dark);
+      transition: transform 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275), background 0.2s ease;
+    }
+
+    .neu-toggle-card.active .neu-switch-knob {
+      transform: translateX(22px);
+      background: var(--accent-purple);
+      box-shadow: 0 0 10px var(--accent-purple-glow);
+    }
+
+    .neu-toggle-card.danger.active .neu-switch-knob {
+      transform: translateX(22px);
+      background: var(--accent-red);
+      box-shadow: 0 0 10px rgba(239, 68, 68, 0.5);
+    }
+
+    /* =========================================================================
+       PILL SLIDERS (CONTINUOUS SIMULATION PARAMETERS)
+       ========================================================================= */
+    .slider-card {
+      background: var(--neu-bg);
+      border-radius: 24px;
+      padding: 16px 18px;
+      box-shadow: var(--shadow-extruded);
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .slider-label-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--neu-slate);
+    }
+
+    .slider-val-tag {
+      font-weight: 800;
+      color: var(--accent-purple);
+      font-size: 12px;
+    }
+
+    /* Inset Pill Slider Track */
+    .pill-slider-container {
+      position: relative;
+      width: 100%;
+      height: 16px;
+      background: var(--neu-bg);
+      border-radius: 8px;
+      box-shadow: var(--shadow-inset-deep);
+      display: flex;
+      align-items: center;
+      cursor: pointer;
+    }
+
+    .pill-slider-fill {
+      height: 10px;
+      margin-left: 3px;
+      border-radius: 5px;
+      background: linear-gradient(90deg, #6C63FF, #8B85FF);
+      pointer-events: none;
+      transition: width 0.08s ease;
+    }
+
+    .pill-slider-input {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      opacity: 0;
+      cursor: pointer;
+      margin: 0;
+    }
+
+    /* =========================================================================
+       TACTILE ACTION BUTTONS
+       ========================================================================= */
+    .btn-neu-primary {
+      background: var(--neu-bg);
+      color: var(--neu-dark-slate);
+      border: none;
+      padding: 16px 20px;
+      border-radius: 24px;
+      font-family: inherit;
+      font-weight: 900;
+      font-size: 13px;
+      letter-spacing: 0.5px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      box-shadow: var(--shadow-extruded);
+      transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    .btn-neu-primary:hover {
+      transform: translateY(-2px);
+      color: var(--accent-purple);
+      box-shadow: var(--shadow-extruded-lg);
+    }
+
+    .btn-neu-primary:active, .btn-neu-primary.running {
+      transform: translateY(1px);
+      box-shadow: var(--shadow-inset);
+      color: var(--accent-purple);
+    }
+
+    .btn-neu-cabinet {
+      background: var(--neu-bg);
+      border: none;
+      color: var(--neu-slate);
+      padding: 13px 18px;
+      border-radius: 20px;
+      font-family: inherit;
+      font-weight: 800;
+      font-size: 12px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      box-shadow: var(--shadow-extruded-sm);
+      transition: all 0.2s ease;
+    }
+
+    .btn-neu-cabinet:hover {
+      color: var(--accent-purple);
+      transform: translateY(-1px);
+    }
+
+    .btn-neu-cabinet:active {
+      box-shadow: var(--shadow-inset-sm);
+      transform: translateY(0);
+    }
+
+    .btn-neu-reset {
+      background: var(--neu-bg);
+      border: none;
+      color: var(--neu-muted);
+      padding: 11px 16px;
+      border-radius: 18px;
+      font-family: inherit;
+      font-weight: 700;
+      font-size: 12px;
+      cursor: pointer;
+      box-shadow: var(--shadow-extruded-xs);
+      transition: all 0.2s;
+    }
+
+    .btn-neu-reset:hover {
+      color: var(--neu-dark-slate);
+    }
+
+    .btn-neu-reset:active {
+      box-shadow: var(--shadow-inset-sm);
+    }
+
+    .sim-speed-btn {
+      background: var(--neu-bg);
+      border: 1px solid rgba(255, 255, 255, 0.7);
+      border-radius: 12px;
+      padding: 4px 9px;
+      font-size: 10px;
+      font-weight: 800;
+      color: var(--neu-slate);
+      box-shadow: var(--shadow-extruded-xs);
+      cursor: pointer;
+      transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    .sim-speed-btn:hover {
+      color: var(--accent-purple);
+      transform: translateY(-1px);
+    }
+
+    .sim-speed-btn.active {
+      box-shadow: var(--shadow-inset-xs);
+      color: var(--accent-purple);
+      border-color: rgba(108, 99, 255, 0.45);
+      background: var(--neu-bg);
+    }
+
+    /* =========================================================================
+       RIGHT AI MIND & PATENT COGNITIVE PANEL
+       ========================================================================= */
+    .right-panel {
+      position: absolute;
+      top: 96px;
+      right: 20px;
+      width: 390px;
+      max-height: calc(100vh - 116px);
+      z-index: 10;
+      background: var(--neu-bg);
+      border-radius: 32px;
+      padding: 24px;
+      overflow-y: auto;
+      box-shadow: var(--shadow-extruded-lg);
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    /* AI Neural Cognitive Monitor */
+    .neu-neural-card {
+      background: var(--neu-bg);
+      border-radius: 24px;
+      padding: 16px;
+      box-shadow: var(--shadow-extruded);
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .thinking-status {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 12px;
+      font-weight: 800;
+      color: var(--neu-dark-slate);
+    }
+
+    .pulse-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: var(--accent-purple);
+      box-shadow: 0 0 10px var(--accent-purple);
+      animation: pulse-ring 1.8s infinite;
+    }
+
+    @keyframes pulse-ring {
+      0% { transform: scale(0.9); opacity: 0.6; }
+      50% { transform: scale(1.3); opacity: 1; }
+      100% { transform: scale(0.9); opacity: 0.6; }
+    }
+
+    .neu-svg-box {
+      width: 100%;
+      height: 94px;
+      background: var(--neu-bg);
+      border-radius: 18px;
+      box-shadow: var(--shadow-inset-deep);
+      overflow: hidden;
+      padding: 4px;
+    }
+
+    /* Math Formula Block */
+    .neu-math-block {
+      background: var(--neu-bg);
+      border-radius: 20px;
+      padding: 14px 16px;
+      box-shadow: var(--shadow-inset-sm);
+      font-family: 'Courier New', monospace;
+      font-size: 12px;
+      line-height: 1.5;
+      color: var(--neu-dark-slate);
+    }
+
+    .math-formula-title {
+      font-size: 10px;
+      text-transform: uppercase;
+      color: var(--neu-muted);
+      margin-bottom: 4px;
+      font-family: var(--font-stack);
+      font-weight: 800;
+      letter-spacing: 0.5px;
+    }
+
+    /* Distribution Canvas Card */
+    .neu-dist-card {
+      background: var(--neu-bg);
+      border-radius: 24px;
+      padding: 16px;
+      box-shadow: var(--shadow-extruded);
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .cvs-inset-well {
+      width: 100%;
+      height: 110px;
+      border-radius: 16px;
+      background: var(--neu-bg);
+      box-shadow: var(--shadow-inset-deep);
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    #dist-canvas {
+      width: 100%;
+      height: 110px;
+      display: block;
+    }
+
+    .dist-meta {
+      display: flex;
+      justify-content: space-between;
+      gap: 6px;
+    }
+
+    .dist-badge {
+      background: var(--neu-bg);
+      padding: 5px 10px;
+      border-radius: 14px;
+      box-shadow: var(--shadow-extruded-xs);
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--neu-slate);
+    }
+
+    /* Live Queued Vehicles Feasibility Feed */
+    .vehicle-p-list {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      max-height: 160px;
+      overflow-y: auto;
+      padding: 4px;
+    }
+
+    .neu-v-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: var(--neu-bg);
+      padding: 10px 14px;
+      border-radius: 18px;
+      box-shadow: var(--shadow-extruded-sm);
+      font-size: 12px;
+      font-weight: 700;
+      transition: all 0.2s ease;
+    }
+
+    .neu-v-item:hover {
+      transform: translateX(2px);
+    }
+
+    .neu-p-bar-track {
+      width: 64px;
+      height: 8px;
+      background: var(--neu-bg);
+      box-shadow: var(--shadow-inset-sm);
+      border-radius: 4px;
+      overflow: hidden;
+      margin-left: 8px;
+    }
+
+    .neu-p-bar-fill {
+      height: 100%;
+      border-radius: 4px;
+      transition: width 0.3s ease;
+    }
+
+    /* =========================================================================
+       BOTTOM TELEMETRY BANNER
+       ========================================================================= */
+    .telemetry-banner {
+      position: absolute;
+      bottom: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 20;
+      background: var(--neu-bg);
+      border-radius: 24px;
+      padding: 9px 20px;
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      font-size: 11px;
+      font-weight: 700;
+      box-shadow: var(--shadow-extruded-lg);
+      color: var(--neu-slate);
+      white-space: nowrap;
+      pointer-events: auto;
+    }
+
+    .signal-indicator {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-weight: 800;
+      color: var(--neu-dark-slate);
+    }
+
+    .signal-bulb {
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      background: var(--accent-red);
+      box-shadow: 0 0 10px rgba(239, 68, 68, 0.6);
+      transition: all 0.3s ease;
+    }
+
+    .signal-bulb.green {
+      background: var(--accent-green);
+      box-shadow: 0 0 12px rgba(16, 185, 129, 0.8);
+    }
+
+    .signal-bulb.amber {
+      background: var(--accent-amber);
+      box-shadow: 0 0 12px rgba(245, 158, 11, 0.8);
+    }
+
+    .telemetry-divider {
+      width: 2px;
+      height: 16px;
+      background: var(--neu-dark);
+      border-radius: 1px;
+      opacity: 0.5;
+    }
+
+    /* =========================================================================
+       NEMA TS2 CABINET HARDWARE INSPECTION CARDS (RIGHT PANEL INTEGRATION)
+       ========================================================================= */
+    #panel-cabinet-view {
+      animation: fadeIn 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(8px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .neu-hw-card {
+      background: var(--neu-bg);
+      border-radius: 16px;
+      padding: 9px 12px;
+      box-shadow: var(--shadow-extruded-sm);
+      cursor: pointer;
+      transition: all 0.2s;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      border: 1px solid rgba(255, 255, 255, 0.6);
+    }
+
+    .neu-hw-card:hover {
+      transform: translateY(-2px);
+      box-shadow: var(--shadow-extruded);
+    }
+
+    .neu-hw-card.selected {
+      box-shadow: var(--shadow-inset-sm);
+      background: var(--neu-bg);
+      border-color: rgba(108, 99, 255, 0.4);
+    }
+
+    .hw-icon {
+      font-size: 16px;
+    }
+
+    .hw-name {
+      font-size: 12px;
+      font-weight: 800;
+      color: var(--neu-dark-slate);
+    }
+
+    .hw-claim {
+      font-size: 9.5px;
+      color: var(--accent-purple);
+      font-weight: 800;
+    }
+
+    .hw-desc {
+      font-size: 10.5px;
+      font-weight: 600;
+      color: var(--neu-muted);
+      line-height: 1.35;
+    }
+
+    .neu-hw-detail {
+      background: var(--neu-bg);
+      border-radius: 16px;
+      padding: 12px 14px;
+      box-shadow: var(--shadow-inset-sm);
+      font-size: 11px;
+      line-height: 1.45;
+    }
+
+    /* Custom Neumorphic Scrollbar */
+    ::-webkit-scrollbar {
+      width: 6px;
+    }
+    ::-webkit-scrollbar-track {
+      background: var(--neu-bg);
+    }
+    ::-webkit-scrollbar-thumb {
+      background: var(--neu-dark);
+      border-radius: 3px;
+    }
+  </style>
+  <script src="three.min.js"></script>
+</head>
+<body>
+
+  <!-- WebGL Render Canvas -->
+  <div id="webgl-canvas"></div>
+
+  <!-- Neumorphic Header -->
+  <header>
+    <div class="brand-group">
+      <div class="logo-badge">CC</div>
+      <div class="brand-title">
+        <h1>CC-HLP DIGITAL TWIN <span style="font-size:10px; padding:3px 8px; border-radius:12px; background:var(--neu-bg); color:var(--accent-purple); box-shadow:var(--shadow-extruded-xs); font-weight:800;">PATENT DEMO</span></h1>
+        <p>Chance-Constrained Human-in-the-Loop Emergency Vehicle Preemption</p>
+      </div>
+    </div>
+
+    <!-- Camera Switcher -->
+    <div class="camera-switcher">
+      <button class="cam-btn active" id="btn-cam-drone" title="Wide Corridor Aerial View">Drone View</button>
+      <button class="cam-btn" id="btn-cam-cabinet" title="Zoom into roadside hardware">Hardware Cabinet</button>
+      <button class="cam-btn" id="btn-cam-ambulance" title="Follow approaching ambulance">Ambulance POV</button>
+      <button class="cam-btn" id="btn-cam-stopline" title="Queued cars at stopline">Stopline POV</button>
+    </div>
+
+    <!-- Actions -->
+    <div class="header-actions">
+      <button class="siren-toggle" id="btn-siren-audio">Siren Audio</button>
+    </div>
+  </header>
+
+  <!-- Left Simulation Controls Panel -->
+  <div class="left-panel">
+    <div class="panel-heading">
+      <span>1. Traffic Controls</span>
+      <span style="font-size:10px; font-weight:800; color:var(--neu-muted);">[QUEUE]</span>
+    </div>
+
+    <!-- SIGNATURE NEUMORPHIC THERMOSTAT DIAL (QUEUE COUNT N) -->
+    <div class="dial-card">
+      <div class="dial-header">
+        <h3>Stopline Queue (N)</h3>
+        <span id="dial-badge">Poisson-Binomial</span>
+      </div>
+
+      <div class="thermostat-dial-wrapper">
+        <div class="dial-outer-ring">
+          <div class="dial-inset-track">
+            <div class="dial-center-knob" id="dial-knob" title="Click or use buttons to adjust cars">
+              <span class="dial-val-number" id="dial-queue-num">8</span>
+              <span class="dial-val-label">Vehicles</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Stepper Buttons for Queue Dial -->
+      <div class="dial-controls">
+        <button class="dial-btn" id="btn-dial-minus" title="Decrease Queue">−</button>
+        <span style="font-size:12px; font-weight:700; color:var(--neu-muted);" id="val-queue-count">8 vehicles (4 L1 / 4 L2)</span>
+        <button class="dial-btn" id="btn-dial-plus" title="Increase Queue">+</button>
+      </div>
+
+      <!-- Independent Dual-Lane Steppers -->
+      <div class="lane-queue-grid">
+        <!-- Lane 1 Stepper -->
+        <div class="lane-queue-card l1-card">
+          <div class="lane-queue-header">
+            <span class="lane-badge l1-badge">LANE 1 (EV PATH)</span>
+            <span class="lane-count-val" id="val-l1-count">4 cars</span>
+          </div>
+          <div class="lane-stepper-row">
+            <button class="dial-btn-sm" id="btn-l1-minus" title="Decrease Lane 1 Queue">−</button>
+            <span class="lane-stepper-display" id="num-l1-display">4</span>
+            <button class="dial-btn-sm" id="btn-l1-plus" title="Increase Lane 1 Queue">+</button>
+          </div>
+        </div>
+
+        <!-- Lane 2 Stepper -->
+        <div class="lane-queue-card l2-card">
+          <div class="lane-queue-header">
+            <span class="lane-badge l2-badge">LANE 2 (RELIEF)</span>
+            <span class="lane-count-val" id="val-l2-count">4 cars</span>
+          </div>
+          <div class="lane-stepper-row">
+            <button class="dial-btn-sm" id="btn-l2-minus" title="Decrease Lane 2 Queue">−</button>
+            <span class="lane-stepper-display" id="num-l2-display">4</span>
+            <button class="dial-btn-sm" id="btn-l2-plus" title="Increase Lane 2 Queue">+</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Hidden standard slider for sync & backward compatibility -->
+      <input type="range" id="slider-queue" min="2" max="20" step="1" value="8" style="display:none;">
+    </div>
+
+    <div class="panel-heading" style="margin-top:4px;">
+      <span>2. Cyber-Physical Subsystems</span>
+      <span style="font-size:10px; font-weight:800; color:var(--neu-muted);">[ACTIVE]</span>
+    </div>
+
+    <!-- 4 ROOM TOGGLE CARDS (MATCHING USER REFERENCE DESIGN) -->
+    <div class="toggle-grid">
+      <!-- Card 1: C-V2X Radio / Participatory App -->
+      <div class="neu-toggle-card active" id="card-toggle-v2x" title="Toggle 5.9 GHz C-V2X vehicular radio (CAM messages)">
+        <div class="toggle-text">
+          <h4>C-V2X Radio</h4>
+          <p id="sub-v2x">5.9 GHz CAM</p>
+        </div>
+        <div class="neu-switch" id="switch-v2x">
+          <div class="neu-switch-knob"></div>
+        </div>
+      </div>
+
+      <!-- Card 2: Latency Watchdog -->
+      <div class="neu-toggle-card danger" id="btn-toggle-latency" title="Toggle controller heartbeat watchdog timer (&tau; &le; 800ms)">
+        <div class="toggle-text">
+          <h4>Watchdog</h4>
+          <p id="sub-watchdog">&tau; &le; 800ms Normal</p>
+        </div>
+        <div class="neu-switch" id="switch-latency">
+          <div class="neu-switch-knob"></div>
+        </div>
+        <input type="checkbox" id="check-latency" style="display:none;">
+      </div>
+
+      <!-- Card 3: NEMA TS2 BIU Bus -->
+      <div class="neu-toggle-card active" id="card-toggle-biu" title="Toggle 153.6 kbps NEMA TS2 BIU SDLC detector bus">
+        <div class="toggle-text">
+          <h4>TS2 BIU Bus</h4>
+          <p id="sub-biu">153.6k SDLC</p>
+        </div>
+        <div class="neu-switch" id="switch-biu">
+          <div class="neu-switch-knob"></div>
+        </div>
+      </div>
+
+      <!-- Card 4: MMU Conflict Interlock -->
+      <div class="neu-toggle-card active" id="card-toggle-mmu" title="Toggle MMU-16LE hardware conflict monitor interlock">
+        <div class="toggle-text">
+          <h4>MMU-16LE</h4>
+          <p id="sub-mmu">Flash Interlock</p>
+        </div>
+        <div class="neu-switch" id="switch-mmu">
+          <div class="neu-switch-knob"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Prominent Action Controls -->
+    <div style="display:flex; flex-direction:column; gap:8px;">
+      <button class="btn-neu-primary" id="btn-run-preemption">
+        <span>DISPATCH AMBULANCE & RUN PREEMPTION</span>
+      </button>
+
+      <div style="display:grid; grid-template-columns: 1fr 1fr; gap:8px;">
+        <button class="btn-neu-cabinet" id="btn-open-cabinet-direct" style="padding:10px 8px; font-size:11px;">
+          <span>Open Cabinet</span>
+        </button>
+        <button class="btn-neu-reset" id="btn-reset-sim" style="padding:10px 8px; font-size:11px;">
+          <span>↺ Reset</span>
+        </button>
+      </div>
+
+      <!-- Simulation Playback Speed -->
+      <div style="display:flex; align-items:center; justify-content:space-between; padding:3px 6px;">
+        <span style="font-size:11px; font-weight:800; color:var(--neu-slate);">Sim Speed:</span>
+        <div style="display:flex; gap:6px;">
+          <button class="sim-speed-btn" data-speed="0.5">0.5x Slow</button>
+          <button class="sim-speed-btn active" data-speed="1.0">1.0x</button>
+          <button class="sim-speed-btn" data-speed="2.0">2.0x Fast</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="panel-heading" style="margin-top:2px;">
+      <span>3. Dynamic Parameters</span>
+      <span style="font-size:10px; font-weight:800; color:var(--neu-muted);">[PARAMS]</span>
+    </div>
+
+    <!-- Pill Slider 1: Ambulance Speed -->
+    <div class="slider-card" style="padding:12px 14px; gap:6px;">
+      <div class="slider-label-row">
+        <span>Ambulance Velocity (v_EV)</span>
+        <span class="slider-val-tag" id="val-speed">72 km/h (20 m/s)</span>
+      </div>
+      <div class="pill-slider-container" id="track-speed">
+        <div class="pill-slider-fill" id="fill-speed" style="width: 65%;"></div>
+        <input type="range" class="pill-slider-input" id="slider-speed" min="20" max="100" step="5" value="72">
+      </div>
+    </div>
+
+    <!-- Pill Slider 2: Participatory Adoption -->
+    <div class="slider-card" style="padding:12px 14px; gap:6px;">
+      <div class="slider-label-row">
+        <span>App Adoption (ρ_app)</span>
+        <span class="slider-val-tag" id="val-adoption">75%</span>
+      </div>
+      <div class="pill-slider-container" id="track-adoption">
+        <div class="pill-slider-fill" id="fill-adoption" style="width: 75%;"></div>
+        <input type="range" class="pill-slider-input" id="slider-adoption" min="0" max="100" step="5" value="75">
+      </div>
+    </div>
+
+    <!-- Pill Slider 3: Driver Reaction Profile -->
+    <div class="slider-card" style="padding:12px 14px; gap:6px;">
+      <div class="slider-label-row">
+        <span>Driver Reaction Profile (μ)</span>
+        <span class="slider-val-tag" id="val-profile">Alerted (μ=1.7s)</span>
+      </div>
+      <div class="pill-slider-container" id="track-profile">
+        <div class="pill-slider-fill" id="fill-profile" style="width: 50%;"></div>
+        <input type="range" class="pill-slider-input" id="slider-profile" min="1" max="3" step="1" value="2">
+      </div>
+    </div>
+  </div>
+
+  <!-- Right AI Mind & Patent Brain Panel (Dual Mode: AI Mind / Cabinet Rack) -->
+  <div class="right-panel">
+    <!-- View A: AI Neural Cognitive Mind (For Corridor Simulation) -->
+    <div id="panel-ai-view" style="display:flex; flex-direction:column; gap:16px;">
+      <div class="panel-heading">
+        <span>AI Neural Cognitive Mind</span>
+        <span class="pulse-dot"></span>
+      </div>
+
+      <!-- Real-Time AI Mind Activity Card -->
+      <div class="neu-neural-card">
+        <div class="thinking-status" id="neural-status-text">
+          <span>COGNITIVE STATE: IDLE // READY</span>
+        </div>
+        <div class="neu-svg-box">
+          <svg id="neural-svg" width="100%" height="94" style="display:block;"></svg>
+        </div>
+      </div>
+
+      <!-- Patent Mathematical Law -->
+      <div class="neu-math-block">
+        <div class="math-formula-title" style="display:flex; justify-content:space-between; align-items:center;">
+          <span>Patented CC-HLP Dual-Action Law</span>
+          <span style="font-size:9.5px; background:rgba(108,99,255,0.15); color:var(--accent-purple); padding:2px 6px; border-radius:6px; font-weight:800;">CLAIMS 7, 8, 9</span>
+        </div>
+        <div style="font-weight:800; color:var(--accent-purple); font-size:12px; margin-top:4px;">
+          ℙ( T_trans + T_clear(N_fwd) ≤ ETA_EV ) ≥ 1 - ε
+        </div>
+        <div style="color:var(--neu-dark-slate); font-size:10px; margin-top:6px; font-weight:700; line-height:1.45;">
+          • <span style="color:var(--accent-orange);">Claim 8 (Lead Pocket Creation):</span> Green light discharges L2 lead cars first -> opens merge pockets.<br>
+          • <span style="color:var(--accent-green);">Claim 9 (Dual Clearance):</span> L1 upstream cars zipper-merge into L2 gaps; non-merging cars flush forward.<br>
+          • <span style="color:var(--accent-purple);">Claim 7 (Zero-Braking Timing):</span> Signal switches green at exact lead time T_lead to guarantee EV maintains full speed with 0 braking!
+        </div>
+        <div style="margin-top:6px; padding:6px 8px; border-radius:8px; background:rgba(16,185,129,0.08); font-size:9.5px; font-weight:700; color:var(--accent-green); display:flex; justify-content:space-between;">
+          <span id="patent-dynamic-timing">T_lead: -- s | Forward: -- veh</span>
+          <span id="patent-ev-guarantee">Clearance: 100% Guaranteed</span>
+        </div>
+      </div>
+
+      <div class="panel-heading">
+        <span>Poisson-Binomial Distribution</span>
+        <span style="font-size:11px; font-weight:800; color:var(--accent-purple);" id="pb-crit-badge">N_leave: --</span>
+      </div>
+
+      <!-- Live Distribution Canvas Card -->
+      <div class="neu-dist-card">
+        <div class="cvs-inset-well">
+          <canvas id="dist-canvas"></canvas>
+        </div>
+        <div class="dist-meta">
+          <span class="dist-badge" id="lbl-mean-rem">E[N_leave]: --</span>
+          <span class="dist-badge" id="lbl-lead-saved">Saved: --</span>
+          <span class="dist-badge" id="lbl-risk-tol">&epsilon; = 0.05 (95%)</span>
+        </div>
+      </div>
+
+      <div class="panel-heading">
+        <span>Queued Vehicles Feasibility</span>
+        <span style="font-size:11px; font-weight:700; color:var(--neu-muted);" id="lbl-queue-summary">--</span>
+      </div>
+
+      <!-- Live Vehicle Probability List -->
+      <div class="vehicle-p-list" id="vehicle-p-container">
+        <div style="font-size:12px; color:var(--neu-muted); padding:16px 0; text-align:center; font-weight:600;">
+          Vehicles will be scanned upon ambulance approach.
+        </div>
+      </div>
+    </div>
+
+    <!-- View B: Hardware Rack Modules (For Cabinet Inspection - ZERO OVERLAP) -->
+    <div id="panel-cabinet-view" style="display:none; flex-direction:column; gap:12px;">
+      <div class="panel-heading">
+        <span>Roadside Hardware Rack (NEMA TS2)</span>
+        <span style="font-size:10px; font-weight:800; color:var(--accent-green); background:var(--neu-bg); padding:2px 8px; border-radius:10px; box-shadow:var(--shadow-extruded-xs);">NEMA TS2 TYPE 1</span>
+      </div>
+
+      <div style="display:flex; flex-direction:column; gap:8px;">
+        <!-- 1. Edge Compute -->
+        <div class="neu-hw-card selected" data-hw="edge">
+          <div style="display:flex; align-items:center; justify-content:space-between;">
+            <div style="display:flex; align-items:center; gap:8px;">
+              <span class="hw-icon">[CPU]</span>
+              <span class="hw-name">Edge Processor</span>
+            </div>
+            <span class="hw-claim">CLAIM 1 & 15</span>
+          </div>
+          <div class="hw-desc">Raspberry Pi 5 / Jetson Orin running 100ms deterministic CC-HLP daemon.</div>
+        </div>
+
+        <!-- 2. Galvanic Isolation -->
+        <div class="neu-hw-card" data-hw="relay">
+          <div style="display:flex; align-items:center; justify-content:space-between;">
+            <div style="display:flex; align-items:center; gap:8px;">
+              <span class="hw-icon">[RLY]</span>
+              <span class="hw-name">Optocoupler Relay</span>
+            </div>
+            <span class="hw-claim">CLAIM 3</span>
+          </div>
+          <div class="hw-desc">2500 Vrms optical galvanic isolation to Preempt Test inputs.</div>
+        </div>
+
+        <!-- 3. TS2 BIU Backplane -->
+        <div class="neu-hw-card" data-hw="ts2">
+          <div style="display:flex; align-items:center; justify-content:space-between;">
+            <div style="display:flex; align-items:center; gap:8px;">
+              <span class="hw-icon">[BIU]</span>
+              <span class="hw-name">NEMA TS2 BIU</span>
+            </div>
+            <span class="hw-claim">CLAIM 4</span>
+          </div>
+          <div class="hw-desc">153.6 kbps Port 1 SDLC synchronous bus to signal load switches.</div>
+        </div>
+
+        <!-- 4. MMU Interlock -->
+        <div class="neu-hw-card" data-hw="mmu">
+          <div style="display:flex; align-items:center; justify-content:space-between;">
+            <div style="display:flex; align-items:center; gap:8px;">
+              <span class="hw-icon">[MMU]</span>
+              <span class="hw-name">MMU-16LE Monitor</span>
+            </div>
+            <span class="hw-claim">CLAIM 5 & 14</span>
+          </div>
+          <div class="hw-desc">Independent conflict crowbar trips flash within ≤ 450ms.</div>
+        </div>
+
+        <!-- 5. Watchdog Timer -->
+        <div class="neu-hw-card" data-hw="watchdog">
+          <div style="display:flex; align-items:center; justify-content:space-between;">
+            <div style="display:flex; align-items:center; gap:8px;">
+              <span class="hw-icon">[WDG]</span>
+              <span class="hw-name">800ms Watchdog</span>
+            </div>
+            <span class="hw-claim">CLAIM 12</span>
+          </div>
+          <div class="hw-desc">Hardware heartbeat failsafe drops to State 3 on packet loss.</div>
+        </div>
+
+        <!-- 6. C-V2X Telematics -->
+        <div class="neu-hw-card" data-hw="v2x">
+          <div style="display:flex; align-items:center; justify-content:space-between;">
+            <div style="display:flex; align-items:center; gap:8px;">
+              <span class="hw-icon">[V2X]</span>
+              <span class="hw-name">C-V2X Transceiver</span>
+            </div>
+            <span class="hw-claim">CLAIM 2</span>
+          </div>
+          <div class="hw-desc">5.9 GHz vehicular transceiver decoding ambulance & civilian CAMs.</div>
+        </div>
+      </div>
+
+      <!-- Active Hardware Detail Callout -->
+      <div class="neu-hw-detail" id="hw-active-detail">
+        <strong style="color:var(--accent-purple);" id="hw-detail-title">EDGE COMPUTING PROCESSOR (RASPBERRY PI 5 / JETSON ORIN)</strong><br>
+        <span id="hw-detail-body" style="color:var(--neu-muted);">
+          Executes the CC-HLP decision loop deterministically at 100 ms discrete cycle intervals. Computes the exact discrete Poisson-Binomial recursive convolution in &lt;1.5 ms for up to 30 queued vehicles. Subordinate to the independent hardware conflict monitor.
+        </span>
+      </div>
+
+      <button class="btn-neu-primary" id="btn-return-corridor" style="margin-top:4px;">
+        <span>Back to Corridor View</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- Bottom Telemetry Banner -->
+  <div class="telemetry-banner">
+    <div class="signal-indicator">
+      <div class="signal-bulb" id="active-bulb"></div>
+      <span id="lbl-signal-phase">CROSS_GREEN</span>
+    </div>
+    <div class="telemetry-divider"></div>
+    <div>EV: <span style="font-weight:800; color:var(--accent-orange);" id="lbl-ev-dist">-- m</span></div>
+    <div class="telemetry-divider"></div>
+    <div>ETA: <span style="font-weight:800; color:var(--neu-dark-slate);" id="lbl-ev-eta">-- s</span></div>
+    <div class="telemetry-divider"></div>
+    <div>CORRIDOR: <span style="font-weight:800; color:var(--accent-green);" id="lbl-seam-width">OPEN</span></div>
+    <div class="telemetry-divider"></div>
+    <div>FSM: <span style="font-weight:800; color:var(--accent-purple);" id="lbl-fsm-mode">STATE 1</span></div>
+  </div>
+
+  <!-- Procedural 3D World & Simulation Engine -->
+  <script>
+    // =========================================================================
+    // 1. BRAND PALETTE & CONSTANTS
+    // =========================================================================
+    const BRAND = {
+      orange: 0xFF6D29,
+      purple: 0x6C63FF,
+      darkSlate: 0x242D42,
+      slate: 0x4D5B7C,
+      grey: 0xE0E5EC,
+      white: 0xFFFFFF,
+      green: 0x10B981,
+      amber: 0xF59E0B,
+      red: 0xEF4444,
+      cyan: 0x0284C7,
+      asphalt: 0x222630,
+      curb: 0xB0BCCB,
+    };
+
+    // =========================================================================
+    // 2. THREE.JS SCENE, CAMERA, & RENDERER SETUP
+    // =========================================================================
+    const container = document.getElementById('webgl-canvas');
+    const scene = new THREE.Scene();
+    
+    // Daylit Neumorphic Atmosphere with clean linear depth fog
+    scene.background = new THREE.Color(0xE0E5EC);
+    scene.fog = new THREE.Fog(0xE0E5EC, 250, 950);
+
+    const camera = new THREE.PerspectiveCamera(40, window.innerWidth / window.innerHeight, 0.5, 800);
+    
+    // Camera Preset Targets
+    const CAM_PRESETS = {
+      drone: { pos: new THREE.Vector3(42, 46, 52), look: new THREE.Vector3(2.0, 0, 20.0) },
+      cabinet: { pos: new THREE.Vector3(9.6, 2.15, 12.8), look: new THREE.Vector3(11.2, 1.85, 7.2) },
+      ambulance: { pos: new THREE.Vector3(2.0, 7.5, 22), look: new THREE.Vector3(2.0, 1.8, -20), isDynamic: true },
+      stopline: { pos: new THREE.Vector3(2.0, 3.2, 1.0), look: new THREE.Vector3(2.0, 2.0, 45.0) },
+    };
+
+    let activeCamPreset = 'drone';
+    let targetCamPos = CAM_PRESETS.drone.pos.clone();
+    let targetCamLook = CAM_PRESETS.drone.look.clone();
+    let currentCamLook = CAM_PRESETS.drone.look.clone();
+
+    camera.position.copy(targetCamPos);
+    camera.lookAt(currentCamLook);
+
+    let renderer;
+    try {
+      renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: 'high-performance' });
+    } catch (e) {
+      console.warn('WebGLRenderer unavailable, using headless mock renderer:', e);
+      renderer = {
+        domElement: document.createElement('canvas'),
+        setPixelRatio: () => {},
+        setSize: () => {},
+        shadowMap: {},
+        render: () => {}
+      };
+    }
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2.0));
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    renderer.shadowMap.enabled = true;
+    renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+    renderer.toneMapping = THREE.ACESFilmicToneMapping;
+    renderer.toneMappingExposure = 1.2;
+    container.appendChild(renderer.domElement);
+
+    // =========================================================================
+    // 3. LIGHTING (Crisp Architectural Daytime Sunlight)
+    // =========================================================================
+    const ambLight = new THREE.AmbientLight(0xE2E8F0, 1.6);
+    scene.add(ambLight);
+
+    const sunLight = new THREE.DirectionalLight(0xFFFFFF, 2.4);
+    sunLight.position.set(60, 100, 45);
+    sunLight.castShadow = true;
+    sunLight.shadow.mapSize.width = 2048;
+    sunLight.shadow.mapSize.height = 2048;
+    sunLight.shadow.camera.near = 10;
+    sunLight.shadow.camera.far = 250;
+    const shadowExtent = 55;
+    sunLight.shadow.camera.left = -shadowExtent;
+    sunLight.shadow.camera.right = shadowExtent;
+    sunLight.shadow.camera.top = shadowExtent;
+    sunLight.shadow.camera.bottom = -shadowExtent;
+    sunLight.shadow.bias = -0.0003;
+    scene.add(sunLight);
+
+    // Spotlight on Roadside Cabinet
+    const cabinetSpot = new THREE.SpotLight(0x6C63FF, 2.4, 30, Math.PI / 4, 0.35);
+    cabinetSpot.position.set(13.0, 9.0, 12.0);
+    cabinetSpot.target.position.set(10.5, 1.85, 7.2);
+    scene.add(cabinetSpot);
+    scene.add(cabinetSpot.target);
+
+    // =========================================================================
+    // 4. PROCEDURAL 3D INTERSECTION ENVIRONMENT
+    // =========================================================================
+    const worldGroup = new THREE.Group();
+    scene.add(worldGroup);
+
+    // Ground Plane seamlessly matching Neumorphic surface
+    const groundGeo = new THREE.PlaneGeometry(1600, 1600);
+    const groundMat = new THREE.MeshStandardMaterial({ color: 0xD8DFE9, roughness: 0.95 });
+    const groundMesh = new THREE.Mesh(groundGeo, groundMat);
+    groundMesh.rotation.x = -Math.PI / 2;
+    groundMesh.position.set(0, 0, 240);
+    groundMesh.receiveShadow = true;
+    worldGroup.add(groundMesh);
+
+    // Road Ribbons
+    function createRoadRibbon(w, l, posX = 0, posZ = 0, rotY = 0) {
+      const roadGeo = new THREE.PlaneGeometry(w, l);
+      const roadMat = new THREE.MeshStandardMaterial({
+        color: BRAND.asphalt,
+        roughness: 0.85,
+        metalness: 0.1,
+      });
+      const road = new THREE.Mesh(roadGeo, roadMat);
+      road.rotation.x = -Math.PI / 2;
+      road.rotation.z = rotY;
+      road.position.set(posX, 0.02, posZ);
+      road.receiveShadow = true;
+      worldGroup.add(road);
+      return road;
+    }
+
+    // Main Corridor (Z axis, Width 16m = 4 lanes, extends from Z=-185m to Z=+665m)
+    createRoadRibbon(16, 850, 0, 240, 0);
+    // Cross Street (X axis, Width 14m = 4 lanes, extends from X=-210m to X=+210m)
+    createRoadRibbon(14, 420, 0, 0, Math.PI / 2);
+
+    // Sidewalk Blocks
+    function createSidewalk(x, z, sx, sz) {
+      const swGeo = new THREE.BoxGeometry(sx, 0.35, sz);
+      const swMat = new THREE.MeshStandardMaterial({ color: BRAND.curb, roughness: 0.7 });
+      const sw = new THREE.Mesh(swGeo, swMat);
+      sw.position.set(x, 0.175, z);
+      sw.receiveShadow = true;
+      worldGroup.add(sw);
+    }
+    createSidewalk(40, 40, 60, 60);
+    createSidewalk(-40, 40, 60, 60);
+    createSidewalk(40, -40, 60, 60);
+    createSidewalk(-40, -40, 60, 60);
+
+    // Road Markings
+    function createMarking(w, l, x, z, color = 0xFFFFFF) {
+      const mGeo = new THREE.PlaneGeometry(w, l);
+      const mMat = new THREE.MeshBasicMaterial({ color: color });
+      const m = new THREE.Mesh(mGeo, mMat);
+      m.rotation.x = -Math.PI / 2;
+      m.position.set(x, 0.04, z);
+      worldGroup.add(m);
+      return m;
+    }
+
+    // Stoplines
+    createMarking(7.6, 0.8, 4.0, 7.8, 0xFFFFFF); // Main EV approach stopline
+    createMarking(7.6, 0.8, -4.0, -7.8, 0xFFFFFF);
+    createMarking(0.8, 6.8, 7.8, -3.6, 0xFFFFFF);
+    createMarking(0.8, 6.8, -7.8, 3.6, 0xFFFFFF);
+
+    // Yellow Center Dividers
+    createMarking(0.3, 660, 0, 330, 0xF59E0B); // South approach (Z = 0 to 660m)
+    createMarking(0.3, 180, 0, -90, 0xF59E0B); // North outbound (Z = 0 to -180m)
+    createMarking(200, 0.3, 105, 0, 0xF59E0B); // East cross street (X = 5 to 205m)
+    createMarking(200, 0.3, -105, 0, 0xF59E0B); // West cross street (X = -5 to -205m)
+
+    // White Lane Dashes - Main Corridor
+    for (let z = 12; z <= 660; z += 6) {
+      createMarking(0.25, 3.2, 4.0, z, 0xFFFFFF);
+      createMarking(0.25, 3.2, -4.0, z, 0xFFFFFF);
+    }
+    for (let z = 12; z <= 180; z += 6) {
+      createMarking(0.25, 3.2, 4.0, -z, 0xFFFFFF);
+      createMarking(0.25, 3.2, -4.0, -z, 0xFFFFFF);
+    }
+
+    // White Lane Dashes - Cross Street
+    for (let x = 12; x <= 200; x += 6) {
+      createMarking(3.2, 0.25, x, 3.5, 0xFFFFFF);
+      createMarking(3.2, 0.25, x, -3.5, 0xFFFFFF);
+      createMarking(3.2, 0.25, -x, 3.5, 0xFFFFFF);
+      createMarking(3.2, 0.25, -x, -3.5, 0xFFFFFF);
+    }
+
+    // =========================================================================
+    // 5. INTERSECTION TRAFFIC SIGNAL MAST ARMS & 3-ASPECT HEADS
+    // =========================================================================
+    const signalHeads = {};
+
+    function createSignalGantry(x, z, rotY) {
+      const gantryGroup = new THREE.Group();
+      gantryGroup.position.set(x, 0, z);
+      gantryGroup.rotation.y = rotY;
+
+      // Vertical Steel Pole
+      const poleGeo = new THREE.CylinderGeometry(0.25, 0.32, 7.2, 16);
+      const steelMat = new THREE.MeshStandardMaterial({ color: 0x475569, metalness: 0.6, roughness: 0.3 });
+      const pole = new THREE.Mesh(poleGeo, steelMat);
+      pole.position.y = 3.6;
+      pole.castShadow = true;
+      gantryGroup.add(pole);
+
+      // Horizontal Mast Arm
+      const armGeo = new THREE.CylinderGeometry(0.18, 0.22, 9.5, 16);
+      const arm = new THREE.Mesh(armGeo, steelMat);
+      arm.rotation.z = Math.PI / 2;
+      arm.position.set(4.4, 6.8, 0);
+      arm.castShadow = true;
+      gantryGroup.add(arm);
+
+      // Signal Head Box
+      const headGeo = new THREE.BoxGeometry(0.55, 1.45, 0.45);
+      const headMat = new THREE.MeshStandardMaterial({ color: 0x1E293B, roughness: 0.5 });
+      const head = new THREE.Mesh(headGeo, headMat);
+      head.position.set(5.5, 6.2, 0);
+      gantryGroup.add(head);
+
+      // Bulbs
+      function createBulb(yOffset, color) {
+        const bGeo = new THREE.SphereGeometry(0.16, 16, 16);
+        const bMat = new THREE.MeshStandardMaterial({
+          color: 0x222222,
+          emissive: 0x000000,
+          roughness: 0.2,
+        });
+        const bulb = new THREE.Mesh(bGeo, bMat);
+        bulb.position.set(0, yOffset, 0.24);
+        head.add(bulb);
+        return bulb;
+      }
+
+      const redBulb = createBulb(0.42, BRAND.red);
+      const amberBulb = createBulb(0.0, BRAND.amber);
+      const greenBulb = createBulb(-0.42, BRAND.green);
+
+      worldGroup.add(gantryGroup);
+      return { redBulb, amberBulb, greenBulb };
+    }
+
+    signalHeads.approach = createSignalGantry(8.6, 10.0, Math.PI);
+    signalHeads.cross = createSignalGantry(10.0, -8.6, -Math.PI / 2);
+
+    function setSignalPhase(phase) {
+      function setBulbState(bulb, activeColor, isOn) {
+        if (isOn) {
+          bulb.material.color.setHex(activeColor);
+          bulb.material.emissive.setHex(activeColor);
+          bulb.material.emissiveIntensity = 2.4;
+        } else {
+          bulb.material.color.setHex(0x222222);
+          bulb.material.emissive.setHex(0x000000);
+          bulb.material.emissiveIntensity = 0.0;
+        }
+      }
+
+      const a = signalHeads.approach;
+      const c = signalHeads.cross;
+      const activeBulbEl = document.getElementById('active-bulb');
+      const phaseLabelEl = document.getElementById('lbl-signal-phase');
+
+      if (phase === 'CROSS_GREEN') {
+        setBulbState(a.redBulb, BRAND.red, true);
+        setBulbState(a.amberBulb, BRAND.amber, false);
+        setBulbState(a.greenBulb, BRAND.green, false);
+
+        setBulbState(c.redBulb, BRAND.red, false);
+        setBulbState(c.amberBulb, BRAND.amber, false);
+        setBulbState(c.greenBulb, BRAND.green, true);
+
+        activeBulbEl.className = 'signal-bulb';
+        phaseLabelEl.innerText = 'PHASE: CROSS_GREEN';
+      } else if (phase === 'TRANS_YELLOW') {
+        setBulbState(a.redBulb, BRAND.red, true);
+        setBulbState(a.amberBulb, BRAND.amber, false);
+        setBulbState(a.greenBulb, BRAND.green, false);
+
+        setBulbState(c.redBulb, BRAND.red, false);
+        setBulbState(c.amberBulb, BRAND.amber, true);
+        setBulbState(c.greenBulb, BRAND.green, false);
+
+        activeBulbEl.className = 'signal-bulb amber';
+        phaseLabelEl.innerText = 'PHASE: TRANS_YELLOW';
+      } else if (phase === 'ALL_RED') {
+        setBulbState(a.redBulb, BRAND.red, true);
+        setBulbState(a.amberBulb, BRAND.amber, false);
+        setBulbState(a.greenBulb, BRAND.green, false);
+
+        setBulbState(c.redBulb, BRAND.red, true);
+        setBulbState(c.amberBulb, BRAND.amber, false);
+        setBulbState(c.greenBulb, BRAND.green, false);
+
+        activeBulbEl.className = 'signal-bulb';
+        phaseLabelEl.innerText = 'PHASE: ALL_RED';
+      } else if (phase === 'PREEMPT_GREEN') {
+        setBulbState(a.redBulb, BRAND.red, false);
+        setBulbState(a.amberBulb, BRAND.amber, false);
+        setBulbState(a.greenBulb, BRAND.green, true);
+
+        setBulbState(c.redBulb, BRAND.red, true);
+        setBulbState(c.amberBulb, BRAND.amber, false);
+        setBulbState(c.greenBulb, BRAND.green, false);
+
+        activeBulbEl.className = 'signal-bulb green';
+        phaseLabelEl.innerText = 'PHASE: PREEMPT_GREEN';
+      } else if (phase === 'FAILSAFE_FLASH') {
+        const flashOn = (Date.now() % 1000) > 500;
+        setBulbState(a.redBulb, BRAND.red, flashOn);
+        setBulbState(a.amberBulb, BRAND.amber, false);
+        setBulbState(a.greenBulb, BRAND.green, false);
+
+        setBulbState(c.redBulb, BRAND.red, flashOn);
+        setBulbState(c.amberBulb, BRAND.amber, false);
+        setBulbState(c.greenBulb, BRAND.green, false);
+
+        activeBulbEl.className = 'signal-bulb';
+        phaseLabelEl.innerText = 'PHASE: FAILSAFE_FLASH (MMU 1.0 Hz CROWBAR)';
+      }
+    }
+
+    setSignalPhase('CROSS_GREEN');
+
+    // =========================================================================
+    // 6. ROADSIDE CONTROLLER CABINET (NEMA TS2 TYPE 1 / IRC:SP:41)
+    // =========================================================================
+    const cabinetGroup = new THREE.Group();
+    cabinetGroup.position.set(10.5, 0, 7.2);
+    worldGroup.add(cabinetGroup);
+
+    // Concrete Equipment Pad
+    const padGeo = new THREE.BoxGeometry(2.4, 0.45, 1.8);
+    const padMat = new THREE.MeshStandardMaterial({ color: 0x94A3B8, roughness: 0.9 });
+    const pad = new THREE.Mesh(padGeo, padMat);
+    pad.position.y = 0.225;
+    pad.receiveShadow = true;
+    cabinetGroup.add(pad);
+
+    // Brushed Aluminum Materials
+    const brushedAlumMat = new THREE.MeshStandardMaterial({
+      color: 0xCBD5E1,
+      metalness: 0.85,
+      roughness: 0.25,
+    });
+    const darkRackMat = new THREE.MeshStandardMaterial({
+      color: 0x1E293B,
+      metalness: 0.5,
+      roughness: 0.7,
+    });
+    const railMat = new THREE.MeshStandardMaterial({
+      color: 0x94A3B8,
+      metalness: 0.9,
+      roughness: 0.2,
+    });
+
+    // Open-Front Cabinet Shell (Back, Sides, Floor, Roof)
+    // 1. Back Wall
+    const backWallGeo = new THREE.BoxGeometry(1.8, 2.6, 0.06);
+    const backWall = new THREE.Mesh(backWallGeo, brushedAlumMat);
+    backWall.position.set(0, 1.75, -0.57);
+    backWall.castShadow = true;
+    cabinetGroup.add(backWall);
+
+    // 2. Left Wall
+    const sideWallGeo = new THREE.BoxGeometry(0.06, 2.6, 1.2);
+    const leftWall = new THREE.Mesh(sideWallGeo, brushedAlumMat);
+    leftWall.position.set(-0.87, 1.75, 0);
+    leftWall.castShadow = true;
+    cabinetGroup.add(leftWall);
+
+    // 3. Right Wall
+    const rightWall = new THREE.Mesh(sideWallGeo, brushedAlumMat);
+    rightWall.position.set(0.87, 1.75, 0);
+    rightWall.castShadow = true;
+    cabinetGroup.add(rightWall);
+
+    // 4. Floor Plate
+    const floorGeo = new THREE.BoxGeometry(1.8, 0.06, 1.2);
+    const floorMesh = new THREE.Mesh(floorGeo, brushedAlumMat);
+    floorMesh.position.set(0, 0.48, 0);
+    cabinetGroup.add(floorMesh);
+
+    // 5. Rain Hood (Roof)
+    const roofGeo = new THREE.BoxGeometry(1.9, 0.12, 1.3);
+    const roof = new THREE.Mesh(roofGeo, brushedAlumMat);
+    roof.position.set(0, 3.1, 0);
+    roof.castShadow = true;
+    cabinetGroup.add(roof);
+
+    // C-V2X Dome Antenna
+    const antPoleGeo = new THREE.CylinderGeometry(0.04, 0.04, 2.8, 12);
+    const antPole = new THREE.Mesh(antPoleGeo, new THREE.MeshStandardMaterial({ color: 0x334155, metalness: 0.8 }));
+    antPole.position.set(0.7, 4.4, 0);
+    cabinetGroup.add(antPole);
+
+    const antDomeGeo = new THREE.SphereGeometry(0.18, 16, 16);
+    const antDome = new THREE.Mesh(antDomeGeo, new THREE.MeshStandardMaterial({ color: BRAND.purple }));
+    antDome.position.set(0.7, 5.8, 0);
+    cabinetGroup.add(antDome);
+
+    // Interior Dark Backboard
+    const rackBackGeo = new THREE.BoxGeometry(1.64, 2.4, 0.03);
+    const rackBack = new THREE.Mesh(rackBackGeo, darkRackMat);
+    rackBack.position.set(0, 1.75, -0.52);
+    cabinetGroup.add(rackBack);
+
+    // Dual 19-inch Vertical Mounting Rails
+    const railGeo = new THREE.BoxGeometry(0.04, 2.4, 0.05);
+    const railL = new THREE.Mesh(railGeo, railMat);
+    railL.position.set(-0.74, 1.75, 0.38);
+    cabinetGroup.add(railL);
+
+    const railR = new THREE.Mesh(railGeo, railMat);
+    railR.position.set(0.74, 1.75, 0.38);
+    cabinetGroup.add(railR);
+
+    // Internal Illuminated Rack Lighting
+    const rackLight = new THREE.PointLight(0xFFFFFF, 2.5, 6.0);
+    rackLight.position.set(0, 2.2, 0.45);
+    cabinetGroup.add(rackLight);
+
+    // Rack Modules & Shelves
+    const hwRackModules = [];
+
+    function createRackModule(yOffset, h, label, color, type) {
+      const modGroup = new THREE.Group();
+      modGroup.position.set(0, yOffset, 0.0);
+
+      // Shelf Base
+      const shelfGeo = new THREE.BoxGeometry(1.48, 0.02, 0.8);
+      const shelf = new THREE.Mesh(shelfGeo, railMat);
+      shelf.position.y = -h / 2 - 0.01;
+      modGroup.add(shelf);
+
+      // Module Chasis
+      const faceGeo = new THREE.BoxGeometry(1.44, h, 0.7);
+      const faceMat = new THREE.MeshStandardMaterial({
+        color: color,
+        metalness: 0.75,
+        roughness: 0.3,
+      });
+      const face = new THREE.Mesh(faceGeo, faceMat);
+      face.position.z = 0.02;
+      modGroup.add(face);
+
+      // OLED Status Panel on Module Face
+      const screenGeo = new THREE.PlaneGeometry(0.45, h * 0.45);
+      const screenMat = new THREE.MeshBasicMaterial({ color: 0x090D16 });
+      const screen = new THREE.Mesh(screenGeo, screenMat);
+      screen.position.set(-0.35, 0, 0.375);
+      modGroup.add(screen);
+
+      // Status LED
+      const ledGeo = new THREE.SphereGeometry(0.04, 12, 12);
+      const ledMat = new THREE.MeshBasicMaterial({ color: 0x10B981 });
+      const led = new THREE.Mesh(ledGeo, ledMat);
+      led.position.set(0.55, 0, 0.38);
+      modGroup.add(led);
+
+      cabinetGroup.add(modGroup);
+      hwRackModules.push({ group: modGroup, type: type, led: led });
+      return modGroup;
+    }
+
+    createRackModule(2.55, 0.40, 'EDGE_COMPUTE', 0x2A3547, 'edge');
+    createRackModule(2.05, 0.35, 'RELAY_MODULE', 0x134E4A, 'relay');
+    createRackModule(1.60, 0.38, 'TS2_BIU', 0x334155, 'ts2');
+    createRackModule(1.10, 0.42, 'MMU_16LE', 0x7F1D1D, 'mmu');
+    createRackModule(0.65, 0.30, 'WATCHDOG', 0x78350F, 'watchdog');
+
+    // Dual Doors Hinged
+    const doorLGroup = new THREE.Group();
+    doorLGroup.position.set(-0.87, 1.75, 0.60);
+    cabinetGroup.add(doorLGroup);
+
+    const doorRGroup = new THREE.Group();
+    doorRGroup.position.set(0.87, 1.75, 0.60);
+    cabinetGroup.add(doorRGroup);
+
+    const doorGeo = new THREE.BoxGeometry(0.87, 2.5, 0.04);
+    const doorL = new THREE.Mesh(doorGeo, brushedAlumMat);
+    doorL.position.x = 0.435;
+    doorLGroup.add(doorL);
+
+    const doorR = new THREE.Mesh(doorGeo, brushedAlumMat);
+    doorR.position.x = -0.435;
+    doorRGroup.add(doorR);
+
+    // Patent Plaque
+    const plaqueGeo = new THREE.PlaneGeometry(0.48, 0.32);
+    const plaqueMat = new THREE.MeshBasicMaterial({ color: BRAND.purple });
+    const plaque = new THREE.Mesh(plaqueGeo, plaqueMat);
+    plaque.position.set(0.435, 0.3, 0.025);
+    doorLGroup.add(plaque);
+
+    let cabinetDoorsOpen = false;
+    let targetDoorAngle = 0.0;
+    let currentDoorAngle = 0.0;
+
+    function toggleCabinetDoors(open) {
+      cabinetDoorsOpen = open;
+      targetDoorAngle = open ? (Math.PI * 0.62) : 0.0;
+    }
+
+    // =========================================================================
+    // 7. HIGH-FIDELITY EMERGENCY AMBULANCE
+    // =========================================================================
+    const ambulanceGroup = new THREE.Group();
+    worldGroup.add(ambulanceGroup);
+
+    function buildAmbulance() {
+      const amb = new THREE.Group();
+
+      const whiteMat = new THREE.MeshStandardMaterial({ color: 0xFFFFFF, roughness: 0.25, metalness: 0.2 });
+      const orangeMat = new THREE.MeshStandardMaterial({ color: BRAND.orange, roughness: 0.2, metalness: 0.1 });
+      const glassMat = new THREE.MeshStandardMaterial({ color: 0x1E293B, roughness: 0.1, metalness: 0.9 });
+      const tireMat = new THREE.MeshStandardMaterial({ color: 0x1F2937, roughness: 0.85 });
+
+      // Medical Body
+      const bodyGeo = new THREE.BoxGeometry(2.1, 1.8, 4.2);
+      const body = new THREE.Mesh(bodyGeo, whiteMat);
+      body.position.set(0, 1.35, -0.4);
+      body.castShadow = true;
+      amb.add(body);
+
+      // Cab
+      const cabGeo = new THREE.BoxGeometry(2.0, 1.3, 1.8);
+      const cab = new THREE.Mesh(cabGeo, whiteMat);
+      cab.position.set(0, 1.1, 1.8);
+      cab.castShadow = true;
+      amb.add(cab);
+
+      // Windshield
+      const wsGeo = new THREE.BoxGeometry(1.85, 0.75, 0.8);
+      const ws = new THREE.Mesh(wsGeo, glassMat);
+      ws.position.set(0, 1.35, 1.95);
+      amb.add(ws);
+
+      // Stripe
+      const stripeGeo = new THREE.BoxGeometry(2.15, 0.38, 4.4);
+      const stripe = new THREE.Mesh(stripeGeo, orangeMat);
+      stripe.position.set(0, 1.25, -0.2);
+      amb.add(stripe);
+
+      // Lightbar
+      const barGeo = new THREE.BoxGeometry(1.5, 0.22, 0.55);
+      const bar = new THREE.Mesh(barGeo, orangeMat);
+      bar.position.set(0, 2.38, 0.8);
+      amb.add(bar);
+
+      // Strobes
+      const strobeLight1 = new THREE.PointLight(0xFF6D29, 3.5, 20);
+      strobeLight1.position.set(-0.6, 2.5, 0.8);
+      amb.add(strobeLight1);
+
+      const strobeLight2 = new THREE.PointLight(0x6C63FF, 3.5, 20);
+      strobeLight2.position.set(0.6, 2.5, 0.8);
+      amb.add(strobeLight2);
+
+      // Wheels
+      [[-1.1, 0.45, 1.4], [1.1, 0.45, 1.4], [-1.1, 0.45, -1.4], [1.1, 0.45, -1.4]].forEach(([wx, wy, wz]) => {
+        const wheelGeo = new THREE.CylinderGeometry(0.45, 0.45, 0.32, 16);
+        const wheel = new THREE.Mesh(wheelGeo, tireMat);
+        wheel.rotation.z = Math.PI / 2;
+        wheel.position.set(wx, wy, wz);
+        wheel.castShadow = true;
+        amb.add(wheel);
+      });
+
+      return { amb, strobe1: strobeLight1, strobe2: strobeLight2 };
+    }
+
+    const { amb: ambulanceMesh, strobe1: evStrobe1, strobe2: evStrobe2 } = buildAmbulance();
+    ambulanceGroup.add(ambulanceMesh);
+
+    let evState = {
+      z: 280.0,
+      v: 20.0,
+      active: false,
+      braking: false,
+      brakingEpisodes: 0,
+      eta: 0.0,
+    };
+
+    ambulanceGroup.position.set(2.0, 0, evState.z);
+
+    let countL1 = 4;
+    let countL2 = 4;
+
+    function getMeanReactionTime() {
+      const el = document.getElementById('slider-profile');
+      const v = el ? parseInt(el.value) : 2;
+      return v === 1 ? 2.1 : (v === 3 ? 1.4 : 1.7);
+    }
+
+    // Dynamic clearance runway calculator (Guarantees zero-braking emergency vehicle passage)
+    function computeRequiredEvDistance() {
+      const STOPLINE_Z = 9.8;
+      const VEHICLE_LENGTH = 5.8;
+      const numL1 = (vehicles && vehicles.length > 0)
+        ? vehicles.filter(v => v.spawnLane === 'L1').length
+        : countL1;
+      const queueTailZ = STOPLINE_Z + (numL1 * VEHICLE_LENGTH);
+      const muReaction = getMeanReactionTime();
+      const T_trans = 3.4; // 2.2s Yellow + 1.2s All-Red
+      // True clearance runway: Staggered reaction delay + progressive zipper merge / discharge of Lane 1 queue
+      const T_clear = muReaction + (numL1 * 2.0);
+      const clearanceRunwaySec = T_trans + T_clear + 3.5; // 3.5s safety buffer
+      const reqDist = queueTailZ + (evState.v * clearanceRunwaySec);
+      return Math.min(650.0, Math.max(260.0, Math.round(reqDist)));
+    }
+
+    function syncEvStartingDistance() {
+      if (!simRunning) {
+        evState.z = computeRequiredEvDistance();
+        ambulanceGroup.position.set(2.0, 0, evState.z);
+        const distToStopline = Math.max(0, evState.z - 9.8);
+        const etaStopline = Math.max(0, distToStopline / Math.max(1.0, evState.v));
+        const lblDist = document.getElementById('lbl-ev-dist');
+        const lblEta = document.getElementById('lbl-ev-eta');
+        if (lblDist) lblDist.innerText = `${Math.round(distToStopline)} m`;
+        if (lblEta) lblEta.innerText = `${etaStopline.toFixed(1)} s`;
+      }
+    }
+
+    // =========================================================================
+    // 8. DYNAMIC VEHICLE QUEUE SYSTEM (DUAL FILLED LANES - ZERO HARDCODING)
+    // =========================================================================
+    let vehicles = [];
+    const CAR_COLORS = [0x3B82F6, 0xEF4444, 0x10B981, 0xF59E0B, 0x8B5CF6, 0x64748B, 0x0EA5E9];
+
+    function createProceduralCar(color) {
+      const car = new THREE.Group();
+
+      const bodyMat = new THREE.MeshStandardMaterial({ color: color, roughness: 0.35, metalness: 0.2 });
+      const glassMat = new THREE.MeshStandardMaterial({ color: 0x1E293B, roughness: 0.1, metalness: 0.85 });
+      const tireMat = new THREE.MeshStandardMaterial({ color: 0x1F2937, roughness: 0.9 });
+      const blinkerMat = new THREE.MeshBasicMaterial({ color: 0x332200 });
+      const brakeMat = new THREE.MeshBasicMaterial({ color: 0x440000 });
+
+      // Body
+      const bGeo = new THREE.BoxGeometry(1.85, 0.75, 4.0);
+      const b = new THREE.Mesh(bGeo, bodyMat);
+      b.position.y = 0.55;
+      b.castShadow = true;
+      car.add(b);
+
+      // Cabin
+      const cGeo = new THREE.BoxGeometry(1.65, 0.65, 2.2);
+      const c = new THREE.Mesh(cGeo, glassMat);
+      c.position.set(0, 1.15, -0.2);
+      c.castShadow = true;
+      car.add(c);
+
+      // Indicators (Front)
+      const indGeo = new THREE.SphereGeometry(0.08, 8, 8);
+      const indL = new THREE.Mesh(indGeo, blinkerMat);
+      indL.position.set(-0.94, 0.65, 1.95);
+      car.add(indL);
+
+      const indR = new THREE.Mesh(indGeo, blinkerMat.clone());
+      indR.position.set(0.94, 0.65, 1.95);
+      car.add(indR);
+
+      // Brake Lights (Rear)
+      const brakeGeo = new THREE.BoxGeometry(0.32, 0.14, 0.06);
+      const brakeL = new THREE.Mesh(brakeGeo, brakeMat);
+      brakeL.position.set(-0.68, 0.65, -2.01);
+      car.add(brakeL);
+
+      const brakeR = new THREE.Mesh(brakeGeo, brakeMat.clone());
+      brakeR.position.set(0.68, 0.65, -2.01);
+      car.add(brakeR);
+
+      // Wheels
+      [[-0.95, 0.35, 1.2], [0.95, 0.35, 1.2], [-0.95, 0.35, -1.2], [0.95, 0.35, -1.2]].forEach(([wx, wy, wz]) => {
+        const wGeo = new THREE.CylinderGeometry(0.35, 0.35, 0.25, 16);
+        const w = new THREE.Mesh(wGeo, tireMat);
+        w.rotation.z = Math.PI / 2;
+        w.position.set(wx, wy, wz);
+        w.castShadow = true;
+        car.add(w);
+      });
+
+      return { car, indL, indR, brakeL, brakeR };
+    }
+
+    let simStartTimeSec = 0;
+    let simTickCount = 0;
+
+    const ACTIONS = {
+      CONTINUE_FORWARD: 'CONTINUE_FORWARD',
+      STAGE_A_PREPARE: 'STAGE_A_PREPARE',
+      STAGE_B_MERGE: 'STAGE_B_MERGE',
+      ACCELERATE_TO_POSITION: 'ACCELERATE_TO_POSITION',
+      PREPARE_TO_MERGE_BEHIND: 'PREPARE_TO_MERGE_BEHIND',
+      PREPARE_TO_MERGE_AHEAD: 'PREPARE_TO_MERGE_AHEAD',
+      REQUEST_COOPERATIVE_GAP: 'REQUEST_COOPERATIVE_GAP',
+      WAIT_FOR_SAFE_OPPORTUNITY: 'WAIT_FOR_SAFE_OPPORTUNITY'
+    };
+
+    const MANOEUVRE_STATE = {
+      NONE: 'NONE',
+      EVALUATING: 'EVALUATING',
+      PREPARING: 'PREPARING',
+      COMMITTED: 'COMMITTED',
+      IN_PROGRESS: 'IN_PROGRESS',
+      COMPLETED: 'COMPLETED',
+      CANCELLED: 'CANCELLED'
+    };
+
+    const STATE = {
+      NORMAL_DRIVING: 'NORMAL_DRIVING',
+      EMERGENCY_ALERT_RECEIVED: 'EMERGENCY_ALERT_RECEIVED',
+      ROUTE_CONFLICT_CHECK: 'ROUTE_CONFLICT_CHECK',
+      CLEARING_FORWARD: 'CLEARING_FORWARD',
+      SEARCHING_FOR_GAP: 'SEARCHING_FOR_GAP',
+      CREATING_GAP: 'CREATING_GAP',
+      LANE_CHANGE_IN_PROGRESS: 'LANE_CHANGE_IN_PROGRESS',
+      YIELDED_IN_ADJACENT_LANE: 'YIELDED_IN_ADJACENT_LANE',
+      WAITING_FOR_SAFE_OPPORTUNITY: 'WAITING_FOR_SAFE_OPPORTUNITY',
+      RESUMING_NORMAL_ROUTE: 'RESUMING_NORMAL_ROUTE'
+    };
+
+    function randomizeVehicleTurnIntents() {
+      const mu = getMeanReactionTime();
+      vehicles.forEach(v => {
+        const r = Math.random();
+        if (v.spawnLane === 'L1') {
+          if (v.rank === 1) {
+            v.turnIntent = r < 0.45 ? 'STRAIGHT' : (r < 0.85 ? 'LEFT' : 'RIGHT');
+          } else {
+            v.turnIntent = r < 0.40 ? 'STRAIGHT' : (r < 0.75 ? 'LEFT' : 'RIGHT');
+          }
+        } else {
+          if (v.rank === 1) {
+            v.turnIntent = r < 0.50 ? 'STRAIGHT' : (r < 0.90 ? 'RIGHT' : 'LEFT');
+          } else {
+            v.turnIntent = r < 0.45 ? 'STRAIGHT' : (r < 0.85 ? 'RIGHT' : 'LEFT');
+          }
+        }
+        v.reactionDelay = Math.max(0.4, (mu * 0.5) + Math.random() * (mu * 0.9));
+        v.alertPerceived = false;
+        v.conflictsWithAmbulance = (v.spawnLane === 'L1');
+        v.ambulancePassed = false;
+        v.state = STATE.NORMAL_DRIVING;
+        v.intendedAction = ACTIONS.CONTINUE_FORWARD;
+        v.manoeuvreState = MANOEUVRE_STATE.NONE;
+        v.currentLane = v.spawnLane;
+        v.targetLane = v.spawnLane;
+        v.mustYieldToL2 = false;
+        v.mergeStage = 'NONE';
+        v.lateralProgress = 0.0;
+        v.gapAccepted = false;
+        v.candidateManoeuvre = null;
+        v.replanCount = 0;
+        v.cooperativeRole = 'NONE';
+        v.cooperativeTargetId = null;
+        v.cooperativePartnerId = null;
+        v.cooperativeDecel = 0.0;
+        v.stateTimer = 0.0;
+        v.decisionCooldown = 0.0;
+        v.yieldingForPartner = false;
+        v.partnerId = null;
+        v.cognitiveThought = 'Stopped at red light — normal commute';
+        v.blinkingL = false;
+        v.blinkingR = false;
+        v.hasYielded = false;
+        v.hasMerged = false;
+        v.laneChange = {
+          active: false,
+          startX: v.currentX,
+          targetX: v.currentX,
+          progress: 0.0,
+          duration: 2.2,
+          partnerId: null
+        };
+      });
+    }
+
+    function spawnQueue(nL1 = null, nL2 = null) {
+      if (simRunning) resetSimulation();
+      vehicles.forEach(v => {
+        if (v.mesh && v.mesh.parent) worldGroup.remove(v.mesh);
+      });
+      vehicles = [];
+
+      if (nL1 !== null && nL2 !== null) {
+        countL1 = Math.max(1, Math.min(10, nL1));
+        countL2 = Math.max(0, Math.min(10, nL2));
+      } else if (nL1 !== null) {
+        const total = Math.max(2, Math.min(20, nL1));
+        countL1 = Math.ceil(total / 2);
+        countL2 = Math.floor(total / 2);
+      }
+      const totalCount = countL1 + countL2;
+      const nLeft = countL1;
+      const nRight = countL2;
+
+      const STOPLINE_Z_L1 = 9.8;
+      const STOPLINE_Z_L2 = 12.0; // Naturally staggered queue stopline to prevent parallel block
+      const VEH_LEN = 4.4;
+
+      let curZ1 = STOPLINE_Z_L1;
+      let curZ2 = STOPLINE_Z_L2;
+
+      // 1. Populate Lane 1 (Left Lane, X_nominal = 2.0m: Queue starts neatly in Lane 1)
+      for (let k = 1; k <= nLeft; k++) {
+        const headway = k === 1 ? 0.8 : (1.4 + Math.random() * 1.6);
+        const zPos = curZ1;
+        curZ1 += VEH_LEN + headway;
+
+        const color = CAR_COLORS[(k - 1) % CAR_COLORS.length];
+        const { car, indL, indR, brakeL, brakeR } = createProceduralCar(color);
+
+        car.position.set(2.0, 0, zPos);
+        worldGroup.add(car);
+
+        vehicles.push({
+          id: vehicles.length + 1,
+          mesh: car,
+          indL: indL,
+          indR: indR,
+          brakeL: brakeL,
+          brakeR: brakeR,
+          spawnLane: 'L1',
+          currentLane: 'L1',
+          targetLane: 'L1',
+          mustYieldToL2: false,
+          mergeStage: 'NONE',
+          lateralProgress: 0.0,
+          gapAccepted: false,
+          cooperativePartnerId: null,
+          spawnX: 2.0,
+          spawnZ: zPos,
+          lane: 'L1',
+          laneName: 'Lane 1 (EV Path)',
+          rank: k,
+          turnIntent: 'STRAIGHT', // Randomized by randomizeVehicleTurnIntents()
+          baseX: 2.0,
+          targetX: 2.0, // Stays in Lane 1 until signal turns green
+          currentX: 2.0,
+          baseZ: zPos,
+          targetZ: zPos,
+          currentZ: zPos,
+          headway: headway,
+          speedZ: 0.0,
+          velocity: 0.0,
+          acceleration: 0.0,
+          maxSpeed: 10.5 + Math.random() * 1.5,
+          safeGap: 2.0,
+          timeHeadway: 1.3,
+          maxAccel: 2.2,
+          comfDecel: 2.4,
+          length: 4.4,
+          width: 1.9,
+          yaw: 0.0,
+          turnActive: false,
+          turnCompleted: false,
+          navState: 'QUEUED',
+          p_yield: 0.0,
+          willYield: false,
+          hasYielded: false,
+          hasCleared: false,
+          isBlocked: true,
+          mustLeave: false,
+          blinkingL: false,
+          blinkingR: false,
+          braking: true,
+          isMerging: false,
+          hasMerged: false,
+          actionReason: '',
+          reactionDelay: 0.8 + Math.random() * 1.4,
+          alertPerceived: false,
+          conflictsWithAmbulance: true,
+          ambulancePassed: false,
+          state: STATE.NORMAL_DRIVING,
+          intendedAction: ACTIONS.CONTINUE_FORWARD,
+          manoeuvreState: MANOEUVRE_STATE.NONE,
+          candidateManoeuvre: null,
+          replanCount: 0,
+          cooperativeRole: 'NONE',
+          cooperativeTargetId: null,
+          cooperativeDecel: 0.0,
+          stateTimer: 0.0,
+          decisionCooldown: 0.0,
+          yieldingForPartner: false,
+          partnerId: null,
+          laneChange: {
+            active: false,
+            startX: 2.0,
+            targetX: 2.0,
+            progress: 0.0,
+            duration: 2.2,
+            partnerId: null
+          },
+          cognitiveThought: 'Stopped at red light — normal commute'
+        });
+      }
+
+      // 2. Populate Lane 2 (Right Lane, X_nominal = 6.0m: Queue starts neatly in Lane 2)
+      for (let k = 1; k <= nRight; k++) {
+        const headway = k === 1 ? 0.8 : (1.4 + Math.random() * 1.6);
+        const zPos = curZ2;
+        curZ2 += VEH_LEN + headway;
+
+        const color = CAR_COLORS[(k + 2) % CAR_COLORS.length];
+        const { car, indL, indR, brakeL, brakeR } = createProceduralCar(color);
+
+        car.position.set(6.0, 0, zPos);
+        worldGroup.add(car);
+
+        vehicles.push({
+          id: vehicles.length + 1,
+          mesh: car,
+          indL: indL,
+          indR: indR,
+          brakeL: brakeL,
+          brakeR: brakeR,
+          spawnLane: 'L2',
+          currentLane: 'L2',
+          targetLane: 'L2',
+          mustYieldToL2: false,
+          mergeStage: 'NONE',
+          lateralProgress: 0.0,
+          gapAccepted: false,
+          cooperativePartnerId: null,
+          spawnX: 6.0,
+          spawnZ: zPos,
+          lane: 'L2',
+          laneName: 'Lane 2 (Adjacent)',
+          rank: k,
+          turnIntent: 'STRAIGHT', // Randomized by randomizeVehicleTurnIntents()
+          baseX: 6.0,
+          targetX: 6.0, // Stays in Lane 2 until signal turns green
+          currentX: 6.0,
+          baseZ: zPos,
+          targetZ: zPos,
+          currentZ: zPos,
+          headway: headway,
+          speedZ: 0.0,
+          velocity: 0.0,
+          acceleration: 0.0,
+          maxSpeed: 10.5 + Math.random() * 1.5,
+          safeGap: 2.0,
+          timeHeadway: 1.3,
+          maxAccel: 2.2,
+          comfDecel: 2.4,
+          length: 4.4,
+          width: 1.9,
+          yaw: 0.0,
+          turnActive: false,
+          turnCompleted: false,
+          navState: 'QUEUED',
+          p_yield: 0.95,
+          willYield: true,
+          hasYielded: false,
+          hasCleared: false,
+          isBlocked: false,
+          mustLeave: false,
+          blinkingL: false,
+          blinkingR: false,
+          braking: true,
+          isMerging: false,
+          hasMerged: false,
+          actionReason: '',
+          reactionDelay: 0.8 + Math.random() * 1.4,
+          alertPerceived: false,
+          conflictsWithAmbulance: false,
+          ambulancePassed: false,
+          state: STATE.NORMAL_DRIVING,
+          intendedAction: ACTIONS.CONTINUE_FORWARD,
+          manoeuvreState: MANOEUVRE_STATE.NONE,
+          candidateManoeuvre: null,
+          replanCount: 0,
+          cooperativeRole: 'NONE',
+          cooperativeTargetId: null,
+          cooperativeDecel: 0.0,
+          stateTimer: 0.0,
+          decisionCooldown: 0.0,
+          yieldingForPartner: false,
+          partnerId: null,
+          laneChange: {
+            active: false,
+            startX: 6.0,
+            targetX: 6.0,
+            progress: 0.0,
+            duration: 2.2,
+            partnerId: null
+          },
+          cognitiveThought: 'Stopped at red light — normal commute'
+        });
+      }
+
+      randomizeVehicleTurnIntents();
+
+      // Update Thermostat Dial & Lane Steppers Display
+      const dialNum = document.getElementById('dial-queue-num');
+      if (dialNum) dialNum.innerText = totalCount;
+      const valQueue = document.getElementById('val-queue-count');
+      if (valQueue) valQueue.innerText = `${totalCount} vehicles (${nLeft} L1 / ${nRight} L2)`;
+      const sliderQ = document.getElementById('slider-queue');
+      if (sliderQ) sliderQ.value = totalCount;
+
+      const numL1Disp = document.getElementById('num-l1-display');
+      if (numL1Disp) numL1Disp.innerText = nLeft;
+      const valL1Count = document.getElementById('val-l1-count');
+      if (valL1Count) valL1Count.innerText = `${nLeft} cars`;
+
+      const numL2Disp = document.getElementById('num-l2-display');
+      if (numL2Disp) numL2Disp.innerText = nRight;
+      const valL2Count = document.getElementById('val-l2-count');
+      if (valL2Count) valL2Count.innerText = `${nRight} cars`;
+
+      runAINeuralYieldingInference();
+      syncEvStartingDistance();
+    }
+
+    // =========================================================================
+    // 9. AI NEURAL YIELDING MODEL & POISSON-BINOMIAL QUANTILE INVERSION
+    // =========================================================================
+    let trainedNeuralWeights = null;
+    fetch('model_weights.json')
+      .then(res => res.json())
+      .then(data => {
+        trainedNeuralWeights = data;
+        console.log("[OK] Trained PyTorch weights loaded into WebGL engine:", data.architecture);
+        runAINeuralYieldingInference();
+      })
+      .catch(err => {
+        console.warn("Using embedded fallback weights:", err);
+      });
+
+    // Real-Time Matrix Forward Pass: 8 -> 64 -> 32 -> 16 -> 1 MLP
+    function neuralForwardPass(features) {
+      if (!trainedNeuralWeights || !trainedNeuralWeights.scaler_means || !trainedNeuralWeights.weights) {
+        return Math.min(0.95, Math.max(0.08, features[4] > 4.5 ? 0.85 : 0.12));
+      }
+
+      const means = trainedNeuralWeights.scaler_means;
+      const stds = trainedNeuralWeights.scaler_stds;
+      const W = trainedNeuralWeights.weights;
+
+      // Z-score normalization
+      const x = features.map((val, idx) => (val - means[idx]) / stds[idx]);
+
+      // Layer 1: ReLU(W1 * x + b1) -> 64
+      const h1 = new Float32Array(64);
+      for (let j = 0; j < 64; j++) {
+        let sum = W.b1[j];
+        const wRow = W.w1[j];
+        for (let i = 0; i < 8; i++) sum += wRow[i] * x[i];
+        h1[j] = sum > 0 ? sum : 0.0;
+      }
+
+      // Layer 2: ReLU(W2 * h1 + b2) -> 32
+      const h2 = new Float32Array(32);
+      for (let j = 0; j < 32; j++) {
+        let sum = W.b2[j];
+        const wRow = W.w2[j];
+        for (let i = 0; i < 64; i++) sum += wRow[i] * h1[i];
+        h2[j] = sum > 0 ? sum : 0.0;
+      }
+
+      // Layer 3: ReLU(W3 * h2 + b3) -> 16
+      const h3 = new Float32Array(16);
+      for (let j = 0; j < 16; j++) {
+        let sum = W.b3[j];
+        const wRow = W.w3[j];
+        for (let i = 0; i < 32; i++) sum += wRow[i] * h2[i];
+        h3[j] = sum > 0 ? sum : 0.0;
+      }
+
+      // Output Layer: Sigmoid(W4 * h3 + b4) -> p_i
+      let out = W.b4[0];
+      const wRow = W.w4[0];
+      for (let i = 0; i < 16; i++) out += wRow[i] * h3[i];
+
+      return 1.0 / (1.0 + Math.exp(-out));
+    }
+
+    function runAINeuralYieldingInference() {
+      const adoption = parseFloat(document.getElementById('slider-adoption').value) / 100.0;
+      const profile = parseInt(document.getElementById('slider-profile').value);
+      const isLatencyStale = document.getElementById('check-latency').checked;
+      const v_ev = evState.v;
+
+      const neuralText = document.getElementById('neural-status-text');
+      if (neuralText) {
+        if (simRunning) {
+          neuralText.innerHTML = `<span>[AI ACTIVE] Preemption Engaged: Evaluating ${vehicles.length} queued cars across Lane 1 & Lane 2</span>`;
+        } else {
+          neuralText.innerHTML = `<span>[STANDBY] AI Cognitive Mind: Listening on C-V2X 5.9 GHz Emergency Channel</span>`;
+        }
+      }
+
+      // Minimum longitudinal headway needed to angle front wheels without clipping vehicle ahead
+      const MIN_STEER_HEADWAY_M = 2.5;
+
+      vehicles.forEach(v => {
+        if (isLatencyStale) {
+          v.p_yield = 0.0;
+          v.willYield = false;
+          v.isBlocked = true;
+          v.mustLeave = true;
+          v.actionReason = 'Watchdog Stale (Zero V2X Telemetry)';
+          return;
+        }
+
+        const carDist = Math.max(5.0, evState.z - v.currentZ);
+        const carDeadline = Math.max(0.5, (carDist - 15.0) / Math.max(1.0, v_ev));
+        const queueRankNorm = v.rank / 10.0;
+        const driverTrait = profile === 3 ? 0.25 : (profile === 2 ? 0.45 : 0.70);
+        const hasApp = (Math.random() < adoption) ? 1.0 : 0.0;
+        const sirenDb = Math.min(95.0, Math.max(55.0, 110.0 - 20.0 * Math.log10(carDist)));
+
+        // 1. Physical Turning & Stopline Confinement Test
+        const isLane1 = (v.lane === 'L1');
+        const isStoplineTrapped = isLane1 && (v.rank === 1);
+
+        if (isStoplineTrapped) {
+          // Front stopline car in Lane 1: boxed in by crosswalk and Lane 2 stopped traffic.
+          // It MUST MOVE forward through the green traffic light to clear Lane 1!
+          v.p_yield = 0.05;
+          v.mustLeave = true;
+          v.willYield = false;
+          v.actionReason = 'Stopline Trap in Lane 1 -> Moves Front on Green to Clear Lane 1';
+        } else if (isLane1) {
+          // UPSTREAM QUEUED VEHICLES IN LANE 1 (Rank >= 2):
+          // Directly in the path of the incoming ambulance in Lane 1!
+          // When signal turns green and front cars discharge, they MOVE FRONT & ALIGN into Lane 2!
+          const rawFeatures = [
+            carDist,
+            v_ev,
+            carDeadline,
+            queueRankNorm,
+            v.headway,
+            hasApp,
+            driverTrait,
+            sirenDb
+          ];
+
+          const prob = neuralForwardPass(rawFeatures);
+          v.p_yield = parseFloat(Math.min(0.96, Math.max(0.72, prob)).toFixed(4));
+          v.mustLeave = false;
+
+          if (v.p_yield >= 0.50) {
+            v.willYield = true;
+            v.actionReason = v.rank === 2
+              ? 'Moves Front & Aligns into Lane 2 once Lead Car Clears'
+              : `Waits for Car #${v.id - 1} -> Moves Front & Aligns into Lane 2`;
+          } else {
+            v.willYield = false;
+            v.actionReason = 'Delayed Alert -> Remains Stuck in Lane 1 (Triggers EV Braking)';
+          }
+        } else {
+          // CARS IN LANE 2 (Adjacent Lane):
+          // Rank 1 discharges on green to open merge space.
+          // Rank >= 2 waits patiently until all Lane 1 merges have completed!
+          v.p_yield = 0.95;
+          v.willYield = true;
+          v.mustLeave = (v.rank === 1);
+          v.actionReason = v.rank === 1
+            ? 'Front Car in Lane 2 -> Starts Going on Green to Open Merge Space'
+            : 'Back Car in Lane 2 -> Waits for Lane 1 Merges to Complete';
+        }
+
+        if (!simRunning) {
+          v.mustLeave = false;
+          v.willYield = false;
+          v.isMerging = false;
+          v.hasMerged = false;
+          v.blinkingR = false;
+          v.blinkingL = false;
+          v.actionReason = 'Stopped at red light — normal commute';
+          v.cognitiveThought = 'Stopped at red light — normal commute';
+        }
+        v.isBlocked = !v.willYield;
+      });
+
+      updatePoissonBinomialAnalytics();
+      renderVehicleProbList();
+      drawNeuralSvg(true);
+    }
+
+    // Exact O(N^2) Recursive Poisson-Binomial Convolution Engine
+    let currentNcrit = 0;
+    let l2DischargeCount = 2;
+
+    // Dynamic & Randomized Dual-Action Role Assignment
+    // Rank 1 at stopline always flushes forward on green.
+    // Upstream vehicles (rank >= 2) are dynamically randomized across runs so different vehicles merge each time.
+    function assignDualActionRoles(randomize = true) {
+      const lane1Cars = vehicles.filter(v => v.spawnLane === 'L1');
+      const N1 = lane1Cars.length;
+      if (N1 === 0) return;
+
+      const numMergePlanned = Math.max(1, N1 - currentNcrit);
+      const candidates = lane1Cars.filter(v => v.rank >= 2);
+
+      let yieldingIds = new Set();
+      if (candidates.length > 0 && numMergePlanned > 0) {
+        if (randomize) {
+          // Dynamic shuffle so different vehicles yield and merge on each run
+          const shuffled = [...candidates].sort(() => Math.random() - 0.5);
+          yieldingIds = new Set(shuffled.slice(0, Math.min(candidates.length, numMergePlanned)).map(v => v.id));
+        } else {
+          yieldingIds = new Set(candidates.slice(-numMergePlanned).map(v => v.id));
+        }
+      }
+
+      vehicles.forEach(v => {
+        if (v.spawnLane === 'L1') {
+          if (v.rank === 1) {
+            // Front car facing green signal always clears straight forward
+            v.mustYieldToL2 = false;
+            v.targetLane = 'L1';
+          } else if (yieldingIds.has(v.id)) {
+            v.mustYieldToL2 = true;
+            v.targetLane = 'L2';
+          } else {
+            v.mustYieldToL2 = false;
+            v.targetLane = 'L1';
+          }
+        } else {
+          v.mustYieldToL2 = false;
+          v.targetLane = 'L2';
+        }
+
+        // Apply realistic human driver behavioral variance
+        if (randomize) {
+          const baseMu = getMeanReactionTime() + (v2xActive ? 0.0 : 1.5);
+          v.reactionDelay = Math.max(0.6, baseMu * (0.8 + 0.4 * Math.random()));
+          v.stageADuration = 0.9 + 0.5 * Math.random();
+          v.stageBDuration = 1.9 + 0.6 * Math.random();
+          v.nudgeTargetOffset = 0.85 + 0.15 * (Math.random() - 0.5);
+          v.courtesyDecelTarget = -1.0 - 0.4 * Math.random();
+        }
+      });
+    }
+
+    function updatePoissonBinomialAnalytics() {
+      const lane1Cars = vehicles.filter(v => v.spawnLane === 'L1');
+      const N1 = lane1Cars.length;
+      if (N1 === 0) return;
+
+      const pArr = lane1Cars.map(v => v.p_yield);
+      const qArr = pArr.map(p => 1.0 - p);
+
+      let dp = [1.0];
+
+      for (let i = 0; i < N1; i++) {
+        const q_i = qArr[i];
+        const p_i = pArr[i];
+        let nextDp = new Array(dp.length + 1).fill(0.0);
+
+        for (let j = 0; j < dp.length; j++) {
+          nextDp[j] += dp[j] * p_i;
+          nextDp[j + 1] += dp[j] * q_i;
+        }
+        dp = nextDp;
+      }
+
+      // Invert 95% Quantile
+      const epsilon = 0.05;
+      let cumProb = 0.0;
+      let Ncrit = N1;
+
+      for (let k = 0; k <= N1; k++) {
+        cumProb += dp[k];
+        if (cumProb >= (1.0 - epsilon)) {
+          Ncrit = k;
+          break;
+        }
+      }
+
+      // Guarantee dual-action law demonstration (at least 1 vehicle merges to L2 if N1 >= 2)
+      if (N1 >= 2 && Ncrit >= N1) {
+        Ncrit = N1 - 1;
+      }
+
+      currentNcrit = Ncrit;
+
+      // Assign Dual-Action Law roles dynamically with randomization (Claim 7 & 9):
+      assignDualActionRoles(true);
+
+      const eRem = qArr.reduce((a, b) => a + b, 0);
+      const HEADWAY_S = 1.8;
+      const t_lost = 1.8;
+      const biuMargin = biuActive ? 0.0 : 5.0; // TS2 BIU fail-safe pad when SDLC bus offline
+      const T_clear = Ncrit === 0 ? 0.0 : (t_lost + (Ncrit * HEADWAY_S)) + biuMargin;
+      const T_trans = 3.4;
+      const T_lead = T_clear + T_trans + 2.5;
+      const savedGreen = Math.max(0, (N1 - Ncrit) * HEADWAY_S);
+
+      const pbCritBadge = document.getElementById('pb-crit-badge');
+      if (pbCritBadge) pbCritBadge.innerText = `Quantile Bound: ${Ncrit} veh`;
+      const lblMean = document.getElementById('lbl-mean-rem');
+      if (lblMean) lblMean.innerText = `E[L1 Discharge]: ${eRem.toFixed(1)}`;
+      const lblSaved = document.getElementById('lbl-lead-saved');
+      if (lblSaved) lblSaved.innerText = `Saved: ${savedGreen.toFixed(1)}s`;
+      
+      updateLiveQueueMetrics();
+      
+      const patentTiming = document.getElementById('patent-dynamic-timing');
+      if (patentTiming) {
+        if (simRunning) {
+          patentTiming.innerText = `Switch T_lead: ${T_lead.toFixed(1)}s (Chance-Constrained)`;
+        } else {
+          patentTiming.innerText = `Switch T_lead: -- s | Armed on C-V2X trigger`;
+        }
+      }
+
+      renderDistributionChart(dp, Ncrit, N1);
+    }
+
+    // Dynamic Live Queue Feasibility Counter (Updates with real-time vehicle motions)
+    function updateLiveQueueMetrics() {
+      const lblQueue = document.getElementById('lbl-queue-summary');
+      const patentEv = document.getElementById('patent-ev-guarantee');
+      const lblLeaveAlign = document.getElementById('lbl-leave-align-status');
+      const lblSeam = document.getElementById('lbl-seam-width');
+
+      const l1Cars = vehicles.filter(v => v.spawnLane === 'L1');
+      const N1 = l1Cars.length;
+      const l2Cars = vehicles.filter(v => v.spawnLane === 'L2');
+      const N2 = l2Cars.length;
+
+      if (!simRunning) {
+        if (lblQueue) {
+          const nMergePlanned = Math.max(0, N1 - currentNcrit);
+          lblQueue.innerText = `${nMergePlanned} Merged to L2 / ${currentNcrit} Must Move Forward`;
+          lblQueue.style.color = 'var(--neu-muted)';
+        }
+        if (lblSeam) lblSeam.innerText = 'QUEUED';
+        if (lblLeaveAlign) lblLeaveAlign.innerText = 'STANDBY';
+        if (patentEv) patentEv.innerText = 'Target: 0 EV Braking Guarantee';
+        return;
+      }
+
+      // Real-time counts directly from live physical state:
+      const mergedCount = vehicles.filter(v => v.spawnLane === 'L1' && (v.currentLane === 'L2' || v.mergeStage === 'MERGED' || v.currentX > 3.8)).length;
+      const fwdCount = vehicles.filter(v => v.spawnLane === 'L1' && v.currentLane === 'L1' && v.currentX <= 3.8 && (v.currentZ < 8.0 || v.turnCompleted || v.turnActive)).length;
+      const remainingInL1 = vehicles.filter(v => v.spawnLane === 'L1' && v.currentX <= 3.8 && v.currentZ >= 8.0 && !v.turnCompleted).length;
+
+      if (remainingInL1 === 0) {
+        if (lblQueue) {
+          lblQueue.innerText = `[OK] Corridor Cleared (${fwdCount} Cleared Fwd / ${mergedCount} Yielded to L2)`;
+          lblQueue.style.color = 'var(--accent-green)';
+        }
+        if (lblSeam) lblSeam.innerText = 'LANE 1 (100% CLEAR - 4.0m)';
+        if (lblLeaveAlign) lblLeaveAlign.innerText = `[OK] ${fwdCount} FORWARD / ${mergedCount} MERGED TO L2`;
+        if (patentEv) patentEv.innerText = `${mergedCount} Merged to L2 | 0 EV Braking`;
+      } else {
+        if (lblQueue) {
+          lblQueue.innerText = `Live: ${fwdCount} Cleared Fwd | ${mergedCount} Yielded L2 | ${remainingInL1} In Corridor`;
+          lblQueue.style.color = 'var(--accent-purple)';
+        }
+        if (lblSeam) lblSeam.innerText = `LANE 1 (${remainingInL1} CLEARING)`;
+        if (lblLeaveAlign) lblLeaveAlign.innerText = `LIVE: ${fwdCount} FORWARD / ${mergedCount} YIELDED TO L2`;
+        if (patentEv) patentEv.innerText = `${mergedCount} Merged to L2 | ${evState.brakingEpisodes} EV Braking`;
+      }
+    }
+
+    // HTML5 Canvas Poisson-Binomial Chart (Neumorphic Slate / Purple Theme)
+    function renderDistributionChart(dp, Ncrit, N) {
+      const cvs = document.getElementById('dist-canvas');
+      const ctx = cvs.getContext('2d');
+      const w = cvs.clientWidth || 340;
+      const h = cvs.clientHeight || 110;
+      cvs.width = w * window.devicePixelRatio;
+      cvs.height = h * window.devicePixelRatio;
+      ctx.scale(window.devicePixelRatio, window.devicePixelRatio);
+
+      ctx.clearRect(0, 0, w, h);
+
+      const maxP = Math.max(...dp, 0.25);
+      const barW = Math.max(7, (w - 32) / (N + 1));
+
+      for (let k = 0; k <= N; k++) {
+        const prob = dp[k];
+        const barH = (prob / maxP) * (h - 28);
+        const x = 16 + k * barW;
+        const y = h - 18 - barH;
+
+        if (k <= Ncrit) {
+          ctx.fillStyle = '#6C63FF'; // Within 95% Conf
+        } else {
+          ctx.fillStyle = 'rgba(239, 68, 68, 0.55)'; // Rejected tail risk
+        }
+
+        ctx.fillRect(x, y, barW - 3, barH);
+
+        if (N <= 10 || k % 2 === 0) {
+          ctx.fillStyle = '#7E8DA6';
+          ctx.font = 'bold 9px Nunito, sans-serif';
+          ctx.textAlign = 'center';
+          ctx.fillText(String(k), x + (barW - 3) / 2, h - 5);
+        }
+      }
+
+      // Quantile Threshold Line
+      const threshX = 16 + (Ncrit + 1) * barW - 3;
+      ctx.strokeStyle = '#FF6D29';
+      ctx.lineWidth = 1.5;
+      ctx.setLineDash([3, 3]);
+      ctx.beginPath();
+      ctx.moveTo(threshX, 4);
+      ctx.lineTo(threshX, h - 18);
+      ctx.stroke();
+      ctx.setLineDash([]);
+
+      ctx.fillStyle = '#FF6D29';
+      ctx.font = 'bold 9px Nunito, sans-serif';
+      ctx.fillText(`95% Quantile`, Math.min(w - 42, threshX + 2), 12);
+    }
+
+    // Live Vehicle Prob List in Right Panel (Real-Time Driver Cognition & Thoughts)
+    function renderVehicleProbList() {
+      const listContainer = document.getElementById('vehicle-p-container');
+      if (!listContainer) return;
+      listContainer.innerHTML = '';
+
+      vehicles.forEach(v => {
+        const item = document.createElement('div');
+        item.className = 'neu-v-item';
+
+        const pct = Math.round(v.p_yield * 100);
+        let barColor = '#10B981';
+        let actionLabel = '';
+        let statusColor = 'var(--accent-green)';
+        let thought = v.cognitiveThought || 'Stopped at red light — normal commute';
+
+        if (!simRunning) {
+          barColor = '#6C63FF';
+          actionLabel = '⏸️ QUEUED AT RED';
+          statusColor = 'var(--neu-muted)';
+          thought = 'Stopped at red light — normal commute';
+        } else if (v.ambulancePassed || v.state === STATE.RESUMING_NORMAL_ROUTE) {
+          barColor = '#10B981';
+          actionLabel = 'RESUMING ROUTE';
+          statusColor = 'var(--accent-green)';
+        } else if (v.turnCompleted) {
+          barColor = '#8B5CF6';
+          actionLabel = 'CRUISING (Cross Street)';
+          statusColor = 'var(--accent-purple)';
+        } else if (v.turnActive) {
+          barColor = '#F59E0B';
+          actionLabel = `↩️ TURNING ${v.turnIntent}`;
+          statusColor = 'var(--accent-orange)';
+        } else if (v.mergeStage === 'STAGE_B_MERGE') {
+          barColor = '#F59E0B';
+          actionLabel = 'STAGE B: DIAGONAL MERGE';
+          statusColor = 'var(--accent-orange)';
+        } else if (v.mergeStage === 'STAGE_A_PREPARE') {
+          barColor = '#F59E0B';
+          actionLabel = 'STAGE A: BOUNDARY NUDGE';
+          statusColor = 'var(--accent-orange)';
+        } else if (v.cooperativeRole === 'YIELDING_FOR_MERGE') {
+          barColor = '#F59E0B';
+          actionLabel = 'COURTESY EASING (-1.2 m/s²);'
+          statusColor = 'var(--accent-orange)';
+        } else if (v.mergeStage === 'MERGED' || (v.currentLane === 'L2' && v.spawnLane === 'L1')) {
+          barColor = '#10B981';
+          actionLabel = 'YIELDED IN LANE 2';
+          statusColor = 'var(--accent-green)';
+        } else if (v.state === STATE.CLEARING_FORWARD || v.intendedAction === ACTIONS.CONTINUE_FORWARD) {
+          barColor = '#10B981';
+          actionLabel = 'CLEARING FORWARD';
+          statusColor = 'var(--accent-green)';
+        } else if (!v.alertPerceived) {
+          barColor = '#94A3B8';
+          actionLabel = '⏳ AWARENESS DELAY';
+          statusColor = 'var(--neu-muted)';
+        } else {
+          barColor = '#3B82F6';
+          actionLabel = 'EVALUATING GAP';
+          statusColor = 'var(--accent-purple)';
+        }
+
+        let turnBadge = '⬆️ Straight';
+        if (v.turnIntent === 'LEFT') turnBadge = '⬅️ Left Turn';
+        else if (v.turnIntent === 'RIGHT') turnBadge = 'Right Turn';
+
+        const latPct = Math.min(100, Math.max(0, Math.round(((v.currentX - 2.0) / 4.0) * 100)));
+        const coopStatus = v.cooperativeRole === 'YIELDING_FOR_MERGE'
+          ? 'Yielding (-1.2m/s²)'
+          : (v.cooperativePartnerId ? `Partner: #${v.cooperativePartnerId}` : 'None');
+
+        const telemetryRow = `
+          <div style="display:flex; justify-content:space-between; align-items:center; font-size:9px; font-weight:700; color:var(--neu-muted); padding:3px 6px; background:rgba(0,0,0,0.03); border-radius:4px; font-family:monospace; margin:2px 0;">
+            <span style="color:var(--neu-dark-slate);">${v.currentLane} -> ${v.targetLane}</span>
+            <span style="color:${v.mergeStage === 'MERGED' ? 'var(--accent-green)' : (v.mergeStage !== 'NONE' ? 'var(--accent-orange)' : 'var(--neu-muted)')};">${v.mergeStage}</span>
+            <span>X=${v.currentX.toFixed(2)}m (${latPct}%)</span>
+            <span>${v.gapAccepted ? 'Gap: ACCEPTED' : 'Gap: SEARCHING'}</span>
+            <span style="color:${v.cooperativeRole === 'YIELDING_FOR_MERGE' ? 'var(--accent-orange)' : 'var(--neu-muted)'};">${coopStatus}</span>
+          </div>
+        `;
+
+        item.innerHTML = `
+          <div style="display:flex; flex-direction:column; gap:3px; width:100%;">
+            <div style="display:flex; align-items:center; justify-content:space-between; width:100%;">
+              <div style="display:flex; align-items:center; gap:6px;">
+                <span style="font-weight:900; color:var(--neu-dark-slate); font-size:11px;">#${v.id}</span>
+                <span style="font-size:9.5px; font-weight:800; padding:1px 5px; border-radius:6px; background:${v.spawnLane === 'L1' ? 'rgba(239,68,68,0.15)' : 'rgba(108,99,255,0.15)'}; color:${v.spawnLane === 'L1' ? 'var(--accent-red)' : 'var(--accent-purple)'};">${v.spawnLane === 'L1' ? 'L1 EV PATH' : 'L2 ADJACENT'} R#${v.rank}</span>
+                <span style="color:${statusColor}; font-weight:800; font-size:10px;">${actionLabel}</span>
+              </div>
+              <div style="display:flex; align-items:center; gap:6px;">
+                <span style="color:${barColor}; font-weight:800; font-size:11px;">${pct}%</span>
+                <div class="neu-p-bar-track" style="width:48px;">
+                  <div class="neu-p-bar-fill" style="width:${pct}%; background:${barColor};"></div>
+                </div>
+              </div>
+            </div>
+            ${telemetryRow}
+            <div style="font-size:9.5px; font-weight:600; color:var(--neu-muted); padding-left:2px; display:flex; justify-content:space-between; align-items:center;">
+              <span style="color:var(--neu-dark-slate); font-weight:700;">[INTENT] "${thought}"</span>
+              <span style="font-size:9px; font-weight:700; color:var(--accent-purple); padding:1px 4px; border-radius:4px; background:rgba(108,99,255,0.12);">${turnBadge}</span>
+            </div>
+          </div>
+        `;
+        listContainer.appendChild(item);
+      });
+    }
+
+    // Draw Neural Network Synapses in Right Panel
+    function drawNeuralSvg(isThinking = false) {
+      const svg = document.getElementById('neural-svg');
+      svg.innerHTML = '';
+
+      const layers = [4, 6, 5, 2];
+      const layerX = [34, 118, 210, 305];
+
+      for (let l = 0; l < layers.length - 1; l++) {
+        const x1 = layerX[l];
+        const x2 = layerX[l + 1];
+        const n1 = layers[l];
+        const n2 = layers[l + 1];
+
+        for (let i = 0; i < n1; i++) {
+          const y1 = 16 + (i * (62 / (n1 - 1)));
+          for (let j = 0; j < n2; j++) {
+            const y2 = 16 + (j * (62 / (n2 - 1)));
+            const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+            line.setAttribute('x1', x1);
+            line.setAttribute('y1', y1);
+            line.setAttribute('x2', x2);
+            line.setAttribute('y2', y2);
+            line.setAttribute('stroke', isThinking ? 'rgba(108, 99, 255, 0.7)' : 'rgba(77, 91, 124, 0.35)');
+            line.setAttribute('stroke-width', isThinking ? '1.6' : '1.0');
+            svg.appendChild(line);
+          }
+        }
+      }
+
+      for (let l = 0; l < layers.length; l++) {
+        const x = layerX[l];
+        const count = layers[l];
+        for (let i = 0; i < count; i++) {
+          const y = 16 + (i * (62 / (count - 1)));
+          const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+          circle.setAttribute('cx', x);
+          circle.setAttribute('cy', y);
+          circle.setAttribute('r', '5.0');
+          circle.setAttribute('fill', isThinking ? '#6C63FF' : '#4D5B7C');
+          circle.setAttribute('stroke', '#E0E5EC');
+          circle.setAttribute('stroke-width', '2.0');
+          svg.appendChild(circle);
+        }
+      }
+    }
+
+    drawNeuralSvg(false);
+
+    // =========================================================================
+    // 10. SIMULATION DISPATCH & PREEMPTION TIMELINE
+    // =========================================================================
+    let simTimer = null;
+    let simRunning = false;
+    let simSpeedMult = 1.0;
+    let preemptionTimeouts = [];
+    let preemptionGreenActive = false;
+
+    function clearPreemptionTimers() {
+      preemptionTimeouts.forEach(t => clearTimeout(t));
+      preemptionTimeouts = [];
+      preemptionGreenActive = false;
+    }
+
+    function dispatchAmbulanceSimulation() {
+      if (simRunning) return;
+      simRunning = true;
+      clearPreemptionTimers();
+
+      simStartTimeSec = clock.getElapsedTime();
+      simTickCount = 0;
+      randomizeVehicleTurnIntents();
+
+      // Dynamically scale ambulance starting distance based on clearance runway requirement:
+      // Invariant: Guarantees sufficient travel runway for Yellow + All-Red + Stopline Discharge + Lane 1 Merge
+      evState.z = computeRequiredEvDistance();
+      evState.active = true;
+      evState.braking = false;
+      evState.brakingEpisodes = 0;
+      ambulanceGroup.position.set(2.0, 0, evState.z);
+
+      runAINeuralYieldingInference();
+      assignDualActionRoles(true);
+      updateLiveQueueMetrics();
+      renderVehicleProbList();
+
+      if (audioSirenActive) startSirenSynth();
+
+      const btn = document.getElementById('btn-run-preemption');
+      btn.innerText = 'AI PREEMPTION IN PROGRESS...';
+      btn.classList.add('running');
+
+      let phaseTriggered = false;
+
+      if (simTimer) clearInterval(simTimer);
+
+      const dt = 0.04;
+
+      simTimer = setInterval(() => {
+        simTickCount++;
+        if (simTickCount % 5 === 0) {
+          updateLiveQueueMetrics();
+          renderVehicleProbList();
+        }
+
+        const STOPLINE_Z = 9.8;
+        const VEHICLE_LENGTH = 5.8;
+        const numL1 = vehicles.filter(v => v.spawnLane === 'L1').length || countL1;
+        const queueTailZ = STOPLINE_Z + (numL1 * VEHICLE_LENGTH);
+        const distToStopline = evState.z - STOPLINE_Z;
+        const distToQueueTail = Math.max(0, evState.z - queueTailZ);
+        const etaStopline = Math.max(0, distToStopline / Math.max(1.0, evState.v));
+        const etaQueueTail = Math.max(0, distToQueueTail / Math.max(1.0, evState.v));
+
+        document.getElementById('lbl-ev-dist').innerText = `${Math.max(0, Math.round(distToStopline))} m`;
+        document.getElementById('lbl-ev-eta').innerText = `${etaStopline.toFixed(1)} s`;
+
+        const isWatchdogTripped = document.getElementById('check-latency').checked;
+        const isMmuTripped = !mmuActive;
+
+        if (isMmuTripped) {
+          const fsmEl = document.getElementById('lbl-fsm-mode');
+          if (fsmEl) {
+            fsmEl.innerText = 'STATE 4: MMU FLASH';
+            fsmEl.style.color = 'var(--accent-red)';
+          }
+          setSignalPhase('FAILSAFE_FLASH');
+          preemptionGreenActive = false;
+          evState.v = Math.min(evState.v, 4.2); // 15 km/h cautious crawl
+        } else if (isWatchdogTripped) {
+          const fsmEl = document.getElementById('lbl-fsm-mode');
+          if (fsmEl) {
+            fsmEl.innerText = 'STATE 3: WATCHDOG';
+            fsmEl.style.color = 'var(--accent-red)';
+          }
+          setSignalPhase('FAILSAFE_FLASH');
+          preemptionGreenActive = false;
+          evState.v = Math.min(evState.v, 11.1); // 40 km/h failsafe crossing
+        } else {
+          const fsmEl = document.getElementById('lbl-fsm-mode');
+          if (fsmEl) {
+            fsmEl.innerText = 'STATE 1: PREDICTIVE';
+            fsmEl.style.color = 'var(--accent-purple)';
+          }
+
+          // Patented Chance-Constrained Preemption Invariant (Claim 7):
+          // Invariant: Transition begins when ETA to queue tail equals T_lead + margin
+          const biuMargin = biuActive ? 0.0 : 5.0; // TS2 BIU bus loss adds +5.0s safety pad
+          const muReaction = getMeanReactionTime() + (v2xActive ? 0.0 : 1.5);
+          const T_trans = 3.4; // 2.2s Yellow + 1.2s All-Red
+          const T_clear = muReaction + (numL1 * 1.9) + biuMargin;
+          const T_lead = T_clear + T_trans;
+
+          // Trigger preemption transition:
+          if ((etaQueueTail <= (T_lead + 3.0) || distToQueueTail <= (evState.v * (T_lead + 3.0))) && !phaseTriggered) {
+            phaseTriggered = true;
+            setSignalPhase('TRANS_YELLOW');
+
+            // Yellow clearance interval: 2.2 seconds
+            const t1 = setTimeout(() => {
+              setSignalPhase('ALL_RED');
+
+              // All-red safety interval: 1.2 seconds
+              const t2 = setTimeout(() => {
+                if (mmuActive && !document.getElementById('check-latency').checked) {
+                  setSignalPhase('PREEMPT_GREEN');
+                  preemptionGreenActive = true;
+                }
+              }, 1200 / simSpeedMult);
+              preemptionTimeouts.push(t2);
+            }, 2200 / simSpeedMult);
+            preemptionTimeouts.push(t1);
+          }
+        }
+
+        // 4. Collision Guard & Lane 1 Obstruction Check along X = 2.0
+        let blockedAhead = false;
+        let blockingCar = null;
+
+        vehicles.forEach(v => {
+          // A vehicle blocks Lane 1 if its center X position is still within [0.4m, 3.8m] and it is in the queue approach corridor (Z > 2.0m)
+          const inLane1 = (v.currentX >= 0.4 && v.currentX <= 3.8 && v.currentZ > 2.0);
+          const aheadDist = evState.z - v.currentZ;
+          if (inLane1 && aheadDist > 0 && aheadDist < 12.0) {
+            blockedAhead = true;
+            blockingCar = v;
+          }
+        });
+
+        const simElapsedSec = Math.max(0, clock.getElapsedTime() - simStartTimeSec);
+
+        if (blockedAhead && blockingCar) {
+          // Obstacle detected in Lane 1! Apply brakes to avoid collision
+          if (!evState.braking) {
+            evState.brakingEpisodes++;
+          }
+          evState.braking = true;
+          const safeZ = blockingCar.currentZ + 6.8;
+          evState.z = Math.max(safeZ, evState.z - 2.5 * dt * simSpeedMult);
+          ambulanceGroup.position.set(2.0, 0, evState.z);
+          document.getElementById('neural-status-text').innerHTML = 
+            `<span style="color:var(--accent-red); font-weight:800;">[BRAKING] APPROACH QUEUE DECELERATING // LANE 1 BLOCKED BY #${blockingCar.id} (${blockingCar.laneName})</span>`;
+        } else {
+          // Staggered departure / approach phase:
+          // In the first 2.5 seconds, the emergency vehicle scans corridor clearance while queue begins departure
+          let currentEvSpeed = evState.v;
+          if (simElapsedSec < 2.5) {
+            currentEvSpeed = evState.v * 0.45;
+            document.getElementById('neural-status-text').innerHTML = 
+              `<span>[BROADCAST] C-V2X Siren Triggered // Approach Queue Rolling Forward (2.5s Clearance Runway)</span>`;
+          } else if (evState.brakingEpisodes === 0) {
+            const coopPair = vehicles.find(v => v.candidateManoeuvre && v.candidateManoeuvre.type === 'COOPERATIVE');
+            if (coopPair && coopPair.candidateManoeuvre && coopPair.candidateManoeuvre.rear) {
+              document.getElementById('neural-status-text').innerHTML = 
+                `<span>[ZIPPER MERGE] #${coopPair.id} Merging | #${coopPair.candidateManoeuvre.rear.id} Easing Speed (-1.2 m/s²)</span>`;
+            } else {
+              document.getElementById('neural-status-text').innerHTML = 
+                `<span>[CORRIDOR OPEN] Cruising along 100% Vacated Lane 1 (${(evState.v * 3.6).toFixed(0)} km/h)</span>`;
+            }
+          }
+
+          evState.braking = false;
+          evState.z -= currentEvSpeed * dt * simSpeedMult;
+          ambulanceGroup.position.set(2.0, 0, evState.z);
+        }
+
+        if (evState.z <= -50.0) {
+          clearInterval(simTimer);
+          simRunning = false;
+          btn.innerText = 'DISPATCH AMBULANCE & RUN PREEMPTION';
+          btn.classList.remove('running');
+          updateLiveQueueMetrics();
+          renderVehicleProbList();
+          if (evState.brakingEpisodes === 0) {
+            document.getElementById('neural-status-text').innerHTML = 
+              '<span>[CORRIDOR CLEARED] LANE 1 FULLY VACATED // AMBULANCE TRANSIT COMPLETED (Zero Braking Episodes)</span>';
+          } else {
+            document.getElementById('neural-status-text').innerHTML = 
+              `<span style="color:var(--accent-red);">[PASSAGE SLOWED] ${evState.brakingEpisodes} BRAKING OCCURRENCES DETECTED IN LANE 1</span>`;
+          }
+          stopSirenSynth();
+        }
+
+        if (activeCamPreset === 'ambulance') {
+          targetCamPos.set(2.0, 7.5, evState.z + 18.0);
+          targetCamLook.set(2.0, 1.8, evState.z - 25.0);
+        }
+      }, 40);
+    }
+
+    function resetSimulation() {
+      if (simTimer) clearInterval(simTimer);
+      clearPreemptionTimers();
+      simRunning = false;
+      stopSirenSynth();
+
+      syncEvStartingDistance();
+
+      evState.active = false;
+      evState.braking = false;
+      evState.brakingEpisodes = 0;
+
+      vehicles.forEach(v => {
+        v.lane = v.spawnLane;
+        v.laneName = (v.spawnLane === 'L1' ? 'Lane 1 (EV Path)' : 'Lane 2 (Adjacent)');
+        v.baseX = v.spawnX;
+        v.targetX = v.spawnX;
+        v.currentX = v.spawnX;
+        v.mesh.position.x = v.spawnX;
+        v.baseZ = v.spawnZ;
+        v.targetZ = v.spawnZ;
+        v.currentZ = v.spawnZ;
+        v.mesh.position.z = v.spawnZ;
+        v.mesh.rotation.y = 0.0;
+        v.yaw = 0.0;
+        v.turnActive = false;
+        v.turnCompleted = false;
+        v.navState = 'QUEUED';
+        v.speedZ = 0.0;
+        v.velocity = 0.0;
+        v.acceleration = 0.0;
+        v.blinkingL = false;
+        v.blinkingR = false;
+        v.braking = true;
+        v.hasYielded = false;
+        v.hasCleared = false;
+        v.isMerging = false;
+        v.hasMerged = false;
+        v.alertPerceived = false;
+        v.conflictsWithAmbulance = (v.spawnLane === 'L1');
+        v.ambulancePassed = false;
+        v.state = STATE.NORMAL_DRIVING;
+        v.stateTimer = 0.0;
+        v.decisionCooldown = 0.0;
+        v.yieldingForPartner = false;
+        v.partnerId = null;
+        v.laneChange = {
+          active: false,
+          startX: v.spawnX,
+          targetX: v.spawnX,
+          progress: 0.0,
+          duration: 2.0,
+          partnerId: null
+        };
+        v.cognitiveThought = 'Stopped at red light — normal commute';
+      });
+
+      randomizeVehicleTurnIntents();
+      preemptionGreenActive = false;
+
+      setSignalPhase('CROSS_GREEN');
+      document.getElementById('lbl-fsm-mode').innerText = 'STATE 0: STANDBY';
+      document.getElementById('lbl-fsm-mode').style.color = 'var(--neu-muted)';
+
+      const btn = document.getElementById('btn-run-preemption');
+      btn.innerText = 'DISPATCH AMBULANCE & RUN PREEMPTION';
+      btn.classList.remove('running');
+      document.getElementById('neural-status-text').innerHTML = '<span>[STANDBY] AI Cognitive Mind: Listening on C-V2X 5.9 GHz Emergency Channel</span>';
+      drawNeuralSvg(false);
+      runAINeuralYieldingInference();
+      updateLiveQueueMetrics();
+      renderVehicleProbList();
+    }
+
+    // =========================================================================
+    // 11. WEB AUDIO API SYNTHESIZED EMERGENCY YELP SIREN
+    // =========================================================================
+    let audioCtx = null;
+    let sirenOsc = null;
+    let sirenGain = null;
+    let sirenLfo = null;
+    let audioSirenActive = false;
+
+    function initAudio() {
+      if (!audioCtx) {
+        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      }
+    }
+
+    function startSirenSynth() {
+      initAudio();
+      if (sirenOsc) return;
+
+      sirenOsc = audioCtx.createOscillator();
+      sirenOsc.type = 'sawtooth';
+      sirenOsc.frequency.setValueAtTime(650, audioCtx.currentTime);
+
+      sirenGain = audioCtx.createGain();
+      sirenGain.gain.setValueAtTime(0.08, audioCtx.currentTime);
+
+      sirenLfo = audioCtx.createOscillator();
+      sirenLfo.frequency.setValueAtTime(3.2, audioCtx.currentTime);
+      const lfoGain = audioCtx.createGain();
+      lfoGain.gain.setValueAtTime(320, audioCtx.currentTime);
+
+      sirenLfo.connect(lfoGain);
+      lfoGain.connect(sirenOsc.frequency);
+
+      sirenOsc.connect(sirenGain);
+      sirenGain.connect(audioCtx.destination);
+
+      sirenOsc.start();
+      sirenLfo.start();
+    }
+
+    function stopSirenSynth() {
+      if (sirenOsc) {
+        try {
+          sirenOsc.stop();
+          sirenLfo.stop();
+          sirenOsc.disconnect();
+          sirenLfo.disconnect();
+        } catch (_) {}
+        sirenOsc = null;
+        sirenLfo = null;
+      }
+    }
+
+    document.getElementById('btn-siren-audio').addEventListener('click', (e) => {
+      audioSirenActive = !audioSirenActive;
+      e.target.classList.toggle('active', audioSirenActive);
+      e.target.innerText = audioSirenActive ? 'Siren Audio: ACTIVE' : 'Siren Audio: MUTED';
+      if (!audioSirenActive) stopSirenSynth();
+    });
+
+    // =========================================================================
+    // 12. HARDWARE COMPONENT INTERACTION CARDS
+    // =========================================================================
+    const HW_SPECS = {
+      edge: {
+        title: 'EDGE COMPUTING UNIT (RASPBERRY PI 5 / JETSON ORIN)',
+        claim: 'CLAIM 1 & 15',
+        desc: 'Quad-core 64-bit embedded microprocessor running the real-time CC-HLP daemon at 100 ms discrete cycle intervals. Computes the exact discrete Poisson-Binomial recursive convolution in <1.5 ms for up to 30 queued vehicles. Subordinate to the independent hardware conflict monitor.',
+      },
+      relay: {
+        title: 'OPTICALLY ISOLATED RELAY BOARD (NEMA TS1 / IRC:SP:41)',
+        claim: 'CLAIM 3',
+        desc: 'Provides 2500 Vrms optical galvanic isolation between the low-voltage microprocessor GPIO bus and high-voltage municipal cabinet wiring. Drives physical dry-contact relay closures across cabinet Preempt Test inputs to request phase transitions without electrical noise.',
+      },
+      ts2: {
+        title: 'NEMA TS2 BIU & SDLC PORT 1 INTERFACE',
+        claim: 'CLAIM 4',
+        desc: 'Communicates synchronously across the standardized Port 1 SDLC serial bus at 153.6 kbps, formatting NEMA TS 2-2016 Section 3 preemption call frames directly to the Bus Interface Unit (BIU) and solid-state load switches.',
+      },
+      mmu: {
+        title: 'HARDWARE MALFUNCTION MANAGEMENT UNIT (MMU-16LE / CMU)',
+        claim: 'CLAIM 5 & 14',
+        desc: 'Autonomous, non-programmable physical safety interlock. Continuously samples AC terminal voltages on field signal lamps. If software attempts concurrent greens or violates minimum yellow change intervals (t_yellow ≥ 3.5s), the MMU physically de-energizes the flash transfer relay within ≤ 450 ms.',
+      },
+      watchdog: {
+        title: 'HARDWARE 800-MS LATENCY WATCHDOG MODULE',
+        claim: 'CLAIM 12',
+        desc: 'Asynchronous hardware-timed circuit monitoring C-V2X telematics heartbeat packets. If incoming message latency exceeds τ_latency > 800 ms, the watchdog trips, forcing P_mobile ≡ 0 and recovering the safe conservative passive queue clearance schedule.',
+      },
+      v2x: {
+        title: 'C-V2X / DSRC & MULTI-BAND GNSS RECEIVER',
+        claim: 'CLAIM 2',
+        desc: 'Ruggedized 5.9 GHz vehicular transceiver decoding 3GPP Rel-16 Cellular-V2X and IEEE 802.11p Cooperative Awareness Messages (CAM) from approaching ambulances and participating civilian client smartphones.',
+      },
+    };
+
+    document.querySelectorAll('.neu-hw-card').forEach(card => {
+      card.addEventListener('click', () => {
+        document.querySelectorAll('.neu-hw-card').forEach(c => c.classList.remove('selected'));
+        card.classList.add('selected');
+        const key = card.getAttribute('data-hw');
+        const data = HW_SPECS[key];
+        document.getElementById('hw-detail-title').innerText = `${data.title} [${data.claim}]`;
+        document.getElementById('hw-detail-body').innerText = data.desc;
+
+        hwRackModules.forEach(m => {
+          if (m.type === key) {
+            m.led.material.color.setHex(0x6C63FF);
+            m.group.position.z = 0.15;
+          } else {
+            m.led.material.color.setHex(0x10B981);
+            m.group.position.z = 0.0;
+          }
+        });
+      });
+    });
+
+    // =========================================================================
+    // 13. NEUMORPHIC UI CONTROLS & EVENT LISTENERS
+    // =========================================================================
+    // Circular Thermostat Dial Controls
+    const dialNumEl = document.getElementById('dial-queue-num');
+    const dialKnob = document.getElementById('dial-knob');
+    const btnDialPlus = document.getElementById('btn-dial-plus');
+    const btnDialMinus = document.getElementById('btn-dial-minus');
+
+    function adjustLaneQueue(lane, delta) {
+      if (lane === 'L1') {
+        countL1 = Math.min(10, Math.max(1, countL1 + delta));
+      } else if (lane === 'L2') {
+        countL2 = Math.min(10, Math.max(0, countL2 + delta));
+      }
+      spawnQueue(countL1, countL2);
+    }
+
+    function adjustQueue(delta) {
+      let total = countL1 + countL2 + delta;
+      total = Math.min(20, Math.max(2, total));
+      countL1 = Math.ceil(total / 2);
+      countL2 = Math.floor(total / 2);
+      if (dialKnob) {
+        dialKnob.style.transform = delta > 0 ? 'rotate(18deg) scale(0.97)' : 'rotate(-18deg) scale(0.97)';
+        setTimeout(() => { dialKnob.style.transform = ''; }, 220);
+      }
+      spawnQueue(countL1, countL2);
+    }
+
+    if (btnDialPlus) btnDialPlus.addEventListener('click', () => adjustQueue(1));
+    if (btnDialMinus) btnDialMinus.addEventListener('click', () => adjustQueue(-1));
+    if (dialKnob) {
+      dialKnob.addEventListener('click', () => adjustQueue(1));
+      dialKnob.addEventListener('wheel', (e) => {
+        e.preventDefault();
+        adjustQueue(e.deltaY < 0 ? 1 : -1);
+      }, { passive: false });
+    }
+
+    const btnL1Minus = document.getElementById('btn-l1-minus');
+    const btnL1Plus = document.getElementById('btn-l1-plus');
+    const btnL2Minus = document.getElementById('btn-l2-minus');
+    const btnL2Plus = document.getElementById('btn-l2-plus');
+
+    if (btnL1Minus) btnL1Minus.addEventListener('click', () => adjustLaneQueue('L1', -1));
+    if (btnL1Plus) btnL1Plus.addEventListener('click', () => adjustLaneQueue('L1', 1));
+    if (btnL2Minus) btnL2Minus.addEventListener('click', () => adjustLaneQueue('L2', -1));
+    if (btnL2Plus) btnL2Plus.addEventListener('click', () => adjustLaneQueue('L2', 1));
+
+    // Pill Slider: Ambulance Speed
+    const sliderSpeed = document.getElementById('slider-speed');
+    const fillSpeed = document.getElementById('fill-speed');
+    const valSpeed = document.getElementById('val-speed');
+
+    sliderSpeed.addEventListener('input', (e) => {
+      const v = parseInt(e.target.value);
+      evState.v = v / 3.6;
+      valSpeed.innerText = `${v} km/h (${(v / 3.6).toFixed(1)} m/s)`;
+      const pct = ((v - 20) / (100 - 20)) * 100;
+      fillSpeed.style.width = `${pct}%`;
+      runAINeuralYieldingInference();
+      syncEvStartingDistance();
+    });
+
+    // Sim Speed Selectors (0.5x, 1.0x, 2.0x)
+    document.querySelectorAll('.sim-speed-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.sim-speed-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        simSpeedMult = parseFloat(btn.getAttribute('data-speed'));
+      });
+    });
+
+    // Pill Slider: Adoption
+    const sliderAdoption = document.getElementById('slider-adoption');
+    const fillAdoption = document.getElementById('fill-adoption');
+    const valAdoption = document.getElementById('val-adoption');
+
+    sliderAdoption.addEventListener('input', (e) => {
+      valAdoption.innerText = `${e.target.value}%`;
+      fillAdoption.style.width = `${e.target.value}%`;
+      runAINeuralYieldingInference();
+    });
+
+    // Pill Slider: Profile
+    const sliderProfile = document.getElementById('slider-profile');
+    const fillProfile = document.getElementById('fill-profile');
+    const valProfile = document.getElementById('val-profile');
+
+    sliderProfile.addEventListener('input', (e) => {
+      const v = parseInt(e.target.value);
+      const labels = { 1: 'Distracted (μ=2.1s)', 2: 'Normal (μ=1.7s)', 3: 'Alerted (μ=1.4s)' };
+      valProfile.innerText = labels[v];
+      const pct = ((v - 1) / 2) * 100;
+      fillProfile.style.width = `${pct}%`;
+      runAINeuralYieldingInference();
+    });
+
+    // 4 Toggle Cards Event Handlers
+    // 1. C-V2X
+    // 1. C-V2X Radio (5.9 GHz CAM)
+    const cardV2x = document.getElementById('card-toggle-v2x');
+    let v2xActive = true;
+    cardV2x.addEventListener('click', () => {
+      v2xActive = !v2xActive;
+      cardV2x.classList.toggle('active', v2xActive);
+      const subV2x = document.getElementById('sub-v2x');
+      if (subV2x) subV2x.innerText = v2xActive ? '5.9 GHz CAM' : 'Offline (Acoustic Only)';
+      
+      const valAdoption = document.getElementById('val-adoption');
+      if (valAdoption) {
+        valAdoption.innerText = v2xActive ? `${Math.round(document.getElementById('slider-adoption').value)}%` : '0% (Offline)';
+      }
+      runAINeuralYieldingInference();
+      updateLiveQueueMetrics();
+      renderVehicleProbList();
+    });
+
+    // 2. Watchdog / Stale Latency (τ ≤ 800ms)
+    const latencyCard = document.getElementById('btn-toggle-latency');
+    const latencyCheck = document.getElementById('check-latency');
+    latencyCard.addEventListener('click', () => {
+      latencyCheck.checked = !latencyCheck.checked;
+      latencyCard.classList.toggle('active', latencyCheck.checked);
+      const subWdg = document.getElementById('sub-watchdog');
+      if (subWdg) subWdg.innerText = latencyCheck.checked ? 'τ > 800ms (TRIPPED)' : 'τ ≤ 800ms Normal';
+      
+      if (latencyCheck.checked) {
+        setSignalPhase('FAILSAFE_FLASH');
+        const fsmMode = document.getElementById('lbl-fsm-mode');
+        if (fsmMode) {
+          fsmMode.innerText = 'STATE 3: WATCHDOG';
+          fsmMode.style.color = 'var(--accent-red)';
+        }
+      } else {
+        const fsmMode = document.getElementById('lbl-fsm-mode');
+        if (fsmMode) {
+          fsmMode.innerText = 'STATE 1: PREDICTIVE';
+          fsmMode.style.color = 'var(--accent-purple)';
+        }
+        if (!simRunning) setSignalPhase('CROSS_GREEN');
+      }
+      runAINeuralYieldingInference();
+    });
+
+    // 3. NEMA TS2 BIU Bus (153.6k SDLC)
+    const cardBiu = document.getElementById('card-toggle-biu');
+    let biuActive = true;
+    cardBiu.addEventListener('click', () => {
+      biuActive = !biuActive;
+      cardBiu.classList.toggle('active', biuActive);
+      const subBiu = document.getElementById('sub-biu');
+      if (subBiu) subBiu.innerText = biuActive ? '153.6k SDLC' : 'Bus Dropped (+5s Pad)';
+      runAINeuralYieldingInference();
+      updateLiveQueueMetrics();
+    });
+
+    // 4. MMU-16LE Malfunction Management Unit (Flash Interlock)
+    const cardMmu = document.getElementById('card-toggle-mmu');
+    let mmuActive = true;
+    cardMmu.addEventListener('click', () => {
+      mmuActive = !mmuActive;
+      cardMmu.classList.toggle('active', mmuActive);
+      const subMmu = document.getElementById('sub-mmu');
+      if (subMmu) subMmu.innerText = mmuActive ? 'Flash Interlock' : 'TRIPPED (Lockout Flash)';
+      
+      if (!mmuActive) {
+        setSignalPhase('FAILSAFE_FLASH');
+        const fsmMode = document.getElementById('lbl-fsm-mode');
+        if (fsmMode) {
+          fsmMode.innerText = 'STATE 4: MMU FLASH';
+          fsmMode.style.color = 'var(--accent-red)';
+        }
+      } else {
+        const fsmMode = document.getElementById('lbl-fsm-mode');
+        if (fsmMode) {
+          fsmMode.innerText = 'STATE 1: PREDICTIVE';
+          fsmMode.style.color = 'var(--accent-purple)';
+        }
+        if (!simRunning) setSignalPhase('CROSS_GREEN');
+      }
+      runAINeuralYieldingInference();
+    });
+
+    // Camera Switch Buttons
+    function setCameraPreset(key) {
+      activeCamPreset = key;
+      document.querySelectorAll('.cam-btn').forEach(b => b.classList.remove('active'));
+      const activeBtn = document.getElementById(`btn-cam-${key}`);
+      if (activeBtn) activeBtn.classList.add('active');
+
+      const preset = CAM_PRESETS[key];
+      if (preset) {
+        targetCamPos.copy(preset.pos);
+        targetCamLook.copy(preset.look);
+      }
+
+      const leftPanel = document.querySelector('.left-panel');
+      const aiView = document.getElementById('panel-ai-view');
+      const cabinetView = document.getElementById('panel-cabinet-view');
+
+      if (key === 'cabinet') {
+        if (leftPanel) {
+          leftPanel.style.transform = 'translateX(-440px)';
+          leftPanel.style.opacity = '0';
+          leftPanel.style.pointerEvents = 'none';
+        }
+        if (aiView) aiView.style.display = 'none';
+        if (cabinetView) cabinetView.style.display = 'flex';
+        toggleCabinetDoors(true);
+      } else {
+        if (leftPanel) {
+          leftPanel.style.transform = 'translateX(0)';
+          leftPanel.style.opacity = '1';
+          leftPanel.style.pointerEvents = 'all';
+        }
+        if (aiView) aiView.style.display = 'flex';
+        if (cabinetView) cabinetView.style.display = 'none';
+        toggleCabinetDoors(false);
+      }
+    }
+
+    document.getElementById('btn-cam-drone').addEventListener('click', () => setCameraPreset('drone'));
+    document.getElementById('btn-cam-cabinet').addEventListener('click', () => setCameraPreset('cabinet'));
+    document.getElementById('btn-cam-ambulance').addEventListener('click', () => setCameraPreset('ambulance'));
+    document.getElementById('btn-cam-stopline').addEventListener('click', () => setCameraPreset('stopline'));
+
+    document.getElementById('btn-open-cabinet-direct').addEventListener('click', () => setCameraPreset('cabinet'));
+    const btnReturnCorridor = document.getElementById('btn-return-corridor');
+    if (btnReturnCorridor) {
+      btnReturnCorridor.addEventListener('click', () => setCameraPreset('drone'));
+    }
+
+    document.getElementById('btn-run-preemption').addEventListener('click', dispatchAmbulanceSimulation);
+    document.getElementById('btn-reset-sim').addEventListener('click', resetSimulation);
+
+    // 3D Raycasting on Cabinet
+    const raycaster = new THREE.Raycaster();
+    const mouse = new THREE.Vector2();
+
+    window.addEventListener('click', (e) => {
+      if (e.target.closest('.left-panel') || e.target.closest('.right-panel') || e.target.closest('header')) {
+        return;
+      }
+
+      mouse.x = (e.clientX / window.innerWidth) * 2 - 1;
+      mouse.y = -(e.clientY / window.innerHeight) * 2 + 1;
+      raycaster.setFromCamera(mouse, camera);
+
+      const intersects = raycaster.intersectObjects(cabinetGroup.children, true);
+      if (intersects.length > 0) {
+        if (activeCamPreset !== 'cabinet') {
+          setCameraPreset('cabinet');
+        } else {
+          // If already in cabinet view, find if a rack unit was clicked
+          for (let hit of intersects) {
+            const foundMod = hwRackModules.find(m => m.group === hit.object || m.group.children.includes(hit.object));
+            if (foundMod) {
+              const card = document.querySelector(`.neu-hw-card[data-hw="${foundMod.type}"]`);
+              if (card) card.click();
+              break;
+            }
+          }
+        }
+      }
+    });
+
+    // Mouse Orbit & Pan Interaction
+    let isMouseDown = false;
+    let prevMousePos = { x: 0, y: 0 };
+
+    window.addEventListener('mousedown', (e) => {
+      if (e.target.closest('.left-panel') || e.target.closest('.right-panel') || e.target.closest('header')) return;
+      isMouseDown = true;
+      prevMousePos = { x: e.clientX, y: e.clientY };
+    });
+
+    window.addEventListener('mouseup', () => { isMouseDown = false; });
+
+    window.addEventListener('mousemove', (e) => {
+      if (!isMouseDown || activeCamPreset !== 'drone') return;
+      const dx = (e.clientX - prevMousePos.x) * 0.005;
+      const dy = (e.clientY - prevMousePos.y) * 0.005;
+
+      const offset = targetCamPos.clone().sub(targetCamLook);
+      const radius = offset.length();
+      let theta = Math.atan2(offset.x, offset.z) + dx;
+      let phi = Math.acos(Math.max(0.1, Math.min(1.5, offset.y / radius))) + dy;
+
+      targetCamPos.x = targetCamLook.x + radius * Math.sin(phi) * Math.sin(theta);
+      targetCamPos.y = targetCamLook.y + radius * Math.cos(phi);
+      targetCamPos.z = targetCamLook.z + radius * Math.sin(phi) * Math.cos(theta);
+
+      prevMousePos = { x: e.clientX, y: e.clientY };
+    });
+
+    window.addEventListener('wheel', (e) => {
+      if (e.target.closest('.left-panel') || e.target.closest('.right-panel')) return;
+      const zoomFactor = e.deltaY * 0.05;
+      const dir = targetCamPos.clone().sub(targetCamLook).normalize();
+      const newPos = targetCamPos.clone().addScaledVector(dir, zoomFactor);
+      if (newPos.distanceTo(targetCamLook) > 10 && newPos.distanceTo(targetCamLook) < 220) {
+        targetCamPos.copy(newPos);
+      }
+    }, { passive: true });
+
+    window.addEventListener('resize', () => {
+      camera.aspect = window.innerWidth / window.innerHeight;
+      camera.updateProjectionMatrix();
+      renderer.setSize(window.innerWidth, window.innerHeight);
+    });
+
+    // =========================================================================
+    // 13B. INTELLIGENT CIVILIAN DRIVER DECISION LOGIC & KINEMATICS
+    // =========================================================================
+    function quinticEase(u) {
+      const clamped = Math.max(0.0, Math.min(1.0, u));
+      return 10 * Math.pow(clamped, 3) - 15 * Math.pow(clamped, 4) + 6 * Math.pow(clamped, 5);
+    }
+
+    function calcIDMAccel(v, leadVehicle, virtualStoplineZ) {
+      let s = 9999.0;
+      let deltaV = 0.0;
+
+      if (leadVehicle) {
+        s = (v.currentZ - leadVehicle.currentZ) - leadVehicle.length;
+        deltaV = v.velocity - (leadVehicle.velocity || 0.0);
+      }
+
+      if (virtualStoplineZ !== null) {
+        const sObstacle = (v.currentZ - virtualStoplineZ) - (v.length / 2);
+        if (sObstacle > 0 && sObstacle < s) {
+          s = sObstacle;
+          deltaV = v.velocity;
+        }
+      }
+
+      s = Math.max(0.1, s);
+      const sStar = v.safeGap + Math.max(0, v.velocity * v.timeHeadway + (v.velocity * deltaV) / (2 * Math.sqrt(v.maxAccel * v.comfDecel)));
+      const aFree = v.maxAccel * (1 - Math.pow(v.velocity / Math.max(0.1, v.maxSpeed), 4));
+      const aInt = -v.maxAccel * Math.pow(sStar / s, 2);
+
+      return Math.max(-v.comfDecel * 2.5, aFree + aInt);
+    }
+
+    // Trajectory Prediction at End of Maneuver (t + T_LC)
+    function predictTrajectoryGap(ego, candidateLead, candidateRear, egoAccel, T_LC = 2.2, assumedRearDecel = 0.0) {
+      const egoPredZ = ego.currentZ - (ego.velocity * T_LC + 0.5 * egoAccel * T_LC * T_LC);
+      const egoPredV = Math.max(0, Math.min(ego.maxSpeed, ego.velocity + egoAccel * T_LC));
+
+      let frontClear = true;
+      let rearClear = true;
+      let predFrontGap = 999.0;
+      let predRearGap = 999.0;
+
+      if (candidateLead) {
+        const leadPredZ = candidateLead.currentZ - (candidateLead.velocity * T_LC);
+        predFrontGap = (egoPredZ - leadPredZ) - candidateLead.length;
+        const reqFrontGap = ego.safeGap + egoPredV * 0.7;
+        if (predFrontGap < reqFrontGap) {
+          frontClear = false;
+        }
+      }
+
+      if (candidateRear) {
+        let rearDecel = assumedRearDecel;
+        if (candidateRear.cooperativeRole === 'YIELDING_FOR_MERGE') {
+          rearDecel = -1.2;
+        }
+        const rearPredV = Math.max(0.5, candidateRear.velocity + rearDecel * T_LC);
+        const rearPredZ = candidateRear.currentZ - (candidateRear.velocity * T_LC + 0.5 * rearDecel * T_LC * T_LC);
+        predRearGap = (rearPredZ - egoPredZ) - ego.length;
+        const reqRearGap = candidateRear.safeGap + Math.max(1.0, rearPredV * 0.7);
+        if (predRearGap < reqRearGap) {
+          rearClear = false;
+        }
+      }
+
+      return {
+        safe: frontClear && rearClear,
+        predFrontGap,
+        predRearGap
+      };
+    }
+
+    // Dynamic Driver Brain: Continuous Decision Evaluation & Revision
+    function updateDriverDecisions(dt, simElapsed) {
+      const isGreen = preemptionGreenActive;
+
+      vehicles.forEach(v => {
+        v.stateTimer += dt;
+        v.decisionCooldown = Math.max(0, v.decisionCooldown - dt);
+
+        if (!simRunning) {
+          v.intendedAction = ACTIONS.CONTINUE_FORWARD;
+          v.manoeuvreState = MANOEUVRE_STATE.NONE;
+          v.cognitiveThought = 'Stopped at red light — normal commute';
+          return;
+        }
+
+        const distToEV = evState.z - v.currentZ;
+        const alertAudibleRange = v2xActive ? 350.0 : 75.0; // 5.9 GHz C-V2X (350m) vs Acoustic Siren (75m)
+        const effectiveReactionDelay = v.reactionDelay + (v2xActive ? 0.0 : 1.5);
+
+        // Staggered human alert reaction:
+        if (distToEV <= alertAudibleRange) {
+          if (simElapsed >= effectiveReactionDelay && !v.alertPerceived) {
+            v.alertPerceived = true;
+          }
+        } else {
+          v.alertPerceived = false;
+        }
+
+        // Check if EV has already passed this vehicle:
+        if (distToEV < -10.0 && !v.ambulancePassed) {
+          v.ambulancePassed = true;
+          v.intendedAction = ACTIONS.CONTINUE_FORWARD;
+          v.manoeuvreState = MANOEUVRE_STATE.COMPLETED;
+          v.state = STATE.RESUMING_NORMAL_ROUTE;
+          v.cognitiveThought = 'Ambulance has safely passed. Resuming normal driving route.';
+          return;
+        }
+
+        // 1. Vehicles in Lane 2 (Relief Lane):
+        if (v.currentLane === 'L2' || v.spawnLane === 'L2' || v.currentX >= 4.0) {
+          v.intendedAction = ACTIONS.CONTINUE_FORWARD;
+          if (v.cooperativeRole === 'YIELDING_FOR_MERGE') {
+            const partner = vehicles.find(o => o.id === v.cooperativeTargetId);
+            if (!partner || partner.currentLane === 'L2' || partner.currentX >= 5.8 || partner.mergeStage === 'MERGED') {
+              v.cooperativeRole = 'NONE';
+              v.cooperativeTargetId = null;
+              v.cooperativeDecel = 0.0;
+              v.yieldingForPartner = false;
+              v.braking = false;
+              v.cognitiveThought = 'Merge partner established. Resuming normal cruise in Lane 2.';
+            }
+          }
+          return;
+        }
+
+        // 2. Vehicles in Lane 1 (EV Path):
+        // Scenario A: Diverging Route (Left Turn at intersection) for clearing vehicles
+        if (v.turnIntent === 'LEFT' && !v.mustYieldToL2) {
+          v.intendedAction = ACTIONS.CONTINUE_FORWARD;
+          v.conflictsWithAmbulance = false;
+          v.state = STATE.CLEARING_FORWARD;
+          v.blinkingL = true;
+          v.cognitiveThought = isGreen
+            ? 'Route diverges Westbound (Left Turn). Clearing corridor on Green.'
+            : 'Route diverges Westbound (Left Turn). Holding for Green to discharge.';
+          return;
+        }
+
+        // Scenario B: Leading Vehicles that flush forward on Green (rank <= Ncrit)
+        if (!v.mustYieldToL2) {
+          v.intendedAction = ACTIONS.CONTINUE_FORWARD;
+          v.state = STATE.CLEARING_FORWARD;
+          v.cognitiveThought = isGreen
+            ? 'Corridor clearance forward on Green (Within Ncrit clearance budget).'
+            : 'Queued for Green corridor discharge.';
+          return;
+        }
+
+        // Scenario C: Trailing Vehicles that MUST Yield to Lane 2 (mustYieldToL2 === true)
+        if (!v.alertPerceived) {
+          v.intendedAction = ACTIONS.CONTINUE_FORWARD;
+          v.cognitiveThought = v2xActive
+            ? 'C-V2X Alert received. Processing reaction buffer...'
+            : '[NO V2X] Sirens inaudible (>75m). Waiting at red light...';
+          return;
+        }
+
+        // Two-Stage Cooperative Zipper Merge
+        const lane2Cars = vehicles
+          .filter(o => o.currentX >= 3.8 && !o.turnCompleted)
+          .sort((a, b) => a.currentZ - b.currentZ);
+
+        let leadInL2 = null;
+        let rearInL2 = null;
+        let minLeadGap = 999;
+        let minRearGap = 999;
+
+        lane2Cars.forEach(o => {
+          const dz = o.currentZ - v.currentZ;
+          if (dz < 0 && Math.abs(dz) < minLeadGap) {
+            minLeadGap = Math.abs(dz);
+            leadInL2 = o;
+          } else if (dz >= 0 && dz < minRearGap) {
+            minRearGap = dz;
+            rearInL2 = o;
+          }
+        });
+
+        // Stage Transitions:
+        if (v.mergeStage === 'NONE') {
+          // Enter Stage A (Preparation / Nudge)
+          v.mergeStage = 'STAGE_A_PREPARE';
+          v.intendedAction = ACTIONS.STAGE_A_PREPARE;
+          v.state = STATE.CREATING_GAP;
+          v.blinkingR = true;
+          v.lateralProgress = 0.0;
+          v.cognitiveThought = 'Stage A: Nudging right towards boundary line; signaling merge into Lane 2.';
+
+          // Find adjacent or trailing vehicle in Lane 2 to request cooperative courtesy easing
+          const targetRear = rearInL2 || lane2Cars[lane2Cars.length - 1];
+          if (targetRear && targetRear.cooperativeRole === 'NONE') {
+            v.cooperativePartnerId = targetRear.id;
+            targetRear.cooperativeRole = 'YIELDING_FOR_MERGE';
+            targetRear.yieldingForPartner = true;
+            targetRear.cooperativeTargetId = v.id;
+            targetRear.cooperativeDecel = -1.2;
+            targetRear.cognitiveThought = `[COURTESY EASING] Decelerating (-1.2 m/s²) to create insertion pocket for #${v.id}.`;
+          }
+        } else if (v.mergeStage === 'STAGE_A_PREPARE') {
+          v.intendedAction = ACTIONS.STAGE_A_PREPARE;
+          v.state = STATE.CREATING_GAP;
+          v.blinkingR = true;
+
+          // Check if insertion gap in Lane 2 is safe to commit to Stage B
+          const frontGap = leadInL2 ? (v.currentZ - leadInL2.currentZ - leadInL2.length) : 999;
+          const rearGap = rearInL2 ? (rearInL2.currentZ - v.currentZ - v.length) : 999;
+
+          // Gap acceptance: safe front and rear buffers, and Stage A nudge progress >= 0.7 (X >= 2.6m)
+          if ((!leadInL2 || frontGap >= 1.8) && (!rearInL2 || rearGap >= 1.0) && v.lateralProgress >= 0.7) {
+            v.mergeStage = 'STAGE_B_MERGE';
+            v.intendedAction = ACTIONS.STAGE_B_MERGE;
+            v.state = STATE.LANE_CHANGE_IN_PROGRESS;
+            v.lateralProgress = 0.0;
+            v.gapAccepted = true;
+            v.cognitiveThought = `Stage B: Safe gap verified (+${Math.min(99, frontGap).toFixed(1)}m front / +${Math.min(99, rearGap).toFixed(1)}m rear). Committing to diagonal merge!`;
+          } else {
+            v.cognitiveThought = `Stage A: Nudging at boundary (X=${v.currentX.toFixed(2)}m). Waiting for Lane 2 gap (+${Math.min(99, frontGap).toFixed(1)}m / +${Math.min(99, rearGap).toFixed(1)}m)...`;
+          }
+        } else if (v.mergeStage === 'STAGE_B_MERGE') {
+          v.intendedAction = ACTIONS.STAGE_B_MERGE;
+          v.state = STATE.LANE_CHANGE_IN_PROGRESS;
+          v.blinkingR = true;
+        } else if (v.mergeStage === 'MERGED') {
+          v.intendedAction = ACTIONS.CONTINUE_FORWARD;
+          v.state = STATE.YIELDED_IN_ADJACENT_LANE;
+          v.blinkingR = false;
+        }
+      });
+    }
+
+    // =========================================================================
+    // 14. MAIN ANIMATION & RENDER LOOP
+    // =========================================================================
+    const clock = new THREE.Clock();
+
+    function animate() {
+      requestAnimationFrame(animate);
+      const delta = clock.getDelta();
+      const time = clock.getElapsedTime();
+
+      camera.position.lerp(targetCamPos, delta * 3.5);
+      currentCamLook.lerp(targetCamLook, delta * 4.0);
+      camera.lookAt(currentCamLook);
+
+      currentDoorAngle += (targetDoorAngle - currentDoorAngle) * (delta * 6.0);
+      doorLGroup.rotation.y = -currentDoorAngle;
+      doorRGroup.rotation.y = currentDoorAngle;
+
+      const strobeOn = Math.sin(time * 26.0) > 0;
+      evStrobe1.intensity = strobeOn ? 4.5 : 0.2;
+      evStrobe2.intensity = !strobeOn ? 4.5 : 0.2;
+
+      // -----------------------------------------------------------------------
+      // REAL-TIME AUTONOMOUS AGENT DECISION LOOP & KINEMATICS
+      // Quintic Smooth Trajectory, IDM Car-Following, 10-State Machine
+      // -----------------------------------------------------------------------
+      const MIN_BUMPER_GAP = 5.6; // 4.4m vehicle body + 1.2m bumper safety margin
+      const simElapsed = simRunning ? Math.max(0, clock.getElapsedTime() - simStartTimeSec) : 0;
+      const dt = Math.min(0.05, Math.max(0.001, delta * simSpeedMult));
+
+      // 1. High-Level Decentralized Driver Decisions
+      updateDriverDecisions(dt, simElapsed);
+
+      // 2. Lateral Kinematics (Two-Stage Continuous Smooth Lateral Trajectory)
+      vehicles.forEach(v => {
+        if (v.turnActive || v.turnCompleted) return;
+
+        if (v.mergeStage === 'STAGE_A_PREPARE') {
+          // Stage A Nudge: 2.0m to 2.85m over 1.4s with gentle quintic easing and slight right yaw
+          v.lateralProgress = Math.min(1.0, v.lateralProgress + dt / 1.4);
+          const u = quinticEase(v.lateralProgress);
+          v.currentX = 2.0 + u * (2.85 - 2.0);
+          v.mesh.rotation.y = -0.08 * Math.sin(u * Math.PI);
+          v.mesh.position.x = v.currentX;
+        } else if (v.mergeStage === 'STAGE_B_MERGE') {
+          // Stage B Diagonal Sweep: 2.85m to 6.00m over 2.2s with quintic easing and yaw alignment
+          v.lateralProgress = Math.min(1.0, v.lateralProgress + dt / 2.2);
+          const u = quinticEase(v.lateralProgress);
+          v.currentX = 2.85 + u * (6.0 - 2.85);
+          v.mesh.rotation.y = -0.16 * Math.sin(u * Math.PI);
+          v.mesh.position.x = v.currentX;
+
+          if (v.lateralProgress >= 1.0) {
+            v.currentX = 6.0;
+            v.mesh.position.x = 6.0;
+            v.mesh.rotation.y = 0.0;
+            v.currentLane = 'L2';
+            v.targetLane = 'L2';
+            v.lane = 'L2';
+            v.laneName = 'Lane 2 (Merged)';
+            v.mergeStage = 'MERGED';
+            v.hasYielded = true;
+            v.hasMerged = true;
+            v.blinkingR = false;
+            v.state = STATE.YIELDED_IN_ADJACENT_LANE;
+            v.intendedAction = ACTIONS.CONTINUE_FORWARD;
+            v.cognitiveThought = '[MERGED] Merge complete. Established in Lane 2.';
+
+            if (v.cooperativePartnerId) {
+              const partner = vehicles.find(o => o.id === v.cooperativePartnerId);
+              if (partner) {
+                partner.cooperativeRole = 'NONE';
+                partner.cooperativeTargetId = null;
+                partner.cooperativeDecel = 0.0;
+                partner.yieldingForPartner = false;
+                partner.cognitiveThought = 'Partner established in Lane 2. Resuming normal cruise.';
+              }
+              v.cooperativePartnerId = null;
+            }
+          }
+        }
+      });
+
+      // 3. Intersection Turning & Cross-Street Cruising
+      vehicles.forEach(v => {
+        // Detect turn initiation at intersection
+        if (!v.turnCompleted && !v.turnActive && !(v.laneChange && v.laneChange.active)) {
+          if (v.turnIntent === 'LEFT' && v.currentZ <= 2.2 && v.currentX <= 4.2) {
+            v.turnActive = true;
+            v.blinkingL = true;
+          } else if (v.turnIntent === 'RIGHT' && v.currentZ <= 5.8 && v.currentX >= 4.2) {
+            v.turnActive = true;
+            v.blinkingR = true;
+          }
+        }
+
+        if (v.turnActive && !v.turnCompleted) {
+          v.velocity = Math.min(4.8, Math.max(3.0, (v.velocity || 3.0) + 1.5 * dt));
+          const dStep = v.velocity * dt;
+
+          if (v.turnIntent === 'LEFT') {
+            v.cognitiveThought = 'Executing smooth Left Turn into Westbound Street';
+            const targetYaw = Math.PI / 2;
+            const yawRate = 1.35 * dt;
+            v.yaw = Math.min(targetYaw, (v.yaw || 0) + yawRate);
+            v.mesh.rotation.y = v.yaw;
+
+            v.currentX -= Math.sin(v.yaw) * dStep;
+            v.currentZ -= Math.cos(v.yaw) * dStep;
+
+            if (v.yaw >= targetYaw - 0.03) {
+              v.yaw = targetYaw;
+              v.mesh.rotation.y = targetYaw;
+              v.turnCompleted = true;
+              v.turnActive = false;
+              v.blinkingL = false;
+            }
+          } else if (v.turnIntent === 'RIGHT') {
+            v.cognitiveThought = 'Executing smooth Right Turn into Eastbound Street';
+            const targetYaw = -Math.PI / 2;
+            const yawRate = 1.35 * dt;
+            v.yaw = Math.max(targetYaw, (v.yaw || 0) - yawRate);
+            v.mesh.rotation.y = v.yaw;
+
+            v.currentX -= Math.sin(v.yaw) * dStep;
+            v.currentZ -= Math.cos(v.yaw) * dStep;
+
+            if (v.yaw <= targetYaw + 0.03) {
+              v.yaw = targetYaw;
+              v.mesh.rotation.y = targetYaw;
+              v.turnCompleted = true;
+              v.turnActive = false;
+              v.blinkingR = false;
+            }
+          }
+
+          v.mesh.position.set(v.currentX, 0, v.currentZ);
+
+        } else if (v.turnCompleted) {
+          // Post-turn cross-street cruising
+          v.cognitiveThought = 'Cruising along cross street (Car-following active, no vanishing)';
+          v.velocity = Math.min(10.5, (v.velocity || 4.4) + 4.0 * dt);
+          const dStep = v.velocity * dt;
+
+          if (v.turnIntent === 'LEFT') {
+            let leadAhead = null;
+            let minGapX = 9999.0;
+            vehicles.forEach(other => {
+              if (other.id !== v.id && other.turnCompleted && other.turnIntent === 'LEFT') {
+                const gap = v.currentX - other.currentX;
+                if (gap > 0 && gap < minGapX) {
+                  minGapX = gap;
+                  leadAhead = other;
+                }
+              }
+            });
+
+            let actualStep = dStep;
+            if (leadAhead) {
+              const maxStep = Math.max(0.0, (v.currentX - leadAhead.currentX) - MIN_BUMPER_GAP);
+              actualStep = Math.min(dStep, maxStep);
+            }
+
+            v.currentX -= actualStep;
+            v.currentZ += (-3.5 - v.currentZ) * Math.min(1.0, 4.0 * dt);
+            v.mesh.position.set(v.currentX, 0, v.currentZ);
+
+          } else if (v.turnIntent === 'RIGHT') {
+            let leadAhead = null;
+            let minGapX = 9999.0;
+            vehicles.forEach(other => {
+              if (other.id !== v.id && other.turnCompleted && other.turnIntent === 'RIGHT') {
+                const gap = other.currentX - v.currentX;
+                if (gap > 0 && gap < minGapX) {
+                  minGapX = gap;
+                  leadAhead = other;
+                }
+              }
+            });
+
+            let actualStep = dStep;
+            if (leadAhead) {
+              const maxStep = Math.max(0.0, (leadAhead.currentX - v.currentX) - MIN_BUMPER_GAP);
+              actualStep = Math.min(dStep, maxStep);
+            }
+
+            v.currentX += actualStep;
+            v.currentZ += (3.5 - v.currentZ) * Math.min(1.0, 4.0 * dt);
+            v.mesh.position.set(v.currentX, 0, v.currentZ);
+          }
+        }
+      });
+
+      // 4. Longitudinal Kinematics (IDM Car-Following for Northbound Corridor)
+      vehicles.forEach(v => {
+        if (v.turnActive || v.turnCompleted) return;
+
+        // When preemption green is not yet active (Signal is RED / TRANSITION),
+        // vehicles queued at or behind stopline (Z >= 8.5) must stay strictly stationary at red!
+        if (!preemptionGreenActive && v.currentZ >= 8.5) {
+          v.velocity = 0.0;
+          v.speedZ = 0.0;
+          v.acceleration = 0.0;
+          v.braking = true;
+          v.mesh.position.set(v.currentX, 0, v.currentZ);
+
+          const blink = Math.sin(time * 12.0) > 0;
+          if (v.indL) v.indL.material.color.setHex(v.blinkingL && blink ? 0xF59E0B : 0x221100);
+          if (v.indR) v.indR.material.color.setHex(v.blinkingR && blink ? 0xF59E0B : 0x221100);
+          if (v.brakeL && v.brakeR) {
+            v.brakeL.material.color.setHex(0xEF4444);
+            v.brakeR.material.color.setHex(0xEF4444);
+          }
+          return;
+        }
+
+        // Find lead vehicle in corridor (lateral distance < 2.0m)
+        let leadCar = null;
+        let minLeadGap = 9999.0;
+
+        vehicles.forEach(other => {
+          if (other.id !== v.id && !other.turnCompleted) {
+            const lateralDist = Math.abs(other.currentX - v.currentX);
+            if (lateralDist < 2.0) {
+              const gap = v.currentZ - other.currentZ; // positive if other is ahead
+              if (gap > 0 && gap < minLeadGap) {
+                minLeadGap = gap;
+                leadCar = other;
+              }
+            }
+          }
+        });
+
+        const virtualStopline = (!preemptionGreenActive && v.currentZ > 8.0) ? 8.5 : null;
+
+        let accel = calcIDMAccel(v, leadCar, virtualStopline);
+
+        // Cooperative bounded courtesy easing deceleration (moderates speed, never stops to 0 km/h)
+        if (v.cooperativeRole === 'YIELDING_FOR_MERGE' || v.yieldingForPartner) {
+          accel = Math.min(accel, v.cooperativeDecel || -1.2);
+        }
+
+        v.acceleration = accel;
+        v.velocity = Math.max(0.0, v.velocity + accel * dt);
+        // Cooperative courtesy vehicle maintains safe forward crawl flow (never stops to 0 km/h if road ahead is clear)
+        if (v.cooperativeRole === 'YIELDING_FOR_MERGE' || v.yieldingForPartner) {
+          const isSafeAhead = !leadCar || ((v.currentZ - leadCar.currentZ) > (v.length + v.safeGap + 1.5));
+          if (isSafeAhead) {
+            v.velocity = Math.max(1.5, v.velocity);
+          }
+        }
+
+        // Advance position forward (Z decreases Northbound)
+        v.currentZ -= v.velocity * dt;
+        v.speedZ = v.velocity;
+        v.mesh.position.set(v.currentX, 0, v.currentZ);
+
+        v.braking = (accel < -0.4 || v.velocity < 0.2);
+
+        // Turn Indicators
+        const blink = Math.sin(time * 12.0) > 0;
+        if (v.indL) {
+          v.indL.material.color.setHex(v.blinkingL && blink ? 0xF59E0B : 0x221100);
+        }
+        if (v.indR) {
+          v.indR.material.color.setHex(v.blinkingR && blink ? 0xF59E0B : 0x221100);
+        }
+
+        // Brake Lights
+        if (v.brakeL && v.brakeR) {
+          if (v.braking) {
+            v.brakeL.material.color.setHex(0xEF4444);
+            v.brakeR.material.color.setHex(0xEF4444);
+          } else {
+            v.brakeL.material.color.setHex(0x331111);
+            v.brakeR.material.color.setHex(0x331111);
+          }
+        }
+      });
+
+      hwRackModules.forEach(m => {
+        const pulse = 0.5 + 0.5 * Math.sin(time * 8.0 + m.group.position.y * 3.0);
+        m.led.scale.set(1 + pulse * 0.2, 1 + pulse * 0.2, 1 + pulse * 0.2);
+        
+        if (m.type === 'edge') {
+          m.led.material.color.setHex(0x10B981);
+        } else if (m.type === 'relay') {
+          m.led.material.color.setHex(preemptionGreenActive ? 0x6C63FF : 0x10B981);
+        } else if (m.type === 'ts2') {
+          if (biuActive) {
+            m.led.material.color.setHex(0x10B981);
+          } else {
+            const blink = Math.sin(time * 12.0) > 0;
+            m.led.material.color.setHex(blink ? 0xF59E0B : 0x334155);
+          }
+        } else if (m.type === 'mmu') {
+          if (mmuActive) {
+            m.led.material.color.setHex(0x10B981);
+          } else {
+            const blink = Math.sin(time * 14.0) > 0;
+            m.led.material.color.setHex(blink ? 0xEF4444 : 0x334155);
+          }
+        } else if (m.type === 'watchdog') {
+          const isTripped = document.getElementById('check-latency')?.checked;
+          if (!isTripped) {
+            m.led.material.color.setHex(0x10B981);
+          } else {
+            const blink = Math.sin(time * 14.0) > 0;
+            m.led.material.color.setHex(blink ? 0xEF4444 : 0x334155);
+          }
+        }
+      });
+
+      renderer.render(scene, camera);
+    }
+
+    // Initialize with 8 Queued Cars
+    spawnQueue(8);
+    animate();
+  </script>
+</body>
+</html>

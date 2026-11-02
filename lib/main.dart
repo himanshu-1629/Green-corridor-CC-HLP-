@@ -70,19 +70,19 @@ Future<void> main() async {
               const Text(
                 'Green Corridor Grid Active',
                 style: TextStyle(
-                  fontFamily: 'OpenSauceSans',
+                  fontFamily: 'NeueMontreal',
                   fontSize: 18,
-                  fontWeight: FontWeight.w800,
-                  color: AppColors.deepViolet,
+                  fontWeight: FontWeight.w700,
+                  color: AppColors.nearBlack,
                 ),
               ),
               const SizedBox(height: 8),
               const Text(
                 'Recovering secure interface. Please refresh if needed.',
                 style: TextStyle(
-                  fontFamily: 'PeaceSans',
+                  fontFamily: 'NeueMontreal',
                   fontSize: 13,
-                  color: AppColors.deepVioletMuted,
+                  color: AppColors.nearBlackMuted,
                 ),
               ),
             ],

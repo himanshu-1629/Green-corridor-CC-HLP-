@@ -373,7 +373,7 @@ class _WorkflowStepConsoleState extends State<WorkflowStepConsole>
                     const SizedBox(height: 2),
                     Text(
                       'AI phase override engaged (zero stopping)',
-                      style: GoogleFonts.plusJakartaSans(
+                      style: AppFonts.neueMontreal(
                         fontSize: 9,
                         color: AppColors.navyMuted,
                       ),
@@ -510,7 +510,7 @@ class _WorkflowStepConsoleState extends State<WorkflowStepConsole>
                     const SizedBox(height: 2),
                     Text(
                       'Civilians alerted via Push/GPS: Merged Right',
-                      style: GoogleFonts.plusJakartaSans(
+                      style: AppFonts.neueMontreal(
                         fontSize: 9,
                         color: AppColors.navyMuted,
                       ),

@@ -3,7 +3,6 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
-import 'package:google_fonts/google_fonts.dart';
 import '../services/push_notification_service.dart';
 import '../theme/app_theme.dart';
 
@@ -377,7 +376,7 @@ class _CreateMissionScreenState extends State<CreateMissionScreen> {
               children: [
                 Text(
                   "Dispatch Emergency Mission",
-                  style: GoogleFonts.plusJakartaSans(
+                  style: AppFonts.neueMontreal(
                     fontSize: 16,
                     fontWeight: FontWeight.w800,
                     color: AppColors.slate900,
@@ -386,7 +385,7 @@ class _CreateMissionScreenState extends State<CreateMissionScreen> {
                 ),
                 Text(
                   "Configure Route, Fleet Unit & Driver Clearance",
-                  style: GoogleFonts.plusJakartaSans(
+                  style: AppFonts.neueMontreal(
                     fontSize: 11,
                     fontWeight: FontWeight.w600,
                     color: AppColors.slate500,

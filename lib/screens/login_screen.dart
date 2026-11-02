@@ -1,9 +1,9 @@
-import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../services/push_notification_service.dart';
 import '../theme/app_theme.dart';
+import '../widgets/tactile_button.dart';
 import 'citizen_screen.dart';
 import 'driver_dashboard.dart';
 import 'forgot_password_screen.dart';
@@ -165,39 +165,41 @@ class _LoginScreenState extends State<LoginScreen> {
     final isDesktop = screenWidth >= 980;
 
     return Scaffold(
-      backgroundColor: AppColors.cream,
+      backgroundColor: Colors.white, // Global Pure White Canvas #FFFFFF
       body: Stack(
         children: [
-          // Ambient branded light gradients (Navy & Sky Blue over Pale Cream)
+          // Ambient Warm Peach & Soft Ivory halo behind left branding
           Positioned(
-            top: -120,
-            left: -100,
+            top: -100,
+            left: -80,
             child: Container(
-              width: 500,
-              height: 500,
+              width: 580,
+              height: 580,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
                 gradient: RadialGradient(
                   colors: [
-                    AppColors.sky.withValues(alpha: 0.28),
-                    AppColors.cream.withValues(alpha: 0.0),
+                    AppColors.warmPeach.withValues(alpha: 0.22),
+                    AppColors.softIvory.withValues(alpha: 0.35),
+                    Colors.white.withValues(alpha: 0.0),
                   ],
+                  stops: const [0.0, 0.45, 1.0],
                 ),
               ),
             ),
           ),
           Positioned(
-            bottom: -150,
-            right: -100,
+            bottom: -120,
+            right: -80,
             child: Container(
-              width: 600,
-              height: 600,
+              width: 520,
+              height: 520,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
                 gradient: RadialGradient(
                   colors: [
-                    AppColors.navy.withValues(alpha: 0.12),
-                    AppColors.cream.withValues(alpha: 0.0),
+                    AppColors.mutedBerry.withValues(alpha: 0.10),
+                    Colors.white.withValues(alpha: 0.0),
                   ],
                 ),
               ),
@@ -253,16 +255,16 @@ class _LoginScreenState extends State<LoginScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // Brand Mark with 3D Medallion
+        // Brand Mark with Skeuomorphic Medallion
         Row(
           children: [
             Container(
               padding: const EdgeInsets.all(12),
-              decoration: AppDecorations.iconMedallion(size: 52),
+              decoration: AppDecorations.iconMedallion(size: 48, isDark: true),
               child: const Icon(
                 Icons.emergency_share_rounded,
-                color: AppColors.sky,
-                size: 26,
+                color: AppColors.warmPeach,
+                size: 24,
               ),
             ),
             const SizedBox(width: 14),
@@ -275,7 +277,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     fontFamily: AppTypography.fontHeading,
                     fontSize: 20,
                     fontWeight: FontWeight.w900,
-                    color: AppColors.navy,
+                    color: AppColors.deepViolet,
                     letterSpacing: 0.4,
                   ),
                 ),
@@ -285,7 +287,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     fontFamily: AppTypography.fontBody,
                     fontSize: 11,
                     fontWeight: FontWeight.w700,
-                    color: AppColors.navyLight,
+                    color: AppColors.mutedBerry,
                     letterSpacing: 1.2,
                   ),
                 ),
@@ -302,7 +304,7 @@ class _LoginScreenState extends State<LoginScreen> {
             fontFamily: AppTypography.fontHeading,
             fontSize: 34,
             fontWeight: FontWeight.w900,
-            color: AppColors.navy,
+            color: AppColors.deepViolet,
             height: 1.18,
             letterSpacing: -0.6,
           ),
@@ -315,7 +317,7 @@ class _LoginScreenState extends State<LoginScreen> {
           style: TextStyle(
             fontFamily: AppTypography.fontBody,
             fontSize: 15,
-            color: AppColors.navyMuted,
+            color: AppColors.deepViolet.withValues(alpha: 0.82),
             height: 1.6,
           ),
         ),
@@ -350,29 +352,17 @@ class _LoginScreenState extends State<LoginScreen> {
   }) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-      decoration: BoxDecoration(
-        color: AppColors.creamLight,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppColors.sky.withValues(alpha: 0.45), width: 1.2),
-        boxShadow: [
-          BoxShadow(
-            color: AppColors.navy.withValues(alpha: 0.04),
-            blurRadius: 12,
-            offset: const Offset(0, 4),
-          ),
-        ],
+      decoration: AppDecorations.skeuomorphicRaised(
+        isDarkSurface: false,
+        radius: 16,
       ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Container(
             padding: const EdgeInsets.all(8),
-            decoration: BoxDecoration(
-              color: AppColors.navy,
-              borderRadius: BorderRadius.circular(10),
-              border: Border.all(color: AppColors.sky, width: 1.0),
-            ),
-            child: Icon(icon, color: AppColors.sky, size: 20),
+            decoration: AppDecorations.iconMedallion(size: 38, isDark: true),
+            child: Icon(icon, color: AppColors.warmPeach, size: 20),
           ),
           const SizedBox(width: 14),
           Expanded(
@@ -385,7 +375,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     fontFamily: AppTypography.fontHeading,
                     fontSize: 14,
                     fontWeight: FontWeight.w700,
-                    color: AppColors.navy,
+                    color: AppColors.deepViolet,
                   ),
                 ),
                 const SizedBox(height: 3),
@@ -394,7 +384,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   style: TextStyle(
                     fontFamily: AppTypography.fontBody,
                     fontSize: 12,
-                    color: AppColors.navyMuted,
+                    color: AppColors.deepViolet.withValues(alpha: 0.72),
                     height: 1.4,
                   ),
                 ),
@@ -411,10 +401,10 @@ class _LoginScreenState extends State<LoginScreen> {
       children: [
         Container(
           padding: const EdgeInsets.all(14),
-          decoration: AppDecorations.iconMedallion(size: 64),
+          decoration: AppDecorations.iconMedallion(size: 64, isDark: true),
           child: const Icon(
             Icons.emergency_share_rounded,
-            color: AppColors.sky,
+            color: AppColors.warmPeach,
             size: 32,
           ),
         ),
@@ -425,7 +415,7 @@ class _LoginScreenState extends State<LoginScreen> {
             fontFamily: AppTypography.fontHeading,
             fontSize: 24,
             fontWeight: FontWeight.w900,
-            color: AppColors.navy,
+            color: AppColors.deepViolet,
             letterSpacing: 0.3,
           ),
         ),
@@ -435,7 +425,7 @@ class _LoginScreenState extends State<LoginScreen> {
           style: TextStyle(
             fontFamily: AppTypography.fontBody,
             fontSize: 12,
-            color: AppColors.navyLight,
+            color: AppColors.mutedBerry,
             fontWeight: FontWeight.w700,
             letterSpacing: 1.1,
           ),
@@ -445,341 +435,258 @@ class _LoginScreenState extends State<LoginScreen> {
   }
 
   Widget _buildFormCard(BuildContext context) {
-    return ClipRRect(
-      borderRadius: BorderRadius.circular(28),
-      child: BackdropFilter(
-        filter: ImageFilter.blur(sigmaX: 16, sigmaY: 16),
-        child: Container(
-          padding: const EdgeInsets.all(36),
-          decoration: BoxDecoration(
-            color: AppColors.cream.withValues(alpha: 0.88),
-            borderRadius: BorderRadius.circular(28),
-            border: Border.all(color: AppColors.sky, width: 1.8),
-            boxShadow: [
-              BoxShadow(
-                color: AppColors.navy.withValues(alpha: 0.12),
-                blurRadius: 32,
-                offset: const Offset(0, 14),
-              ),
-              BoxShadow(
-                color: AppColors.creamLight.withValues(alpha: 0.8),
-                blurRadius: 10,
-                offset: const Offset(-2, -2),
-              ),
-            ],
+    return Container(
+      padding: const EdgeInsets.all(36),
+      decoration: AppDecorations.skeuomorphicRaised(
+        isDarkSurface: false,
+        radius: 28,
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          const Text(
+            'Sign In to Console',
+            style: TextStyle(
+              fontFamily: AppTypography.fontHeading,
+              fontSize: 24,
+              fontWeight: FontWeight.w900,
+              color: AppColors.deepViolet,
+              letterSpacing: -0.3,
+            ),
           ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              const Text(
-                'Sign In to Console',
-                style: TextStyle(
-                  fontFamily: AppTypography.fontHeading,
-                  fontSize: 24,
-                  fontWeight: FontWeight.w900,
-                  color: AppColors.navy,
-                  letterSpacing: -0.3,
-                ),
+          const SizedBox(height: 8),
+          Text(
+            'Enter authorized operational credentials to access your facility or dispatch interface.',
+            style: TextStyle(
+              fontFamily: AppTypography.fontBody,
+              fontSize: 13,
+              color: AppColors.deepViolet.withValues(alpha: 0.75),
+              height: 1.45,
+            ),
+          ),
+          const SizedBox(height: 28),
+
+          // Email Input with skeuomorphic inset feel
+          Text(
+            'WORK EMAIL ADDRESS',
+            style: TextStyle(
+              fontFamily: AppTypography.fontBody,
+              fontSize: 11,
+              fontWeight: FontWeight.w700,
+              color: AppColors.deepViolet,
+              letterSpacing: 0.8,
+            ),
+          ),
+          const SizedBox(height: 6),
+          TextField(
+            controller: emailController,
+            keyboardType: TextInputType.emailAddress,
+            textInputAction: TextInputAction.next,
+            style: const TextStyle(
+              fontFamily: AppTypography.fontBody,
+              fontSize: 14,
+              fontWeight: FontWeight.w600,
+              color: AppColors.deepViolet,
+            ),
+            decoration: InputDecoration(
+              filled: true,
+              fillColor: const Color(0xFFFAF7F0),
+              hintText: "admin@hospital.org",
+              hintStyle: TextStyle(
+                fontFamily: AppTypography.fontBody,
+                color: AppColors.deepViolet.withValues(alpha: 0.45),
+                fontSize: 13,
               ),
-              const SizedBox(height: 8),
-              Text(
-                'Enter authorized operational credentials to access your facility or dispatch interface.',
+              prefixIcon: const Icon(
+                Icons.alternate_email_rounded,
+                color: AppColors.mutedBerry,
+                size: 20,
+              ),
+              contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+              enabledBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(14),
+                borderSide: BorderSide(color: AppColors.warmPeach.withValues(alpha: 0.6), width: 1.2),
+              ),
+              focusedBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(14),
+                borderSide: const BorderSide(color: AppColors.deepViolet, width: 2.0),
+              ),
+            ),
+          ),
+          const SizedBox(height: 20),
+
+          // Password Input
+          Text(
+            'PASSWORD',
+            style: TextStyle(
+              fontFamily: AppTypography.fontBody,
+              fontSize: 11,
+              fontWeight: FontWeight.w700,
+              color: AppColors.deepViolet,
+              letterSpacing: 0.8,
+            ),
+          ),
+          const SizedBox(height: 6),
+          TextField(
+            controller: passwordController,
+            obscureText: obscurePassword,
+            textInputAction: TextInputAction.done,
+            onSubmitted: (_) => loginUser(),
+            style: const TextStyle(
+              fontFamily: AppTypography.fontBody,
+              fontSize: 14,
+              fontWeight: FontWeight.w600,
+              color: AppColors.deepViolet,
+            ),
+            decoration: InputDecoration(
+              filled: true,
+              fillColor: const Color(0xFFFAF7F0),
+              hintText: "••••••••••••",
+              hintStyle: TextStyle(
+                fontFamily: AppTypography.fontBody,
+                color: AppColors.deepViolet.withValues(alpha: 0.45),
+                fontSize: 13,
+              ),
+              prefixIcon: const Icon(
+                Icons.lock_outline_rounded,
+                color: AppColors.mutedBerry,
+                size: 20,
+              ),
+              suffixIcon: IconButton(
+                icon: Icon(
+                  obscurePassword
+                      ? Icons.visibility_outlined
+                      : Icons.visibility_off_outlined,
+                  color: AppColors.mutedBerry,
+                  size: 20,
+                ),
+                onPressed: () {
+                  setState(() {
+                    obscurePassword = !obscurePassword;
+                  });
+                },
+              ),
+              contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+              enabledBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(14),
+                borderSide: BorderSide(color: AppColors.warmPeach.withValues(alpha: 0.6), width: 1.2),
+              ),
+              focusedBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(14),
+                borderSide: const BorderSide(color: AppColors.deepViolet, width: 2.0),
+              ),
+            ),
+          ),
+          const SizedBox(height: 10),
+
+          // Forgot Password Link
+          Align(
+            alignment: Alignment.centerRight,
+            child: TextButton(
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => const ForgotPasswordScreen()),
+                );
+              },
+              style: TextButton.styleFrom(
+                padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 4),
+                foregroundColor: AppColors.deepViolet,
+              ),
+              child: const Text(
+                "Forgot password?",
                 style: TextStyle(
                   fontFamily: AppTypography.fontBody,
                   fontSize: 13,
-                  color: AppColors.navyMuted,
-                  height: 1.45,
+                  fontWeight: FontWeight.w700,
+                  color: AppColors.deepViolet,
                 ),
               ),
-              const SizedBox(height: 28),
+            ),
+          ),
+          const SizedBox(height: 20),
 
-              // Email Input with 3D border
+          // Tactile Primary Button
+          TactileButton(
+            text: "Access Operations Console",
+            icon: Icons.arrow_forward_rounded,
+            variant: TactileButtonVariant.primary,
+            isLoading: isLoading,
+            height: 52,
+            onPressed: isLoading ? null : loginUser,
+          ),
+          const SizedBox(height: 24),
+
+          // Divider
+          Row(
+            children: [
+              Expanded(child: Divider(color: AppColors.warmPeach.withValues(alpha: 0.6))),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 14),
+                child: Text(
+                  "Public Commuter Navigation",
+                  style: TextStyle(
+                    fontFamily: AppTypography.fontBody,
+                    color: AppColors.deepViolet.withValues(alpha: 0.6),
+                    fontSize: 11,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ),
+              Expanded(child: Divider(color: AppColors.warmPeach.withValues(alpha: 0.6))),
+            ],
+          ),
+          const SizedBox(height: 18),
+
+          // Direct Citizen Radar Button (Tactile Secondary)
+          TactileButton(
+            text: "Open Live Citizen Radar",
+            icon: Icons.radar_rounded,
+            variant: TactileButtonVariant.secondary,
+            height: 48,
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const CitizenScreen()),
+              );
+            },
+          ),
+          const SizedBox(height: 22),
+
+          // Register Link
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
               Text(
-                'WORK EMAIL ADDRESS',
+                "Need hospital facility onboarding? ",
                 style: TextStyle(
                   fontFamily: AppTypography.fontBody,
-                  fontSize: 11,
-                  fontWeight: FontWeight.w700,
-                  color: AppColors.navy,
-                  letterSpacing: 0.8,
+                  fontSize: 13,
+                  color: AppColors.deepViolet.withValues(alpha: 0.75),
                 ),
               ),
-              const SizedBox(height: 6),
-              TextField(
-                controller: emailController,
-                keyboardType: TextInputType.emailAddress,
-                textInputAction: TextInputAction.next,
-                style: const TextStyle(
-                  fontFamily: AppTypography.fontBody,
-                  fontSize: 14,
-                  fontWeight: FontWeight.w600,
-                  color: AppColors.navy,
-                ),
-                decoration: InputDecoration(
-                  filled: true,
-                  fillColor: AppColors.creamLight,
-                  hintText: "admin@hospital.org",
-                  hintStyle: TextStyle(
-                    fontFamily: AppTypography.fontBody,
-                    color: AppColors.navyMuted.withValues(alpha: 0.6),
-                    fontSize: 13,
-                  ),
-                  prefixIcon: const Icon(
-                    Icons.alternate_email_rounded,
-                    color: AppColors.navyLight,
-                    size: 20,
-                  ),
-                  contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-                  enabledBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(14),
-                    borderSide: BorderSide(color: AppColors.sky.withValues(alpha: 0.6), width: 1.4),
-                  ),
-                  focusedBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(14),
-                    borderSide: const BorderSide(color: AppColors.navy, width: 2.0),
-                  ),
-                ),
-              ),
-              const SizedBox(height: 20),
-
-              // Password Input
-              Text(
-                'PASSWORD',
-                style: TextStyle(
-                  fontFamily: AppTypography.fontBody,
-                  fontSize: 11,
-                  fontWeight: FontWeight.w700,
-                  color: AppColors.navy,
-                  letterSpacing: 0.8,
-                ),
-              ),
-              const SizedBox(height: 6),
-              TextField(
-                controller: passwordController,
-                obscureText: obscurePassword,
-                textInputAction: TextInputAction.done,
-                onSubmitted: (_) => loginUser(),
-                style: const TextStyle(
-                  fontFamily: AppTypography.fontBody,
-                  fontSize: 14,
-                  fontWeight: FontWeight.w600,
-                  color: AppColors.navy,
-                ),
-                decoration: InputDecoration(
-                  filled: true,
-                  fillColor: AppColors.creamLight,
-                  hintText: "••••••••••••",
-                  hintStyle: TextStyle(
-                    fontFamily: AppTypography.fontBody,
-                    color: AppColors.navyMuted.withValues(alpha: 0.6),
-                    fontSize: 13,
-                  ),
-                  prefixIcon: const Icon(
-                    Icons.lock_outline_rounded,
-                    color: AppColors.navyLight,
-                    size: 20,
-                  ),
-                  suffixIcon: IconButton(
-                    icon: Icon(
-                      obscurePassword
-                          ? Icons.visibility_outlined
-                          : Icons.visibility_off_outlined,
-                      color: AppColors.navyLight,
-                      size: 20,
-                    ),
-                    onPressed: () {
-                      setState(() {
-                        obscurePassword = !obscurePassword;
-                      });
-                    },
-                  ),
-                  contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-                  enabledBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(14),
-                    borderSide: BorderSide(color: AppColors.sky.withValues(alpha: 0.6), width: 1.4),
-                  ),
-                  focusedBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(14),
-                    borderSide: const BorderSide(color: AppColors.navy, width: 2.0),
-                  ),
-                ),
-              ),
-              const SizedBox(height: 10),
-
-              // Forgot Password Link
-              Align(
-                alignment: Alignment.centerRight,
-                child: TextButton(
-                  onPressed: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (_) => const ForgotPasswordScreen()),
-                    );
-                  },
-                  style: TextButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 4),
-                    foregroundColor: AppColors.navy,
-                  ),
-                  child: const Text(
-                    "Forgot password?",
-                    style: TextStyle(
-                      fontFamily: AppTypography.fontBody,
-                      fontSize: 13,
-                      fontWeight: FontWeight.w700,
-                      color: AppColors.navy,
-                    ),
-                  ),
-                ),
-              ),
-              const SizedBox(height: 20),
-
-              // 3D Sculpted Primary Button
-              Container(
-                height: 54,
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(16),
-                  boxShadow: [
-                    BoxShadow(
-                      color: AppColors.navy.withValues(alpha: 0.35),
-                      blurRadius: 18,
-                      offset: const Offset(0, 8),
-                    ),
-                  ],
-                ),
-                child: ElevatedButton(
-                  onPressed: isLoading ? null : loginUser,
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: AppColors.navy,
-                    foregroundColor: AppColors.cream,
-                    elevation: 0,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(16),
-                      side: const BorderSide(color: AppColors.sky, width: 1.5),
-                    ),
-                  ),
-                  child: isLoading
-                      ? const SizedBox(
-                          width: 22,
-                          height: 22,
-                          child: CircularProgressIndicator(
-                            strokeWidth: 2.5,
-                            valueColor: AlwaysStoppedAnimation<Color>(AppColors.sky),
-                          ),
-                        )
-                      : const Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Text(
-                              "Access Operations Console",
-                              style: TextStyle(
-                                fontFamily: AppTypography.fontHeading,
-                                color: AppColors.cream,
-                                fontSize: 15,
-                                fontWeight: FontWeight.w800,
-                                letterSpacing: 0.3,
-                              ),
-                            ),
-                            SizedBox(width: 8),
-                            Icon(Icons.arrow_forward_rounded, color: AppColors.sky, size: 18),
-                          ],
-                        ),
-                ),
-              ),
-              const SizedBox(height: 24),
-
-              // Divider
-              Row(
-                children: [
-                  Expanded(child: Divider(color: AppColors.sky.withValues(alpha: 0.5))),
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 14),
-                    child: Text(
-                      "Public Commuter Navigation",
-                      style: TextStyle(
-                        fontFamily: AppTypography.fontBody,
-                        color: AppColors.navyMuted,
-                        fontSize: 11,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                  ),
-                  Expanded(child: Divider(color: AppColors.sky.withValues(alpha: 0.5))),
-                ],
-              ),
-              const SizedBox(height: 18),
-
-              // Direct Citizen Radar Button (No Login Needed)
-              OutlinedButton(
-                onPressed: () {
+              InkWell(
+                onTap: () {
                   Navigator.push(
                     context,
-                    MaterialPageRoute(builder: (_) => const CitizenScreen()),
+                    MaterialPageRoute(builder: (_) => const RegisterScreen()),
                   );
                 },
-                style: OutlinedButton.styleFrom(
-                  foregroundColor: AppColors.navy,
-                  backgroundColor: AppColors.creamLight,
-                  side: const BorderSide(color: AppColors.sky, width: 1.5),
-                  padding: const EdgeInsets.symmetric(vertical: 14),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(14),
+                child: const Text(
+                  "Register Facility",
+                  style: TextStyle(
+                    fontFamily: AppTypography.fontBody,
+                    fontSize: 13,
+                    fontWeight: FontWeight.w800,
+                    color: AppColors.deepViolet,
+                    decoration: TextDecoration.underline,
+                    decorationColor: AppColors.deepViolet,
                   ),
                 ),
-                child: const Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Icon(Icons.radar_rounded, color: AppColors.navy, size: 18),
-                    SizedBox(width: 8),
-                    Text(
-                      "Open Live Citizen Radar",
-                      style: TextStyle(
-                        fontFamily: AppTypography.fontHeading,
-                        fontSize: 14,
-                        fontWeight: FontWeight.w800,
-                        color: AppColors.navy,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 22),
-
-              // Register Link
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Text(
-                    "Need hospital facility onboarding? ",
-                    style: TextStyle(
-                      fontFamily: AppTypography.fontBody,
-                      fontSize: 13,
-                      color: AppColors.navyMuted,
-                    ),
-                  ),
-                  InkWell(
-                    onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(builder: (_) => const RegisterScreen()),
-                      );
-                    },
-                    child: const Text(
-                      "Register Facility",
-                      style: TextStyle(
-                        fontFamily: AppTypography.fontBody,
-                        fontSize: 13,
-                        fontWeight: FontWeight.w800,
-                        color: AppColors.navy,
-                        decoration: TextDecoration.underline,
-                        decorationColor: AppColors.navy,
-                      ),
-                    ),
-                  ),
-                ],
               ),
             ],
           ),
-        ),
+        ],
       ),
     );
   }

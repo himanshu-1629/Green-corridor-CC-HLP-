@@ -58,25 +58,16 @@ class DesignTuningController extends ChangeNotifier {
   // ==========================================
   // 5. COLOR PALETTE PRESETS
   // ==========================================
-  // Violet Dusk palette — always active
-  // "Velvet Botanical" = #502D55 deepViolet | #935073 mutedBerry | #F6DBC0 warmPeach | #F8F4E9 softIvory
-  String activePalettePreset = "Velvet Botanical"; // locked to Violet Dusk
+  // Neue Montreal Brand Palette — Orange, Brown, Near-black, Grey, White
+  String activePalettePreset = "Neue Montreal";
 
-  Color get currentNavy => activePalettePreset == "Velvet Botanical"
-      ? const Color(0xFF502D55)
-      : AppColors.navy;
+  Color get currentNavy => AppColors.nearBlack;
 
-  Color get currentSecondary => activePalettePreset == "Velvet Botanical"
-      ? const Color(0xFF935073)
-      : AppColors.sky;
+  Color get currentSecondary => AppColors.brown;
 
-  Color get currentCream => activePalettePreset == "Velvet Botanical"
-      ? const Color(0xFFF8F4E9)
-      : AppColors.cream;
+  Color get currentCream => AppColors.white;
 
-  Color get currentAccentWarm => activePalettePreset == "Velvet Botanical"
-      ? const Color(0xFFF6DBC0)
-      : AppColors.skyLight;
+  Color get currentAccentWarm => AppColors.orange;
 
   // Setters with notifyListeners()
   void updateGlass({

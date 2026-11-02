@@ -1,6 +1,5 @@
 import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 import '../theme/app_theme.dart';
 import '../theme/design_tuning_controller.dart';
 
@@ -185,7 +184,7 @@ class _GlassButtonState extends State<GlassButton>
                           if (widget.label != null)
                             Text(
                               widget.label!,
-                              style: GoogleFonts.plusJakartaSans(
+                              style: AppFonts.neueMontreal(
                                 color: textColor,
                                 fontSize: widget.fontSize,
                                 fontWeight: widget.fontWeight,

@@ -1,0 +1,116 @@
+================================================================================
+CC-HLP IEEEtran LATEX ALIGNMENT & OVERLEAF-READY PROJECT REPAIR SUMMARY
+================================================================================
+Manuscript: Chance-Constrained Human-in-the-Loop Emergency Vehicle Preemption:
+            Integrating Mobile Participatory Alerts with Stochastic Queue Discharge Dynamics
+Author:     Himanshu Singh
+Format:     IEEEtran Journal, 10pt, Two-Column (Standard Overleaf pdfLaTeX compatible)
+Date:       October 2026
+
+--------------------------------------------------------------------------------
+1. SUMMARY OF DELIVERABLES
+--------------------------------------------------------------------------------
+- main.tex: Complete compile-ready LaTeX manuscript source.
+- bare_conf.tex: Synchronized working copy.
+- four_controller_ablation_results.png: Embedded Figure 3 ablation chart asset.
+- IEEEtran.cls: Official IEEEtran class file for self-contained compilation.
+- overleaf_upload.zip: Clean Overleaf import bundle containing main.tex, 
+  four_controller_ablation_results.png, IEEEtran.cls, and references.bib.
+- main.pdf: Complete 14-page compiled PDF document.
+- renders/page_01.png through page_14.png: 150 DPI full-page visual audit renders.
+- layout_changes.txt: This change log and verification record.
+
+--------------------------------------------------------------------------------
+2. DETAILED LAYOUT DEFECTS REMEDIATED
+--------------------------------------------------------------------------------
+A. Figure 1 (Page 5) — Responsive Bounded Cyber-Physical Architecture Diagram:
+   - Root Cause: Previous tabular layout exceeded the text width, pushing the rightmost
+     "In-Cabin Civilian Advisory" node past the page margin into the right edge.
+   - Solution: Rebuilt using a bounded, native TikZ diagram (0.96\textwidth span) with
+     three top nodes (Emergency Vehicle Telematics, Cloud Telematics Dispatch, In-Cabin
+     Civilian Advisory) and two centered bottom nodes (Roadside Edge Controller, Traffic
+     Signal Cabinet).
+   - Margin & Arrow Safety: Wrapped arrow labels across two lines with fill=white
+     backgrounds (e.g., C-V2X / Cellular API, FCM Push Alert, Preemption Telematics
+     \tau_latency <= 800ms, Relay / SDLC Bus) to prevent any border overlap.
+   - Result: Perfectly centered within margins, zero clipping or margin overflow.
+
+B. Table II (Page 10) — Performance Table Split:
+   - Root Cause: A single 9-column wide table overflowed \textwidth, truncating paired
+     differences, t-statistics, and Wilcoxon signed-rank p-values.
+   - Solution: Split into two readable, full-width (table*) environments:
+     * Table II (tab:ablation_results): Core performance metrics across the four
+       controllers (Fixed-Distance, Obrusnik Baseline, Reactive Observer, CC-HLP Ours).
+     * Table III (tab:ablation_stats): Paired difference metrics, parametric t-tests,
+       and Wilcoxon signed-rank test values.
+   - Cross-References: Updated all text citations throughout the paper to reference
+     both Table II and Table III correctly.
+   - Result: Readable font size (\small), zero clipped columns, all metrics visible.
+
+C. Tables IV & V (Page 10) — Sensitivity Sweeps Column Widths & Stacking:
+   - Root Cause: Long row descriptions (e.g., \varepsilon = 0.01 (Ultra-Conservative))
+     forced columns outside \columnwidth, causing table overflow into adjacent text.
+   - Solution:
+     * Table IV (tab:epsilon_sweep): Set \scriptsize, controlled \tabcolsep to 1.8pt,
+       compacted headers (Risk Tol., Delay, Green, Decel., Stops), and stacked row
+       labels vertically using \shortstack (e.g., \shortstack[l]{$\varepsilon = 0.01$\\ (Ultra-Cons.)}).
+     * Table V (tab:penetration_sweep): Set \scriptsize, controlled \tabcolsep to 2.5pt,
+       explicit column width p{2.8cm}ccc, compact row labels.
+   - Result: Both tables fit completely inside their respective \columnwidth (241 pt)
+     with zero overfull \hbox warnings.
+
+D. Two-Level State-Machine Equation (Page 6):
+   - Root Cause: Set \mathcal{S}_{phase} exceeded single column width when rendered on one line.
+   - Solution: Wrapped across 3 indented lines inside an \begin{aligned} block within
+     an \begin{equation} environment, preserving all six phase states and a single
+     equation number (8).
+
+E. Long Equations & Proof Inequalities (Pages 1 & 8):
+   - Decision Horizon Lookahead Equation (Page 1, Eq. 1): Split d_decision across two
+     aligned lines inside \begin{aligned} within \begin{equation}.
+   - Monotonic Spatial Separation Equation \Delta x_i(N) (Page 8, Eq. 20): Wrapped
+     v_{EV}(T_{transition} + t_L) and N(v_{EV} h_s - l_{veh}) into aligned lines in
+     \begin{align}, preserving one equation number (20).
+
+F. Figure 2 (Page 6) — Hardware-in-the-Loop Diagram:
+   - Root Cause: Fixed minipage widths could overflow column width on standard IEEE margins.
+   - Solution: Bounded to 0.95\linewidth outer minipage with 0.88\linewidth inner boxes
+     and relative vertical spacings. All arrows and labels fit cleanly within the column.
+
+G. Long URLs & Code Paths in Methods Section (Pages 8-9):
+   - Root Cause: Unbreakable paths in monospace caused overfull lines in narrow columns.
+   - Solution: Formatted all source repository paths and script names with \path{...}
+     and \url{...} to enable hyphenless breakability at slashes and underscores.
+
+H. Text and DOI Compile Blockers:
+   - Fixed unescaped prose ampersands to '\&' on lines 98, 565, 566, 615, 621, 696.
+   - Fixed unescaped underscore in text-mode DOI string 'STHF0203\_1' in reference [37].
+   - Fixed small 0.8pt overfull in prose at line 132 by adding discretionary hyphen
+     'co\-operative'.
+
+--------------------------------------------------------------------------------
+3. COMPILER & VISUAL VERIFICATION AUDIT
+--------------------------------------------------------------------------------
+- LaTeX Engine: Compatible with pdfLaTeX (TeX Live 2024 / Overleaf Default).
+- Fatal Errors: 0
+- Content Overfull \hbox: 0 (All horizontal overfulls completely eliminated)
+- Unresolved References: 0 (All \ref, \eqref, and \cite resolve cleanly)
+- Figure Assets: 100% resolved (four_controller_ablation_results.png embedded)
+- Total Pages: 14 pages (natural IEEE two-column flow, balanced references on page 14).
+- Visual Inspection: Inspected all 14 rendered pages at 150 DPI:
+  * Page 1: Abstract and Index Terms contained in column 1; Section I starts with drop cap.
+  * Page 5: Table I and Figure 1 centered within text width without margin clipping.
+  * Page 6: Figure 2 and Eq. (8) fit neatly inside column 1.
+  * Page 8: Proposition 1 proof equations wrapped with zero overflow.
+  * Page 10: Table II (4 controllers), Table III (statistics), Table IV, and Table V fit.
+  * Page 11: Figure 3 4-panel charts crisp and centered.
+  * Page 13-14: All 51 citations properly formatted and balanced.
+
+--------------------------------------------------------------------------------
+4. SCIENTIFIC INTEGRITY NOTE
+--------------------------------------------------------------------------------
+No scientific claims, numerical values, equations, degrees of freedom, t-statistics,
+p-values, Wilcoxon signed-rank statistics, citation keys, or bibliography texts were
+altered during this layout repair pass. All changes strictly pertained to typesetting,
+visual alignment, responsive bounding, line breaking, and LaTeX syntax conformity.
+================================================================================
