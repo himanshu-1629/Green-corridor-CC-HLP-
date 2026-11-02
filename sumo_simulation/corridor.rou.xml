@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<routes xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://sumo.dlr.de/xsd/routes_file.xsd">
+    <!-- Vehicle Types -->
+    <!-- Civilian Car: Intelligent Driver Model (IDM) & LC2013 Lane-Changing Model -->
+    <vType id="civilian" length="4.8" minGap="2.5" maxSpeed="16.67" accel="2.2" decel="4.0" emergencyDecel="6.5"
+           carFollowModel="IDM" tau="1.2"
+           laneChangeModel="LC2013" lcStrategic="1.0" lcCooperative="0.8" lcSpeedGain="0.5" lcKeepRight="0.0"
+           color="0.2,0.6,0.9"/>
+
+    <!-- Emergency Vehicle (Ambulance): High-Priority Preemption Profile -->
+    <vType id="ambulance" length="6.5" minGap="2.5" maxSpeed="27.78" accel="3.2" decel="4.5" emergencyDecel="7.0"
+           vClass="emergency" guiShape="emergency" carFollowModel="IDM" tau="0.8"
+           color="0.9,0.1,0.1"/>
+
+    <!-- Routes -->
+    <route id="route_main" edges="edge_west_in edge_east_out"/>
+    <route id="route_cross" edges="edge_south_in edge_north_out"/>
+
+    <!-- Civilian Vehicles queued on Main Corridor (Lane 0 = Corridor, Lane 1 = Adjacent) -->
+    <!-- Lane 0 Queue: Standing at the red light near the stopline (x=0) -->
+    <vehicle id="civ_L0_1" type="civilian" route="route_main" depart="0.0" departLane="0" departPos="470.0" departSpeed="0.0"/>
+    <vehicle id="civ_L0_2" type="civilian" route="route_main" depart="0.0" departLane="0" departPos="455.0" departSpeed="0.0"/>
+    <vehicle id="civ_L0_3" type="civilian" route="route_main" depart="0.0" departLane="0" departPos="440.0" departSpeed="0.0"/>
+    <vehicle id="civ_L0_4" type="civilian" route="route_main" depart="0.0" departLane="0" departPos="425.0" departSpeed="0.0"/>
+    <vehicle id="civ_L0_5" type="civilian" route="route_main" depart="0.0" departLane="0" departPos="410.0" departSpeed="0.0"/>
+    <vehicle id="civ_L0_6" type="civilian" route="route_main" depart="0.0" departLane="0" departPos="395.0" departSpeed="0.0"/>
+
+    <!-- Lane 1 (Adjacent Lane): Moving traffic -->
+    <vehicle id="civ_L1_1" type="civilian" route="route_main" depart="0.0" departLane="1" departPos="430.0" departSpeed="8.0"/>
+    <vehicle id="civ_L1_2" type="civilian" route="route_main" depart="0.0" departLane="1" departPos="380.0" departSpeed="9.0"/>
+    <vehicle id="civ_L1_3" type="civilian" route="route_main" depart="0.0" departLane="1" departPos="330.0" departSpeed="10.0"/>
+
+    <!-- Cross Street Traffic -->
+    <vehicle id="cross_1" type="civilian" route="route_cross" depart="0.0" departLane="0" departPos="260.0" departSpeed="12.0"/>
+    <vehicle id="cross_2" type="civilian" route="route_cross" depart="2.0" departLane="0" departPos="220.0" departSpeed="12.0"/>
+
+    <!-- Emergency Ambulance: Enters mainline from West approach at t=5.0s -->
+    <vehicle id="ambulance_01" type="ambulance" route="route_main" depart="5.0" departLane="0" departPos="50.0" departSpeed="22.22"/>
+</routes>

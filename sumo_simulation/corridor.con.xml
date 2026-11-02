@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<connections xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://sumo.dlr.de/xsd/connections_file.xsd">
+    <!-- Main Arterial Through Connections -->
+    <connection from="edge_west_in" to="edge_east_out" fromLane="0" toLane="0" tl="node_center" linkIndex="0"/>
+    <connection from="edge_west_in" to="edge_east_out" fromLane="1" toLane="1" tl="node_center" linkIndex="1"/>
+    
+    <!-- Cross Street Through Connection -->
+    <connection from="edge_south_in" to="edge_north_out" fromLane="0" toLane="0" tl="node_center" linkIndex="2"/>
+</connections>

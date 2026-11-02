@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<net version="1.16" junctionCornerDetail="5" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://sumo.dlr.de/xsd/net_file.xsd">
+    <location netOffset="500.00,300.00" convBoundary="0.00,0.00,1000.00,600.00" origBoundary="-500.00,-300.00,500.00,300.00" projParameter="!"/>
+
+    <!-- Edge Definitions -->
+    <edge id="edge_west_in" from="node_west" to="node_center" priority="7">
+        <lane id="edge_west_in_0" index="0" speed="20.00" length="500.00" shape="0.00,296.80 500.00,296.80"/>
+        <lane id="edge_west_in_1" index="1" speed="20.00" length="500.00" shape="0.00,300.00 500.00,300.00"/>
+    </edge>
+    <edge id="edge_east_out" from="node_center" to="node_east" priority="7">
+        <lane id="edge_east_out_0" index="0" speed="20.00" length="500.00" shape="500.00,296.80 1000.00,296.80"/>
+        <lane id="edge_east_out_1" index="1" speed="20.00" length="500.00" shape="500.00,300.00 1000.00,300.00"/>
+    </edge>
+    <edge id="edge_south_in" from="node_south" to="node_center" priority="5">
+        <lane id="edge_south_in_0" index="0" speed="13.89" length="300.00" shape="500.00,0.00 500.00,300.00"/>
+    </edge>
+    <edge id="edge_north_out" from="node_center" to="node_north" priority="5">
+        <lane id="edge_north_out_0" index="0" speed="13.89" length="300.00" shape="500.00,300.00 500.00,600.00"/>
+    </edge>
+
+    <!-- Signalized Intersection Junction -->
+    <junction id="node_west" type="priority" x="0.00" y="300.00" incLanes="" intLanes="" shape="0.00,301.60 0.00,295.20"/>
+    <junction id="node_east" type="priority" x="1000.00" y="300.00" incLanes="edge_east_out_0 edge_east_out_1" intLanes="" shape="1000.00,295.20 1000.00,301.60"/>
+    <junction id="node_south" type="priority" x="500.00" y="0.00" incLanes="" intLanes="" shape="501.60,0.00 498.40,0.00"/>
+    <junction id="node_north" type="priority" x="500.00" y="600.00" incLanes="edge_north_out_0" intLanes="" shape="498.40,600.00 501.60,600.00"/>
+    <junction id="node_center" type="traffic_light" x="500.00" y="300.00" incLanes="edge_west_in_0 edge_west_in_1 edge_south_in_0" intLanes="" shape="498.40,301.60 501.60,301.60 501.60,295.20 498.40,295.20"/>
+
+    <!-- Traffic Light Logic (NEMA 3-State Program: 0=Main Red / Cross Green, 1=Yellow, 2=Main Green) -->
+    <tlLogic id="node_center" type="static" programID="0" offset="0">
+        <!-- Phase 0: Normal Operation - Cross Street Green, Main Red (Signals: rrG) -->
+        <phase duration="35" state="rrG"/>
+        <!-- Phase 1: Clearance Yellow (Signals: rry) -->
+        <phase duration="4" state="rry"/>
+        <!-- Phase 2: All-Red Interlock (Signals: rrr) -->
+        <phase duration="2" state="rrr"/>
+        <!-- Phase 3: Preempt Corridor Green - Main Green, Cross Red (Signals: GGr) -->
+        <phase duration="45" state="GGr"/>
+    </tlLogic>
+
+    <!-- Connections -->
+    <connection from="edge_west_in" to="edge_east_out" fromLane="0" toLane="0" tl="node_center" linkIndex="0" dir="s" state="o"/>
+    <connection from="edge_west_in" to="edge_east_out" fromLane="1" toLane="1" tl="node_center" linkIndex="1" dir="s" state="o"/>
+    <connection from="edge_south_in" to="edge_north_out" fromLane="0" toLane="0" tl="node_center" linkIndex="2" dir="s" state="o"/>
+</net>

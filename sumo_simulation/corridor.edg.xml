@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<edges xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://sumo.dlr.de/xsd/edges_file.xsd">
+    <!-- Main Arterial Corridor: 2 Lanes West to East -->
+    <edge id="edge_west_in" from="node_west" to="node_center" priority="7" numLanes="2" speed="20.0"/>
+    <edge id="edge_east_out" from="node_center" to="node_east" priority="7" numLanes="2" speed="20.0"/>
+    
+    <!-- Cross Street: 1 Lane South to North -->
+    <edge id="edge_south_in" from="node_south" to="node_center" priority="5" numLanes="1" speed="13.89"/>
+    <edge id="edge_north_out" from="node_center" to="node_north" priority="5" numLanes="1" speed="13.89"/>
+</edges>
