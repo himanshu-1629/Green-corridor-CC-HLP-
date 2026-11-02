@@ -381,7 +381,7 @@
 
     <!-- Executive Abstract -->
     <div class="abstract-box">
-      <strong>Executive Summary:</strong> Emergency medical and organ transfer vehicles face severe transit delays in Indian metropolitan corridors due to queued traffic at red lights. Traditional GPS preemption either actuates too late or induces extensive secondary gridlock. This project delivers an integrated cyber-physical solution: (1) <em>JeevanPath</em>, an operational cloud dispatch platform, and (2) <em>CC-HLP</em>, a chance-constrained 3D digital twin executing a patented dual-action queue clearance law with hardware-in-the-loop fail-safe interlocks.
+      <strong>Executive Summary:</strong> Emergency medical and organ transfer vehicles face severe transit delays in Indian metropolitan corridors due to queued traffic at red lights. Traditional GPS preemption either actuates too late or induces extensive secondary gridlock. This project delivers an integrated cyber-physical solution: (1) <em>JeevanPath</em>, an operational cloud dispatch platform, and (2) <em>CC-HLP</em>, a chance-constrained 3D digital twin backed by <strong>Eclipse SUMO TraCI microscopic simulation</strong>, executing a patented dual-action queue clearance law with hardware-in-the-loop fail-safe interlocks.
     </div>
 
     <!-- Demonstrations Section -->
@@ -452,7 +452,7 @@
         </div>
 
         <div class="stack-row">
-          <strong>Stack:</strong> Three.js, WebGL Physics, Poisson-Binomial FFT, NEMA TS2 Standard
+          <strong>Stack:</strong> Three.js WebGL, Eclipse SUMO / TraCI, Poisson-Binomial FFT, NEMA TS2
         </div>
       </div>
 
@@ -461,8 +461,8 @@
     <!-- Audited Benchmark Table -->
     <div class="table-section">
       <div class="section-title">
-        Empirical Performance Benchmark (50-Seed Audited Monte Carlo Evaluation)
-        <span>Corridor Length: 3.2 km • 5 Signalized Junctions • EV Cruise: 72 km/h</span>
+        Microscopic Trajectory Benchmark (Eclipse SUMO TraCI • 50-Seed Monte Carlo)
+        <span>Corridor: 3.2 km • 5 Signalized Junctions • IDM Car-Following (100ms dt)</span>
       </div>
 
       <table class="benchmark-table">
@@ -571,7 +571,7 @@
     <!-- Footer -->
     <div class="footer">
       <div>
-        <strong>Source Code:</strong> <a href="https://github.com/himanshu-1629/green-corridor" target="_blank">github.com/himanshu-1629/green-corridor</a> • <strong>Android APK:</strong> Hosted on platform portal
+        <strong>Source Code:</strong> <a href="https://github.com/himanshu-1629/green-corridor" target="_blank">github.com/himanshu-1629/green-corridor</a> • <strong>SUMO Benchmark:</strong> <code>/sumo_simulation</code> • <strong>Android APK:</strong> On Portal
       </div>
       <div>
         Vellore Institute of Technology • Chennai Campus
