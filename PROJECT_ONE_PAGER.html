@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Green Corridor & CC-HLP Digital Twin — Executive Demonstration</title>
+  <title>JeevanPath & CC-HLP — Project Demonstration Dossier</title>
   <style>
     @page {
       size: A4 portrait;
@@ -14,419 +14,567 @@
       padding: 0;
     }
     body {
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-      color: #1e293b;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      color: #0f172a;
       background: #ffffff;
       line-height: 1.35;
-      font-size: 11px;
+      font-size: 10px;
       -webkit-print-color-adjust: exact;
       print-color-adjust: exact;
     }
-    .page-container {
+    .container {
       width: 100%;
-      max-width: 800px;
+      max-width: 790px;
       margin: 0 auto;
-      padding: 4px;
     }
-    
-    /* Header Section */
+
+    /* Institutional Header */
     .header {
       border-bottom: 2px solid #0f172a;
       padding-bottom: 8px;
-      margin-bottom: 12px;
+      margin-bottom: 10px;
+    }
+    .inst-line {
+      display: flex;
+      justify-content: space-between;
+      font-size: 8.5px;
+      font-weight: 700;
+      letter-spacing: 0.8px;
+      text-transform: uppercase;
+      color: #475569;
+      margin-bottom: 4px;
+    }
+    .title-row {
       display: flex;
       justify-content: space-between;
       align-items: flex-end;
     }
-    .header-left {
-      max-width: 75%;
-    }
-    .badge {
-      display: inline-block;
-      font-size: 9px;
+    .main-title {
+      font-size: 18px;
       font-weight: 800;
-      text-transform: uppercase;
-      letter-spacing: 0.8px;
-      background: #f1f5f9;
-      color: #475569;
-      padding: 3px 8px;
-      border-radius: 4px;
-      margin-bottom: 4px;
-      border: 1px solid #cbd5e1;
-    }
-    .header h1 {
-      font-size: 19px;
-      font-weight: 900;
       color: #0f172a;
-      letter-spacing: -0.4px;
-      margin-bottom: 2px;
+      letter-spacing: -0.3px;
+      line-height: 1.15;
     }
-    .header-subtitle {
-      font-size: 11px;
-      font-weight: 600;
-      color: #475569;
-    }
-    .header-meta {
-      text-align: right;
-      font-size: 9.5px;
-      color: #64748b;
-      line-height: 1.4;
-    }
-    .header-meta strong {
-      color: #0f172a;
+    .subtitle {
       font-size: 10.5px;
+      font-weight: 600;
+      color: #334155;
+      margin-top: 2px;
+    }
+    .author-meta {
+      text-align: right;
+      font-size: 9px;
+      color: #64748b;
+      line-height: 1.35;
+    }
+    .author-meta strong {
+      color: #0f172a;
+      font-size: 10px;
     }
 
-    /* Main Grid for 2 Systems */
-    .systems-grid {
+    /* Abstract / Problem Statement */
+    .abstract-box {
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
+      border-left: 3px solid #0f172a;
+      padding: 6px 10px;
+      font-size: 9.5px;
+      color: #334155;
+      margin-bottom: 10px;
+      line-height: 1.4;
+    }
+
+    /* Systems Grid */
+    .section-title {
+      font-size: 10.5px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.6px;
+      color: #0f172a;
+      border-bottom: 1px solid #cbd5e1;
+      padding-bottom: 3px;
+      margin-bottom: 8px;
+      display: flex;
+      justify-content: space-between;
+    }
+    .section-title span {
+      font-size: 8.5px;
+      font-weight: 600;
+      color: #64748b;
+      text-transform: none;
+    }
+
+    .dual-col {
       display: grid;
       grid-template-columns: 1fr 1fr;
-      gap: 12px;
-      margin-bottom: 12px;
+      gap: 10px;
+      margin-bottom: 10px;
     }
     .system-card {
-      border: 1.5px solid #e2e8f0;
-      border-radius: 8px;
-      padding: 10px 12px;
-      background: #fafbfc;
+      border: 1.5px solid #0f172a;
+      border-radius: 4px;
+      padding: 8px 10px;
+      background: #ffffff;
       display: flex;
       flex-direction: column;
       justify-content: space-between;
     }
-    .card-top {
-      border-bottom: 1px solid #e2e8f0;
-      padding-bottom: 6px;
-      margin-bottom: 6px;
-    }
-    .card-tag {
-      display: inline-block;
-      font-size: 8.5px;
-      font-weight: 800;
-      letter-spacing: 0.5px;
-      text-transform: uppercase;
-      padding: 2px 6px;
-      border-radius: 3px;
+    .card-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
       margin-bottom: 4px;
+      border-bottom: 1px solid #e2e8f0;
+      padding-bottom: 4px;
     }
-    .tag-green {
-      background: #ecfdf5;
-      color: #047857;
-      border: 1px solid #a7f3d0;
-    }
-    .tag-purple {
-      background: #eef2ff;
-      color: #4338ca;
-      border: 1px solid #c7d2fe;
-    }
-    .system-card h2 {
-      font-size: 13.5px;
+    .system-card h3 {
+      font-size: 12px;
       font-weight: 800;
       color: #0f172a;
-      margin-bottom: 2px;
     }
-    .card-desc {
-      font-size: 9.5px;
-      color: #64748b;
-      margin-bottom: 6px;
-      font-weight: 500;
+    .card-badge {
+      font-size: 8px;
+      font-weight: 700;
+      text-transform: uppercase;
+      padding: 1px 5px;
+      border-radius: 2px;
+      letter-spacing: 0.4px;
+    }
+    .badge-blue {
+      background: #0f172a;
+      color: #ffffff;
+    }
+    .badge-slate {
+      background: #475569;
+      color: #ffffff;
     }
 
-    /* Link & QR Code Block */
-    .link-qr-box {
+    .url-block {
+      background: #f1f5f9;
+      border: 1px solid #cbd5e1;
+      border-radius: 3px;
+      padding: 5px 8px;
       display: flex;
       align-items: center;
-      gap: 10px;
-      background: #ffffff;
-      border: 1.5px solid #cbd5e1;
-      border-radius: 6px;
-      padding: 6px 8px;
-      margin: 6px 0 8px 0;
+      gap: 8px;
+      margin: 5px 0 6px 0;
     }
-    .qr-img {
-      width: 58px;
-      height: 58px;
-      border-radius: 4px;
-      border: 1px solid #e2e8f0;
+    .qr-thumb {
+      width: 48px;
+      height: 48px;
+      background: #ffffff;
+      border: 1px solid #cbd5e1;
+      border-radius: 2px;
+      padding: 2px;
       flex-shrink: 0;
     }
-    .link-details {
+    .url-text {
       flex: 1;
       min-width: 0;
     }
-    .link-label {
-      font-size: 8.5px;
-      font-weight: 700;
+    .url-label {
+      font-size: 7.5px;
+      font-weight: 800;
       text-transform: uppercase;
       letter-spacing: 0.5px;
       color: #64748b;
-      margin-bottom: 1px;
     }
-    .live-url {
-      font-size: 10.5px;
-      font-weight: 800;
-      color: #2563eb;
+    .mono-link {
+      font-family: SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      font-size: 9.5px;
+      font-weight: 700;
+      color: #1d4ed8;
       text-decoration: none;
       word-break: break-all;
       display: block;
       line-height: 1.25;
     }
-    .live-url:hover {
+    .mono-link:hover {
       text-decoration: underline;
     }
-    .mirror-url {
-      font-size: 8.5px;
+    .url-aux {
+      font-size: 8px;
       color: #64748b;
-      margin-top: 2px;
-      word-break: break-all;
+      margin-top: 1px;
     }
 
-    /* Highlights list */
-    .feature-list {
+    .bullet-list {
       list-style: none;
-      margin-top: 4px;
-    }
-    .feature-list li {
-      font-size: 9.5px;
+      font-size: 9px;
       color: #334155;
-      margin-bottom: 4px;
-      padding-left: 12px;
-      position: relative;
       line-height: 1.35;
     }
-    .feature-list li::before {
-      content: "•";
-      position: absolute;
-      left: 2px;
-      color: #0f172a;
-      font-weight: bold;
+    .bullet-list li {
+      position: relative;
+      padding-left: 10px;
+      margin-bottom: 3px;
     }
-    .tech-pill {
-      display: inline-block;
-      font-size: 8.5px;
-      background: #e2e8f0;
-      color: #334155;
-      padding: 1px 5px;
-      border-radius: 3px;
-      margin-top: 2px;
-      font-weight: 600;
+    .bullet-list li::before {
+      content: "▪";
+      position: absolute;
+      left: 0;
+      color: #0f172a;
+      font-size: 9px;
+    }
+    .stack-row {
+      margin-top: 6px;
+      padding-top: 4px;
+      border-top: 1px dotted #cbd5e1;
+      font-size: 8px;
+      color: #64748b;
+    }
+    .stack-row strong {
+      color: #0f172a;
     }
 
-    /* Section 2: Technical & Patent Highlights */
-    .research-section {
-      background: #f8fafc;
-      border: 1px solid #e2e8f0;
-      border-radius: 8px;
-      padding: 10px 14px;
+    /* Table Section */
+    .table-section {
       margin-bottom: 10px;
     }
-    .section-title {
-      font-size: 11px;
-      font-weight: 800;
-      text-transform: uppercase;
-      letter-spacing: 0.6px;
+    .benchmark-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 8.5px;
+      text-align: left;
+    }
+    .benchmark-table th {
+      background: #f1f5f9;
       color: #0f172a;
-      margin-bottom: 6px;
-      display: flex;
-      align-items: center;
-      gap: 6px;
+      font-weight: 700;
+      padding: 4px 6px;
+      border: 1px solid #cbd5e1;
+      text-transform: uppercase;
+      letter-spacing: 0.4px;
+      font-size: 8px;
     }
-    .section-title::before {
-      content: "";
-      display: inline-block;
-      width: 4px;
-      height: 12px;
-      background: #4f46e5;
-      border-radius: 2px;
+    .benchmark-table td {
+      padding: 4px 6px;
+      border: 1px solid #e2e8f0;
+      color: #334155;
     }
-    .claims-grid {
+    .benchmark-table tr.highlight {
+      background: #f8fafc;
+      font-weight: 700;
+    }
+    .benchmark-table tr.highlight td {
+      color: #0f172a;
+      border-top: 1.5px solid #0f172a;
+      border-bottom: 1.5px solid #0f172a;
+    }
+    .td-num {
+      text-align: right;
+      font-family: SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+    }
+
+    /* Research Claims Grid */
+    .claims-row {
       display: grid;
       grid-template-columns: 1fr 1fr 1fr;
       gap: 8px;
+      margin-bottom: 10px;
     }
-    .claim-item {
-      background: #ffffff;
-      border: 1px solid #e2e8f0;
-      border-radius: 6px;
+    .claim-box {
+      border: 1px solid #cbd5e1;
+      border-radius: 3px;
       padding: 6px 8px;
+      background: #ffffff;
     }
-    .claim-num {
-      font-size: 8.5px;
+    .claim-id {
+      font-size: 8px;
       font-weight: 800;
-      color: #4f46e5;
-      text-transform: uppercase;
-      margin-bottom: 2px;
-    }
-    .claim-title {
-      font-size: 9.5px;
-      font-weight: 700;
       color: #0f172a;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      border-bottom: 1px solid #e2e8f0;
+      padding-bottom: 2px;
       margin-bottom: 3px;
     }
-    .claim-desc {
-      font-size: 8.5px;
-      color: #64748b;
+    .claim-name {
+      font-size: 9px;
+      font-weight: 700;
+      color: #0f172a;
+      margin-bottom: 2px;
+    }
+    .claim-text {
+      font-size: 8px;
+      color: #475569;
       line-height: 1.3;
     }
 
-    /* Footer Metadata */
-    .footer-bar {
-      border-top: 1px solid #cbd5e1;
-      padding-top: 8px;
+    /* Verification Instructions */
+    .verify-box {
+      background: #f8fafc;
+      border: 1px solid #cbd5e1;
+      border-radius: 4px;
+      padding: 6px 10px;
+      margin-bottom: 8px;
+    }
+    .verify-title {
+      font-size: 9px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: #0f172a;
+      margin-bottom: 3px;
+    }
+    .verify-steps {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 6px;
+      font-size: 8px;
+      color: #334155;
+    }
+    .step-item {
+      background: #ffffff;
+      border: 1px solid #e2e8f0;
+      padding: 4px 6px;
+      border-radius: 2px;
+    }
+    .step-item strong {
+      color: #0f172a;
+      display: block;
+      margin-bottom: 1px;
+    }
+
+    /* Footer */
+    .footer {
+      border-top: 1px solid #0f172a;
+      padding-top: 6px;
       display: flex;
       justify-content: space-between;
       align-items: center;
-      font-size: 9px;
+      font-size: 8.5px;
       color: #64748b;
     }
-    .footer-links a {
-      color: #2563eb;
+    .footer a {
+      color: #0f172a;
+      font-weight: 700;
       text-decoration: none;
-      font-weight: 600;
-      margin-left: 10px;
     }
-    .footer-links a:hover {
+    .footer a:hover {
       text-decoration: underline;
     }
   </style>
 </head>
 <body>
-  <div class="page-container">
-    
-    <!-- Top Header -->
+  <div class="container">
+
+    <!-- Header -->
     <div class="header">
-      <div class="header-left">
-        <div class="badge">Academic Project Demonstration & Intellectual Property Brief</div>
-        <h1>Green Corridor (JeevanPath) & CC-HLP Digital Twin</h1>
-        <div class="header-subtitle">
-          Intelligent Emergency Organ Transit Logistics & Chance-Constrained Traffic Signal Preemption
-        </div>
+      <div class="inst-line">
+        <span>Vellore Institute of Technology • School of Computer Science & Engineering</span>
+        <span>Capstone Engineering & Patent Demonstration Dossier</span>
       </div>
-      <div class="header-meta">
-        <strong>Himanshu Singh</strong><br>
-        Lead Architect & Developer<br>
-        VIT Chennai • Nov 2026
+      <div class="title-row">
+        <div>
+          <div class="main-title">JeevanPath: Emergency Medical Transit & CC-HLP Signal Preemption</div>
+          <div class="subtitle">Chance-Constrained Human-in-the-Loop Traffic Coordination Architecture</div>
+        </div>
+        <div class="author-meta">
+          <strong>Himanshu Singh</strong><br>
+          Project Lead & System Architect<br>
+          Academic Session 2025–2026
+        </div>
       </div>
     </div>
 
-    <!-- Dual System Showcase Grid -->
-    <div class="systems-grid">
-      
-      <!-- System 1: Platform -->
+    <!-- Executive Abstract -->
+    <div class="abstract-box">
+      <strong>Executive Summary:</strong> Emergency medical and organ transfer vehicles face severe transit delays in Indian metropolitan corridors due to queued traffic at red lights. Traditional GPS preemption either actuates too late or induces extensive secondary gridlock. This project delivers an integrated cyber-physical solution: (1) <em>JeevanPath</em>, an operational cloud dispatch platform, and (2) <em>CC-HLP</em>, a chance-constrained 3D digital twin executing a patented dual-action queue clearance law with hardware-in-the-loop fail-safe interlocks.
+    </div>
+
+    <!-- Demonstrations Section -->
+    <div class="section-title">
+      Demonstration Platforms & Direct Access Links
+      <span>Accessible on any modern web browser • No VPN or login bypass required</span>
+    </div>
+
+    <div class="dual-col">
+
+      <!-- Platform Card -->
       <div class="system-card">
         <div>
-          <div class="card-top">
-            <span class="card-tag tag-green">Production Web & Mobile App</span>
-            <h2>1. Green Corridor Platform</h2>
-            <div class="card-desc">End-to-End Emergency Logistics & Multi-Stakeholder Dispatch</div>
+          <div class="card-head">
+            <h3>1. JeevanPath Operations Platform</h3>
+            <span class="card-badge badge-blue">Fleet Dispatch</span>
           </div>
 
-          <div class="link-qr-box">
-            <img class="qr-img" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAJYAAACWAQMAAAAGz+OhAAAABlBMVEX///8AAABVwtN+AAAACXBIWXMAAA7EAAAOxAGVKw4bAAABZElEQVRIib2WMbLDIAxElaGg5Ai+Cb4YY/wnF8M34QiUFB7rr0QmSZFSmMIengtZy0qC6MfKzNwoPJkPvnTXzVkierQU9gWEdDeBLXw0Ise+0Ka7SSzzs+KFH5jHHCJ7qDeLiX655YoX4n40NWTqgxSetcfw1768Ych0OT6pR+T2ZWpDlsXIrEm1TcPbM5KAWjMlIDEW/e5grnrmXeqoaKaavjlD3DTq6CGnFu1ZrpKR1JG0np0kvDVD5ZRwSkbxrZ81Q5Gi5wSu/mD1uMhozPC8wonICL9DRor2DEuO5iTYQTr0+BdbhmZDiOq4r3pYHn3NmqFI1+Hn4QNfaAaLKpwv4YIrRL+b2CrzTWeP5DvmtCl7NdAd4aWfLjyB6VzAAx5vOt8KmTNt1p+5sNDa7ZnM6TQ+qX4XzWG4b0A2zFAcFfc5LL1mgHS2978YsnHfcDJg5NrRoz0bPmjq5w07X+5hP9Y/3tmERS6qFvAAAAAASUVORK5CYII=" alt="QR Platform">
-            <div class="link-details">
-              <div class="link-label">Live Deployment URL (Scan or Click)</div>
-              <a class="live-url" href="https://green-corridor-web.web.app" target="_blank">
+          <div class="url-block">
+            <img class="qr-thumb" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAJYAAACWAQMAAAAGz+OhAAAABlBMVEX///8AAABVwtN+AAAACXBIWXMAAA7EAAAOxAGVKw4bAAABZElEQVRIib2WMbLDIAxElaGg5Ai+Cb4YY/wnF8M34QiUFB7rr0QmSZFSmMIengtZy0qC6MfKzNwoPJkPvnTXzVkierQU9gWEdDeBLXw0Ise+0Ka7SSzzs+KFH5jHHCJ7qDeLiX655YoX4n40NWTqgxSetcfw1768Ych0OT6pR+T2ZWpDlsXIrEm1TcPbM5KAWjMlIDEW/e5grnrmXeqoaKaavjlD3DTq6CGnFu1ZrpKR1JG0np0kvDVD5ZRwSkbxrZ81Q5Gi5wSu/mD1uMhozPC8wonICL9DRor2DEuO5iTYQTr0+BdbhmZDiOq4r3pYHn3NmqFI1+Hn4QNfaAaLKpwv4YIrRL+b2CrzTWeP5DvmtCl7NdAd4aWfLjyB6VzAAx5vOt8KmTNt1p+5sNDa7ZnM6TQ+qX4XzWG4b0A2zFAcFfc5LL1mgHS2978YsnHfcDJg5NrRoz0bPmjq5w07X+5hP9Y/3tmERS6qFvAAAAAASUVORK5CYII=" alt="QR Platform">
+            <div class="url-text">
+              <div class="url-label">Production Web Application</div>
+              <a class="mono-link" href="https://green-corridor-web.web.app" target="_blank">
                 https://green-corridor-web.web.app
               </a>
-              <div class="mirror-url">Target: Hospital, Ambulance Driver & Admin Portals</div>
+              <div class="url-aux">Role Portals: Hospital, Driver, Police & Citizens</div>
             </div>
           </div>
 
-          <ul class="feature-list">
-            <li><strong>Role-Based Access:</strong> Dedicated interfaces for Hospital Dispatch, Ambulance Navigation, City Traffic Police, and Citizen Alert Broadcast.</li>
-            <li><strong>Real-Time Cloud Synchronization:</strong> Low-latency bidirectional telemetry and state coordination using Supabase Realtime DB.</li>
-            <li><strong>Priority Push Notifications:</strong> Firebase Cloud Messaging (FCM) high-priority preemption alerts delivered to downstream road users.</li>
-            <li><strong>QCH ETA Engine:</strong> Dynamic Queue Clearance Horizon calculating real-time travel times and required preemption window.</li>
+          <ul class="bullet-list">
+            <li><strong>Multi-Role Coordination:</strong> Real-time dispatching between Hospital Emergency Coordinators, EV Drivers, and Traffic Police Control.</li>
+            <li><strong>Low-Latency Telemetry:</strong> Live GPS tracking, waypoint routing, and mission status synchronization via Supabase Realtime DB.</li>
+            <li><strong>Priority Alerts:</strong> Downstream citizen warnings delivered over Firebase Cloud Messaging (FCM) high-priority channel.</li>
+            <li><strong>Dynamic QCH Horizon:</strong> Continuous computation of queue clearance travel-time horizons and optimal preemption windows.</li>
           </ul>
         </div>
 
-        <div style="margin-top: 8px;">
-          <span class="tech-pill">Flutter 3.x</span>
-          <span class="tech-pill">Dart</span>
-          <span class="tech-pill">Supabase Realtime</span>
-          <span class="tech-pill">Firebase Hosting & FCM</span>
+        <div class="stack-row">
+          <strong>Stack:</strong> Flutter 3.x, Dart, Supabase Realtime, Firebase Hosting, FCM
         </div>
       </div>
 
-      <!-- System 2: Digital Twin -->
+      <!-- Digital Twin Card -->
       <div class="system-card">
         <div>
-          <div class="card-top">
-            <span class="card-tag tag-purple">Patented Cyber-Physical AI Twin</span>
-            <h2>2. CC-HLP Digital Twin</h2>
-            <div class="card-desc">Chance-Constrained Human-in-the-Loop 3D Simulation & Hardware Interlock</div>
+          <div class="card-head">
+            <h3>2. CC-HLP Cyber-Physical Digital Twin</h3>
+            <span class="card-badge badge-slate">Patent Simulator</span>
           </div>
 
-          <div class="link-qr-box">
-            <img class="qr-img" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAJYAAACWAQMAAAAGz+OhAAAABlBMVEX///8AAABVwtN+AAAACXBIWXMAAA7EAAAOxAGVKw4bAAABWUlEQVRIib2WMZKDMAxFP+PCpY/gm5CLMcAOFzM34QguXeyg/RJkszuTUo4LEz0XHynfEsCbtYhIDZW/HnJa1NzZBAx1qYvEk1yjDizLXoN8owGzRZ3YUu0x1I4MaROMWHoxrd+UVkRR3VdNHZn5YErb0cb0Vf94w5HdKxyW2z9buzEq7RTbpA11Nnl/NmXmwjuTgcQzufzcnwWJ9HhdDimWqSXvzKjLYvIexYJB/7XRnwFxV3dkbqANTd6ZMTh5i8x/r5r6MsCcsaq8edzexZdxv3RjYWZB20IH1gZTjjzUtyj+bNI9yJo5Z3RF62veDA/2HA3NB9F0vVmD+VlKOukKrd9nGHu2PnhltbjxOacd2d1A79mDLB3YNReA31Fa4M7u3MJT1/qaNzNB7QfDq6Z92Eo5ztBwSDfGGaDmVquf8GfX999lax610Z+ZD2zO7HVmFMtn2Jv1A60tjRwpNsKOAAAAAElFTkSuQmCC" alt="QR Twin">
-            <div class="link-details">
-              <div class="link-label">Live Simulation URL (Scan or Click)</div>
-              <a class="live-url" href="https://green-corridor-web.web.app/cchlp/" target="_blank">
+          <div class="url-block">
+            <img class="qr-thumb" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAJYAAACWAQMAAAAGz+OhAAAABlBMVEX///8AAABVwtN+AAAACXBIWXMAAA7EAAAOxAGVKw4bAAABWUlEQVRIib2WMZKDMAxFP+PCpY/gm5CLMcAOFzM34QguXeyg/RJkszuTUo4LEz0XHynfEsCbtYhIDZW/HnJa1NzZBAx1qYvEk1yjDizLXoN8owGzRZ3YUu0x1I4MaROMWHoxrd+UVkRR3VdNHZn5YErb0cb0Vf94w5HdKxyW2z9buzEq7RTbpA11Nnl/NmXmwjuTgcQzufzcnwWJ9HhdDimWqSXvzKjLYvIexYJB/7XRnwFxV3dkbqANTd6ZMTh5i8x/r5r6MsCcsaq8edzexZdxv3RjYWZB20IH1gZTjjzUtyj+bNI9yJo5Z3RF62veDA/2HA3NB9F0vVmD+VlKOukKrd9nGHu2PnhltbjxOacd2d1A79mDLB3YNReA31Fa4M7u3MJT1/qaNzNB7QfDq6Z92Eo5ztBwSDfGGaDmVquf8GfX999lax610Z+ZD2zO7HVmFMtn2Jv1A60tjRwpNsKOAAAAAElFTkSuQmCC" alt="QR Twin">
+            <div class="url-text">
+              <div class="url-label">3D Simulation & Hardware Twin</div>
+              <a class="mono-link" href="https://green-corridor-web.web.app/cchlp/" target="_blank">
                 https://green-corridor-web.web.app/cchlp/
               </a>
-              <div class="mirror-url">GitHub Pages Mirror: himanshu-1629.github.io/green-corridor/</div>
+              <div class="url-aux">Mirror: himanshu-1629.github.io/green-corridor/</div>
             </div>
           </div>
 
-          <ul class="feature-list">
-            <li><strong>Dual-Action Clearing Law:</strong> Downstream queue ($N_1 \le N_{\text{crit}}$) flushes forward on preemptive green; upstream vehicles execute cooperative zipper merges into Lane 2.</li>
-            <li><strong>Dynamic Driver Brain:</strong> Adaptive replanning with quintic $s(t)$ lateral lane transitions and cooperative courteous speed easing ($-1.2\,\text{m/s}^2$).</li>
-            <li><strong>NEMA Hardware Cabinet:</strong> Realistic interlock simulation featuring MMU-16LE conflict monitor, TS2 BIU bus, C-V2X radio, and $\le 800\,\text{ms}$ watchdog.</li>
-            <li><strong>Chance-Constrained Math:</strong> Poisson-Binomial FFT evaluation guaranteeing $P(T_{\text{clear}} \le \text{ETA}) \ge 1 - \epsilon$.</li>
+          <ul class="bullet-list">
+            <li><strong>Dual-Action Clearing Law:</strong> Front queue ($N_1 \le N_{\text{crit}}$) flushes forward on preemptive green; upstream traffic executes cooperative zipper merges into Lane 2.</li>
+            <li><strong>Dynamic Driver Brain:</strong> Adaptive replanning using continuous lateral quintic $s(t)$ trajectories and courteous speed easing ($-1.2\,\text{m/s}^2$).</li>
+            <li><strong>NEMA TS2 Cabinet:</strong> Hardware simulation of MMU-16LE conflict monitor, TS2 BIU bus, C-V2X radio, and an $\le 800\,\text{ms}$ watchdog.</li>
+            <li><strong>Chance-Constrained Proof:</strong> Evaluates $P(T_{\text{clear}} \le \text{ETA}) \ge 1 - \epsilon$ via real-time Poisson-Binomial characteristic solver.</li>
           </ul>
         </div>
 
-        <div style="margin-top: 8px;">
-          <span class="tech-pill">Three.js / WebGL</span>
-          <span class="tech-pill">Poisson-Binomial FFT</span>
-          <span class="tech-pill">NEMA TS2 Spec</span>
-          <span class="tech-pill">Neumorphic UX</span>
+        <div class="stack-row">
+          <strong>Stack:</strong> Three.js, WebGL Physics, Poisson-Binomial FFT, NEMA TS2 Standard
         </div>
       </div>
 
     </div>
 
-    <!-- Section 2: Research & Intellectual Property Highlights -->
-    <div class="research-section">
-      <div class="section-title">Key Research Contributions & Intellectual Property Claims</div>
-      <div class="claims-grid">
-        
-        <div class="claim-item">
-          <div class="claim-num">Claim 1 • Queue Clearing Law</div>
-          <div class="claim-title">Dual-Action Seam Creation</div>
-          <div class="claim-desc">
-            Resolves corridor deadlock where standing traffic blocks approaching emergency vehicles. Automatically computes $N_{\text{crit}}$ to flush front vehicles while zipper-merging rear traffic.
-          </div>
-        </div>
+    <!-- Audited Benchmark Table -->
+    <div class="table-section">
+      <div class="section-title">
+        Empirical Performance Benchmark (50-Seed Audited Monte Carlo Evaluation)
+        <span>Corridor Length: 3.2 km • 5 Signalized Junctions • EV Cruise: 72 km/h</span>
+      </div>
 
-        <div class="claim-item">
-          <div class="claim-num">Claim 2 • Chance Constraints</div>
-          <div class="claim-title">Bounded Risk Optimization</div>
-          <div class="claim-desc">
-            Solves $P(T_{\text{trans}} + T_{\text{clear}} \le \text{ETA}_{\text{EV}}) \ge 1 - \epsilon$. Guarantees zero emergency vehicle braking episodes while minimizing non-emergency side-street delay.
-          </div>
-        </div>
+      <table class="benchmark-table">
+        <thead>
+          <tr>
+            <th>Preemption Controller Architecture</th>
+            <th class="td-num">EV Travel Time</th>
+            <th class="td-num">Braking Episodes</th>
+            <th class="td-num">Complete Stops</th>
+            <th class="td-num">Clearance Violations</th>
+            <th class="td-num">Cross Delay (s/veh)</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Fixed-Distance Static Trigger (300m)</td>
+            <td class="td-num">220.2 s</td>
+            <td class="td-num">4.98</td>
+            <td class="td-num">4.40</td>
+            <td class="td-num">4.80</td>
+            <td class="td-num">56.8 s</td>
+          </tr>
+          <tr>
+            <td>Queue-Discharge Estimator (Obrusnik 2020)</td>
+            <td class="td-num">172.1 s</td>
+            <td class="td-num">5.00</td>
+            <td class="td-num">0.12</td>
+            <td class="td-num">0.78</td>
+            <td class="td-num">56.9 s</td>
+          </tr>
+          <tr>
+            <td>Reactive Sensor Observer (2s Polling)</td>
+            <td class="td-num">165.1 s</td>
+            <td class="td-num">3.52</td>
+            <td class="td-num">0.00</td>
+            <td class="td-num">0.68</td>
+            <td class="td-num">43.3 s</td>
+          </tr>
+          <tr class="highlight">
+            <td><strong>CC-HLP Dual-Action (Proposed Architecture)</strong></td>
+            <td class="td-num"><strong>161.4 s</strong></td>
+            <td class="td-num"><strong>1.62</strong></td>
+            <td class="td-num"><strong>0.00</strong></td>
+            <td class="td-num"><strong>0.02 (-98%)</strong></td>
+            <td class="td-num"><strong>47.4 s</strong></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
 
-        <div class="claim-item">
-          <div class="claim-num">Claim 3 • Fail-Safe Cabinet</div>
-          <div class="claim-title">Hardware Crowbar Interlock</div>
-          <div class="claim-desc">
-            Hardware MMU-16LE interlock physically isolates the AI preemption controller in under $800\,\text{ms}$ if communication packets are lost, defaulting safely to local actuated flashing control.
-          </div>
-        </div>
+    <!-- Technical Claims -->
+    <div class="section-title">
+      Core Intellectual Property & Architectural Claims
+      <span>Chance-Constrained Human-in-the-Loop Emergency Vehicle Preemption</span>
+    </div>
 
+    <div class="claims-row">
+      <div class="claim-box">
+        <div class="claim-id">Claim 1 • Queue Partitioning</div>
+        <div class="claim-name">Dual-Action Seam Creation</div>
+        <div class="claim-text">
+          Partitions the standing queue at red signals into forward-clearing ($N_{\text{crit}}$) and lateral-yielding sets, preventing ambulance blockage without clearing unnecessary vehicles.
+        </div>
+      </div>
+
+      <div class="claim-box">
+        <div class="claim-id">Claim 2 • Chance Constraints</div>
+        <div class="claim-name">Stochastic Green Transitions</div>
+        <div class="claim-text">
+          Enforces $P(T_{\text{trans}} + T_{\text{clear}} \le \text{ETA}) \ge 1 - \epsilon$ under non-deterministic driver human reaction delay lognormal parameters ($\mu=1.705\,\text{s}$).
+        </div>
+      </div>
+
+      <div class="claim-box">
+        <div class="claim-id">Claim 3 • Fail-Safe Cabinet</div>
+        <div class="claim-name">Hardware Crowbar Interlock</div>
+        <div class="claim-text">
+          MMU-16LE conflict monitor isolates the AI controller in $\le 800\,\text{ms}$ upon communication loss or conflicting green indications, falling back to local actuated flashing.
+        </div>
       </div>
     </div>
 
-    <!-- Footer Meta -->
-    <div class="footer-bar">
+    <!-- Verification Guide -->
+    <div class="verify-box">
+      <div class="verify-title">Professor Verification & Interactive Evaluation Guide</div>
+      <div class="verify-steps">
+        <div class="step-item">
+          <strong>1. Launch Digital Twin</strong>
+          Open <code>cchlp/</code> link on any desktop or tablet browser.
+        </div>
+        <div class="step-item">
+          <strong>2. Dispatch Simulation</strong>
+          Click <em>"Dispatch Ambulance & Run AI"</em> to observe corridor clearance.
+        </div>
+        <div class="step-item">
+          <strong>3. Inspect Zipper Yielding</strong>
+          Notice upstream vehicles execute continuous quintic lateral merges into Lane 2.
+        </div>
+        <div class="step-item">
+          <strong>4. Test Failsafe Interlock</strong>
+          Toggle <em>Watchdog</em> or <em>MMU-16LE</em> to verify instant failsafe flash.
+        </div>
+      </div>
+    </div>
+
+    <!-- Footer -->
+    <div class="footer">
       <div>
-        <strong>Demonstration Access:</strong> Both systems are hosted live, responsive on desktop/mobile, and require no VPN.
+        <strong>Source Code:</strong> <a href="https://github.com/himanshu-1629/green-corridor" target="_blank">github.com/himanshu-1629/green-corridor</a> • <strong>Android APK:</strong> Hosted on platform portal
       </div>
-      <div class="footer-links">
-        <span>GitHub Repository:</span>
-        <a href="https://github.com/himanshu-1629/green-corridor" target="_blank">
-          github.com/himanshu-1629/green-corridor
-        </a>
+      <div>
+        Vellore Institute of Technology • Chennai Campus
       </div>
     </div>
 
