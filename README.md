@@ -1,15 +1,20 @@
 # Green Corridor 🚑⚡
-### Intelligent Emergency Organ Transit & Hyper-Localized Citizen Clearance Infrastructure
+### Intelligent Emergency Organ Transit & Chance-Constrained Signal Preemption (CC-HLP)
 
 [![Flutter](https://img.shields.io/badge/Flutter-3.x-02569B?logo=flutter)](https://flutter.dev)
 [![Dart](https://img.shields.io/badge/Dart-3.x-0175C2?logo=dart)](https://dart.dev)
 [![Supabase](https://img.shields.io/badge/Supabase-Realtime_DB-3ECF8E?logo=supabase)](https://supabase.com)
 [![Firebase](https://img.shields.io/badge/Firebase-Hosting_%26_FCM-FFCA28?logo=firebase)](https://firebase.google.com)
+[![CC-HLP Digital Twin](https://img.shields.io/badge/Digital_Twin-GitHub_Pages-6C63FF?logo=github)](https://himanshu-1629.github.io/green-corridor/)
 [![Platform](https://img.shields.io/badge/Platform-Web_%7C_Android-blue)](#)
 [![Status](https://img.shields.io/badge/Build-Passing-brightgreen)](#)
-[![Live Demo](https://img.shields.io/badge/Live-Demo_Available-success)](https://green-corridor-web.web.app)
 
-> **Live Web Console**: [https://green-corridor-web.web.app](https://green-corridor-web.web.app)  
+> ### 🌐 Live Production Deployments
+> | Subsystem | Domain & Architecture | Live Interactive Link |
+> | :--- | :--- | :--- |
+> | **Green Corridor (JeevanPath)** | End-to-End Emergency Logistics Platform (Hospital, Driver, Citizen & Admin) | 🚀 [**https://green-corridor-web.web.app**](https://green-corridor-web.web.app) |
+> | **CC-HLP Digital Twin** | Patented Cyber-Physical Signal Preemption & 3D Autonomous Vehicle Simulator | 🚦 [**https://himanshu-1629.github.io/green-corridor/**](https://himanshu-1629.github.io/green-corridor/) |
+>
 > **Android APK**: `build/app/outputs/flutter-apk/app-release.apk`
 
 ---
@@ -101,6 +106,13 @@ JeevanPath divides operations into dedicated interfaces optimized for specific u
   * The background isolate silently queries `Geolocator.getCurrentPosition()` and runs the path-check algorithm.
   * **If on that road**: Triggers a **High-Priority Heads-Up Notification** on the lock screen with emergency sirens and heavy vibration (`emergency_corridor_channel`).
   * **If off that road**: The phone returns to sleep silently with zero disturbance and zero battery drain.
+
+### 5. CC-HLP Chance-Constrained Preemption & Digital Twin (`Edge / Three.js WebGL`)
+* **Live Interactive 3D Simulator**: [https://himanshu-1629.github.io/green-corridor/](https://himanshu-1629.github.io/green-corridor/)
+* **Stochastic Invariant**: Inverts the exact discrete Poisson-Binomial distribution $\mathbb{P}(N_{\text{rem}} \le N_{\text{crit}}) \ge 1 - \varepsilon$ ($\varepsilon = 0.05$) to dynamically compute the latest safe preemption switch time ($T_{\text{lead}}$), preserving cross-street green and saving $\ge 4.5\text{s}$ per cycle.
+* **8-Input PyTorch Neural Yielding Model**: Evaluates real-time driver compliance probability $p_i$ based on deadline, adjacent gap, lognormal reaction delay, and C-V2X alert adoption.
+* **Patented Dual-Action Clearance Law**: Lead vehicles flush straight forward on green ($N_{\text{crit}}$), while upstream vehicles execute a Two-Stage Cooperative Zipper Merge (boundary nudge + diagonal sweep into courtesy gaps) to 100% vacate the corridor for zero EV braking episodes.
+* **Cyber-Physical Cabinet Interface**: Models the NEMA TS2 Type 1 / IRC:SP:41 roadside cabinet with real-time fault-injection toggles for 5.9 GHz C-V2X Radio, 800ms Hardware Watchdog, 153.6k TS2 BIU SDLC bus, and the MMU-16LE conflict interlock.
 
 ---
 
