@@ -13,7 +13,7 @@
 > | Subsystem | Domain & Architecture | Live Interactive Link |
 > | :--- | :--- | :--- |
 > | **Green Corridor (JeevanPath)** | End-to-End Emergency Logistics Platform (Hospital, Driver, Citizen & Admin) | 🚀 [**https://green-corridor-web.web.app**](https://green-corridor-web.web.app) |
-> | **CC-HLP Digital Twin** | Patented Cyber-Physical Signal Preemption & 3D Autonomous Vehicle Simulator | 🚦 [**https://himanshu-1629.github.io/green-corridor/**](https://himanshu-1629.github.io/green-corridor/) |
+> | **CC-HLP Digital Twin (Live)** | Patented Cyber-Physical Signal Preemption & 3D Autonomous Vehicle Simulator | 🚦 [**https://green-corridor-web.web.app/cchlp/**](https://green-corridor-web.web.app/cchlp/)<br>*(Mirror: https://himanshu-1629.github.io/green-corridor/)* |
 >
 > **Android APK**: `build/app/outputs/flutter-apk/app-release.apk`
 
