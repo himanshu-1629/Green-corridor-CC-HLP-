@@ -13,7 +13,7 @@
 > ### 🌐 Live Production Deployments
 > | Subsystem | Domain & Architecture | Live Interactive Link |
 > | :--- | :--- | :--- |
-> | **Green Corridor (JeevanPath)** | Production Multi-Portal Emergency Logistics System (Hospital, Ambulance, Traffic Police & Citizens) | 🚀 [**https://green-corridor-web.web.app**](https://green-corridor-web.web.app) |
+> | **Green Corridor** | Production Multi-Portal Emergency Logistics System (Hospital, Ambulance, Traffic Police & Citizens) | 🚀 [**https://green-corridor-web.web.app**](https://green-corridor-web.web.app) |
 | **CC-HLP 3D Digital Twin** | Patented Cyber-Physical Signal Preemption Simulator with NEMA TS2 Cabinet Hardware Interlocks | 🚦 [**https://green-corridor-web.web.app/cchlp/**](https://green-corridor-web.web.app/cchlp/)<br>*(Mirror: [https://himanshu-1629.github.io/green-corridor/](https://himanshu-1629.github.io/green-corridor/))* |
 | **Executive Project Brief (1-Page Dossier)** | PDF Research Handout, Architecture Claims, and Audited Benchmark Table | 📄 [**View 1-Page PDF**](https://green-corridor-web.web.app/PROJECT_ONE_PAGER.pdf) • [Web View](https://green-corridor-web.web.app/one-pager.html) |
 | **SUMO TraCI Benchmark Suite** | 50-Seed Monte Carlo Microscopic Traffic Simulation with IDM Car-Following | 🔬 [**`/sumo_simulation`**](./sumo_simulation) *(Run: `python3 sumo_simulation/run_cchlp_traci.py`)* |
@@ -31,8 +31,8 @@ In emergency medical transfers and organ transit, rapid traffic clearance and re
 3. **Alert Fatigue from Mass Broadcasts**: Conventional broadcast systems (such as city-wide SMS alerts) spam millions of uninvolved citizens located miles away, causing public annoyance and indifference.
 4. **Fleet Asymmetry**: After delivering an organ at a recipient hospital, ambulances are often marked "Available" immediately while stuck miles away from their home base, causing acute fleet imbalances.
 
-### The JeevanPath Solution:
-**JeevanPath** is a full-stack, real-time emergency transit infrastructure that bridges **Donor Hospitals**, **Receiving Trauma Bays**, **Ambulance Drivers**, and **Nearby Citizens**:
+### The Green Corridor Solution:
+**Green Corridor** is a full-stack, real-time emergency transit infrastructure that bridges **Donor Hospitals**, **Receiving Trauma Bays**, **Ambulance Drivers**, and **Nearby Citizens**:
 * Coordinates transit routes and surgical teams with real-time ETA countdowns.
 * Features a high-precision **3D Cockpit** for drivers bound to real hardware GPS.
 * Implements **Hyper-Localized Path-Gated Geofencing** that alerts **only** motorists physically driving in the path ahead of the ambulance.
@@ -43,7 +43,7 @@ In emergency medical transfers and organ transit, rapid traffic clearance and re
 
 ## 🏛️ 2. System Architecture & Ecosystem
 
-JeevanPath divides operations into dedicated interfaces optimized for specific user personas:
+Green Corridor divides operations into dedicated interfaces optimized for specific user personas:
 
 ```
                             ┌────────────────────────────────────────┐

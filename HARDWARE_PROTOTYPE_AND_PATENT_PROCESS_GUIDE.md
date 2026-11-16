@@ -1,4 +1,4 @@
-# GREEN CORRIDOR (JEEVANPATH) & CC-HLP
+# GREEN CORRIDOR (GREEN CORRIDOR) & CC-HLP
 ## Complete Master Guide: Hardware Prototype Implementation & Patent Filing Process
 
 ---
