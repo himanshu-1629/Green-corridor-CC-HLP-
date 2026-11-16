@@ -14,7 +14,7 @@
 > | Subsystem | Domain & Architecture | Live Interactive Link |
 > | :--- | :--- | :--- |
 > | **Green Corridor Platform** | Production Multi-Portal Emergency Logistics System (Hospital, Driver, Police & Citizens) | 🚀 [**https://green-corridor-web.web.app**](https://green-corridor-web.web.app) |
-> | **CC-HLP 3D Digital Twin** | Patented Cyber-Physical Signal Preemption Simulator with NEMA TS2 Cabinet Hardware Interlocks | 🚦 [**https://green-corridor-web.web.app/cchlp/**](https://green-corridor-web.web.app/cchlp/)<br>*(Mirror: [https://himanshu-1629.github.io/green-corridor/](https://himanshu-1629.github.io/green-corridor/))* |
+> | **CC-HLP 3D Digital Twin** | Patented Cyber-Physical Signal Preemption Simulator with NEMA TS2 Cabinet Hardware Interlocks | 🚦 [**https://green-corridor-web.web.app/cchlp/**](https://green-corridor-web.web.app/cchlp/)<br>*(Mirror: [https://himanshu-1629.github.io/Green-corridor-CC-HLP-/](https://himanshu-1629.github.io/Green-corridor-CC-HLP-/))* |
 > | **Executive Project Brief (1-Page Dossier)** | PDF Research Handout, Architecture Claims, and Audited Benchmark Table | 📄 [**View 1-Page PDF**](https://green-corridor-web.web.app/PROJECT_ONE_PAGER.pdf) • [Web View](https://green-corridor-web.web.app/one-pager.html) |
 > | **SUMO TraCI Benchmark Suite** | 50-Seed Monte Carlo Microscopic Traffic Simulation with IDM Car-Following | 🔬 [**`/sumo_simulation`**](./sumo_simulation) *(Run: `python3 sumo_simulation/run_cchlp_traci.py`)* |
 >
@@ -128,7 +128,8 @@ Conventional Emergency Vehicle Preemption (EVP) systems operate on static distan
 ### 4.2 The Mathematical Invariant & Chance Constraints
 CC-HLP formulates the preemption decision as a **Chance-Constrained Stochastic Optimization Problem**:
 
-$$\mathbb{P}\left(T_{	ext{trans}} + T_{	ext{clear}}(N_{	ext{crit}}) \le 	ext{ETA}_{	ext{EV}}ight) \ge 1 - \epsilon$$
+$$\mathbb{P}\left(T_{	ext{trans}} + T_{	ext{clear}}(N_{	ext{crit}}) \le 	ext{ETA}_{	ext{EV}}
+ight) \ge 1 - \epsilon$$
 
 Where:
 * $T_{	ext{trans}} = T_{	ext{yellow}} + T_{	ext{all\_red}}$ is the minimum safety clearance interval ($5.5\,	ext{s}$).
@@ -142,7 +143,9 @@ The stochastic invariant is solved in real time using a **Poisson-Binomial chara
 ### 4.3 The Patented Dual-Action Clearing Law
 Instead of forcing all queued cars to move forward or hoping they pull over onto curbs, CC-HLP dynamically partitions the queue into two distinct, deterministic subsets based on the critical threshold $N_{	ext{crit}}$:
 
-$$N_{	ext{crit}} = \left\lfloor rac{	ext{ETA}_{	ext{EV}} - T_{	ext{trans}} - T_{	ext{lost}}}{h} ightfloor$$
+$$N_{	ext{crit}} = \left\lfloor rac{	ext{ETA}_{	ext{EV}} - T_{	ext{trans}} - T_{	ext{lost}}}{h} 
+ight
+floor$$
 
 ```
                                       INTERSECTION STOPLINE
@@ -166,7 +169,8 @@ Every civilian vehicle in the digital twin executes a continuous, collision-awar
 
 * **Continuous Lateral Trajectory**:
   Lane changes follow a quintic smoothstep profile:
-  $$y(t) = y_1 + \left(10 s^3 - 15 s^4 + 6 s^5ight)(y_2 - y_1), \quad s \in [0, 1]$$
+  $$y(t) = y_1 + \left(10 s^3 - 15 s^4 + 6 s^5
+ight)(y_2 - y_1), \quad s \in [0, 1]$$
   Vehicles visibly leave the Lane 1 center, move diagonally across the lane boundary, and align with Lane 2 without snapping or teleporting.
 * **Cooperative Courtesy Speed Easing**:
   When a Lane 1 vehicle attempts to merge, the adjacent vehicle in Lane 2 detects the lateral intention. If safe, the Lane 2 vehicle gently eases off the accelerator or applies bounded deceleration ($-1.2\,	ext{m/s}^2$) to enlarge the insertion gap.
@@ -275,7 +279,7 @@ green_corridor/
 ### 1. Run the Green Corridor Flutter App
 ```bash
 # Clone the repository
-git clone https://github.com/himanshu-1629/green-corridor.git
+git clone https://github.com/himanshu-1629/Green-corridor-CC-HLP-.git
 cd green_corridor
 
 # Install Flutter dependencies
@@ -321,7 +325,7 @@ For academic reviews, project presentations, and internship applications, a sing
 
 * **Direct PDF Handout**: [**`PROJECT_ONE_PAGER.pdf`**](https://green-corridor-web.web.app/PROJECT_ONE_PAGER.pdf)
 * **Interactive Web Dossier**: [https://green-corridor-web.web.app/one-pager.html](https://green-corridor-web.web.app/one-pager.html)
-* **GitHub Repository**: [https://github.com/himanshu-1629/green-corridor](https://github.com/himanshu-1629/green-corridor)
+* **GitHub Repository**: [https://github.com/himanshu-1629/Green-corridor-CC-HLP-](https://github.com/himanshu-1629/Green-corridor-CC-HLP-)
 
 ---
 
