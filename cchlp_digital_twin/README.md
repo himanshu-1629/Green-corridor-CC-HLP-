@@ -19,7 +19,7 @@ This automatically finds an available port (e.g. `http://localhost:8090`) and op
 
 #### 1. Interactive 3D Roadside Hardware Cabinet (NEMA TS2 Type 1 / IRC:SP:41)
 * **Location in 3D**: At the corner of the intersection on the concrete pad.
-* **Interaction**: Click on the roadside cabinet in 3D or click the **"⚡ Hardware Cabinet"** camera button:
+* **Interaction**: Click on the roadside cabinet in 3D or click the **"Hardware Cabinet"** camera button:
   * The camera smoothly swoops and zooms right up to the cabinet face.
   * The dual aluminum doors swing open 110° in 3D on physical hinges.
   * Inside the 19-inch equipment rack, all 6 patent modules are illuminated with live pulsing LEDs:
@@ -30,7 +30,7 @@ This automatically finds an available port (e.g. `http://localhost:8090`) and op
     5. **Hardware Latency Watchdog Module**: 800ms heartbeat circuit (*Claim 12*).
     6. **C-V2X / DSRC & GNSS Receiver**: Decodes ambulance GPS vectors and civilian CAM messages (*Claim 2*).
   * Clicking any module opens its patent claims card and engineering specs.
-  * Clicking **"✕"** or **"🛰️ Drone View"** swings the doors shut and glides back to the wide aerial perspective.
+  * Clicking **"Close"** or **"️ Drone View"** swings the doors shut and glides back to the wide aerial perspective.
 
 #### 2. Dynamic 3D Traffic Queuing
 * **Queue Slider ($N \in [3, 18]$)**: Dynamically spawns or removes realistic 3D vehicles (sedans, SUVs, hatchbacks) queued behind the stopline.
@@ -38,7 +38,7 @@ This automatically finds an available port (e.g. `http://localhost:8090`) and op
 * **Driver Attention Profile**: Toggles reaction time distributions between *Alerted ($\mu=1.4\text{s}$)*, *Normal ($\mu=1.7\text{s}$)*, and *Distracted ($\mu=2.1\text{s}$)*.
 
 #### 3. The "AI Thinking Mind" Experience
-* When you click **"🚀 DISPATCH AMBULANCE & RUN AI"**:
+* When you click **" DISPATCH AMBULANCE & RUN AI"**:
   1. **Neural Feature Extraction**: The AI scans every vehicle in the 3D queue (distance, gap in adjacent lane, reaction latency).
   2. **Neural Yielding Propensity Model**: Neural network diagram illuminates and computes individual compliance probabilities $p_i$ for every vehicle.
   3. **Patented Poisson-Binomial Quantile Engine**: Runs the exact $O(N^2)$ recursive discrete convolution live in JavaScript, plots the probability distribution curve $P(N_{\text{rem}} = k)$ on a real-time canvas chart, and inverts the quantile for risk tolerance $\varepsilon = 0.05$.
