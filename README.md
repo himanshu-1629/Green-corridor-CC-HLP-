@@ -5,17 +5,20 @@
 [![Dart](https://img.shields.io/badge/Dart-3.x-0175C2?logo=dart)](https://dart.dev)
 [![Supabase](https://img.shields.io/badge/Supabase-Realtime_DB-3ECF8E?logo=supabase)](https://supabase.com)
 [![Firebase](https://img.shields.io/badge/Firebase-Hosting_%26_FCM-FFCA28?logo=firebase)](https://firebase.google.com)
-[![CC-HLP Digital Twin](https://img.shields.io/badge/Digital_Twin-GitHub_Pages-6C63FF?logo=github)](https://himanshu-1629.github.io/green-corridor/)
+[![CC-HLP Digital Twin](https://img.shields.io/badge/Digital_Twin-Live_3D_Sim-6C63FF?logo=three.js)](https://green-corridor-web.web.app/cchlp/)
+[![SUMO](https://img.shields.io/badge/SUMO-TraCI_Microscopic-007ACC?logo=eclipse)](https://eclipse.dev/sumo/)
 [![Platform](https://img.shields.io/badge/Platform-Web_%7C_Android-blue)](#)
 [![Status](https://img.shields.io/badge/Build-Passing-brightgreen)](#)
 
 > ### 🌐 Live Production Deployments
 > | Subsystem | Domain & Architecture | Live Interactive Link |
 > | :--- | :--- | :--- |
-> | **Green Corridor (JeevanPath)** | End-to-End Emergency Logistics Platform (Hospital, Driver, Citizen & Admin) | 🚀 [**https://green-corridor-web.web.app**](https://green-corridor-web.web.app) |
-> | **CC-HLP Digital Twin (Live)** | Patented Cyber-Physical Signal Preemption & 3D Autonomous Vehicle Simulator | 🚦 [**https://green-corridor-web.web.app/cchlp/**](https://green-corridor-web.web.app/cchlp/)<br>*(Mirror: https://himanshu-1629.github.io/green-corridor/)* |
->
-> **Android APK**: `build/app/outputs/flutter-apk/app-release.apk`
+> | **Green Corridor (JeevanPath)** | Production Multi-Portal Emergency Logistics System (Hospital, Ambulance, Traffic Police & Citizens) | 🚀 [**https://green-corridor-web.web.app**](https://green-corridor-web.web.app) |
+| **CC-HLP 3D Digital Twin** | Patented Cyber-Physical Signal Preemption Simulator with NEMA TS2 Cabinet Hardware Interlocks | 🚦 [**https://green-corridor-web.web.app/cchlp/**](https://green-corridor-web.web.app/cchlp/)<br>*(Mirror: [https://himanshu-1629.github.io/green-corridor/](https://himanshu-1629.github.io/green-corridor/))* |
+| **Executive Project Brief (1-Page Dossier)** | PDF Research Handout, Architecture Claims, and Audited Benchmark Table | 📄 [**View 1-Page PDF**](https://green-corridor-web.web.app/PROJECT_ONE_PAGER.pdf) • [Web View](https://green-corridor-web.web.app/one-pager.html) |
+| **SUMO TraCI Benchmark Suite** | 50-Seed Monte Carlo Microscopic Traffic Simulation with IDM Car-Following | 🔬 [**`/sumo_simulation`**](./sumo_simulation) *(Run: `python3 sumo_simulation/run_cchlp_traci.py`)* |
+
+**Android Release Package**: `build/app/outputs/flutter-apk/app-release.apk` (available directly on the portal)
 
 ---
 

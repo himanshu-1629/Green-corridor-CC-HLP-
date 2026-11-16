@@ -49,3 +49,7 @@ app.*.map.json
 .vercel
 service-accounts/
 *service-account*.json
+
+# Firebase & Supabase local cache
+.firebase/
+supabase/.temp/
